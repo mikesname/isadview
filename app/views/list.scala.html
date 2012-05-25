@@ -1,0 +1,41 @@
+@(currentPage: solr.models.Page[solr.models.Description], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
+
+@main("Descriptions") {
+    
+<div class="container-fluid">
+    <form id="search-form" method="get">
+        <div class="row-fluid">
+            <div class="span3 columns">
+                <div class="search-sidebar">
+                    <div class="search-sidebar-heading">
+                    </div>                        
+                        <h2>@Messages("Search")</h2>
+
+                        <!-- facets go here -->
+                             &nbsp;
+                </div>
+            </div>
+            <div class="span9 columns">
+                <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
+                <input type="submit" value="Search">
+                <!-- facets go here -->
+                @* include "_selected_facets.html" *@
+
+                <h3 id="result-summary"><!-- TODO: Summary --></h3>
+                @if(currentPage.items) {
+                    <div class="result-list">
+                        @currentPage.items.map{result =>
+                            @common.searchResult(result)
+                        }
+                    @common.paginate(currentPage.items, currentPage, currentOrderBy, currentFilter)
+                    </div>
+                } else {
+                    &nbsp;
+                }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>    
+}
+

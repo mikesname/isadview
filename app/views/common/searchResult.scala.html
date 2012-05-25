@@ -1,0 +1,25 @@
+@(result: solr.models.Description)
+
+<div class="search-result@if(result.publication_status == 0) { draft }">
+    <h4>@result.name</h4>
+    @if(result.other_names.nonEmpty) {
+        <h5 class="alternate-names">@result.other_names.mkString(", ")</h5>
+    }
+    <p>
+        @if(result.publication_status == 0) {
+            <span class="label">@Messages("Draft")</span>
+        }
+        @{result.django_ct match {
+        case "portal.repository" => { 
+            result.asInstanceOf[solr.models.Repository].description.slice(0, 200)
+        }
+        case "portal.authority" => {  
+            result.asInstanceOf[solr.models.Authority].history.slice(0, 200)
+        }
+        case "portal.collection" => { 
+            result.asInstanceOf[solr.models.Collection].description.slice(0, 200)
+        }
+        }}
+    </p>
+</div>
+

@@ -1,0 +1,8 @@
+@(messages: List[Map[String,String]] = Nil)
+
+@messages.map { message =>
+    <div class="alert fade in @if(message.contains("tags")) { alert-@message.getOrElse("tags", "") }">
+        <a class="close" href="#" data-dismiss="alert">&times;</a>
+        @message.getOrElse("value", "")
+    </div>
+}

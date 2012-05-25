@@ -1,0 +1,87 @@
+
+@(
+title: String)(
+content: Html = Html(""),
+extra_style: Html = Html(""),
+extra_script: Html = Html(""),
+extra_head: Html = Html(""),
+body_class: String = "",
+body_id: String = "",
+body: Html = Html(""),
+extra_body: Html = Html(""),
+footer: Html = Html("")
+)
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+    <head>
+        <meta charset="utf-8" />
+        <title>@title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- HTML5 shim, for IE6-8 support of HTML elements -->
+        <!--[if lt IE 9]>
+            <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <link href="@routes.Assets.at("bootstrap/css/bootstrap.css")" rel="stylesheet">
+        <link href="@routes.Assets.at("bootstrap/css/bootstrap-responsive.css")" rel="stylesheet">
+        <link href="@routes.Assets.at("stylesheets/theme.css")" rel="stylesheet">
+        @extra_style
+        
+        <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")"></script>
+        <script src="@routes.Assets.at("javascripts/jquery.form.js")"></script>
+        <script src="@routes.Assets.at("bootstrap/js/bootstrap.js")"></script>
+        @extra_script
+        @extra_head
+    </head>
+    <body class="@body_class" id="@body_id">
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="@routes.Application.index">EHRI Test Site</a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li id="tab_collections">
+                                <a href="@routes.Application.index">@Messages("Collections")</a>
+                            </li>
+                            <li id="tab_repositories">
+                                <a href="@routes.Application.index">@Messages("Repositories")</a>
+                            </li>
+                            <li id="tab_authorities">
+                                <a href="@routes.Application.index">@Messages("Authorities")</a>
+                            </li>
+                            <li id="tab_map">
+                                <a href="{% url map_search %}">@Messages("Map")</a>
+                            </li>
+                            @if(true) { @* user is authenticated *@
+                                <li id="tab_profile">
+                                    <a href="{% url profile_detail user.username %}">@Messages("Profile")</a>
+                                </li>
+                            }
+                        </ul>
+                        @common.accountBar()
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            @common.messages()
+            @content
+        </div>
+        <div id="footer">
+            <div class="inner">
+                <div class="container">
+                    @footer
+                </div>
+            </div>
+        </div>
+        @extra_body
+    </body>
+</html>
+
