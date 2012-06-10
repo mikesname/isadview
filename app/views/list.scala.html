@@ -1,4 +1,4 @@
-@(currentPage: solr.models.Page[solr.models.Description], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
+@(rtype: String, currentPage: solr.models.Page[solr.models.Description], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
 
 @main("Descriptions") {
     
@@ -27,7 +27,7 @@
                         @currentPage.items.map{result =>
                             @common.searchResult(result)
                         }
-                    @common.paginate(currentPage.items, currentPage, currentOrderBy, currentFilter)
+                    @common.paginate(rtype, currentPage.items, currentPage, currentOrderBy, currentFilter)
                     </div>
                 } else {
                     &nbsp;

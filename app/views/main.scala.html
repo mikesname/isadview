@@ -48,13 +48,13 @@ footer: Html = Html("")
                     <div class="nav-collapse">
                         <ul class="nav">
                             <li id="tab_collections">
-                                <a href="@routes.Application.index">@Messages("Collections")</a>
+                                <a href="@routes.Application.list(rtype="collection")">@Messages("Collections")</a>
                             </li>
                             <li id="tab_repositories">
-                                <a href="@routes.Application.index">@Messages("Repositories")</a>
+                                <a href="@routes.Application.list(rtype="repository")">@Messages("Repositories")</a>
                             </li>
                             <li id="tab_authorities">
-                                <a href="@routes.Application.index">@Messages("Authorities")</a>
+                                <a href="@routes.Application.list(rtype="authority")">@Messages("Authorities")</a>
                             </li>
                             <li id="tab_map">
                                 <a href="{% url map_search %}">@Messages("Map")</a>

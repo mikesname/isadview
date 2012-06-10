@@ -1,0 +1,5 @@
+@(rtype: String, node: org.neo4j.graphdb.Node)
+
+@main("Descriptions") {
+    <h1>@node.getProperty("name")</h1>
+}

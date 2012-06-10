@@ -13,12 +13,15 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
 
 
 object Description {
-  def list(page: Int = 0, pageSize: Int = 20, orderBy: Int = 1, query: String = "*:*"): Page[Description] = {
+  def list(index: Option[String] = None, page: Int = 0, pageSize: Int = 20, orderBy: Int = 1, query: String = "*:*"): Page[Description] = {
     val offset = page * pageSize
-
+    var squery = index match {
+      case Some(x) => "django_ct:portal." + x
+      case None => "*:*"
+    }
 
     val client = Solr.httpServer(new java.net.URL("http://localhost:8983/solr")).newClient
-    val req = new QueryRequest(query = Query(query))
+    val req = new QueryRequest(query = Query(squery))
     req.setStartRow(request.query.StartRow(offset))
     req.setMaximumRowsReturned(request.query.MaximumRowsReturned(pageSize))
 
@@ -46,6 +49,7 @@ abstract trait Description {
   var publication_date: String
   var publication_status: Int
 
+  def index: String = django_ct.split("\\.")(1)
 }
 
 case class Repository(
