@@ -2,6 +2,7 @@ package solr.models
 
 import com.github.seratch.scalikesolr._
 import com.github.seratch.scalikesolr.request.query.Query
+import com.github.seratch.scalikesolr.request.query.facet
 
 /**
  * Helper for pagination.
@@ -11,9 +12,50 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
 
+trait FClass
+
+/**
+ * Encapulates rendering a facet to the response. Transforms
+ * various Solr-internal values into i18n and human-readable ones.
+ *
+ * @param key     the name of the Solr field being faceted on
+ * @param name    the 'pretty' human name of the Solr field
+ * @param param   the name of the HTTP param used to apply this facet
+ * @param render  a function (String => String) used to transform the
+ *                facet values into human-readable ones, using, for
+ *                example, i18n lookups.
+ */
+
+case class FacetClass(
+  key: String,
+  name: String,
+  param: String,
+  render: (String) => String = s=>s) extends FClass
+{
+
+}
+
+
+/**
+ * Encapsulates a single facet.
+ *
+ * @param klass   the `FacetClass` to which this facet belongs.
+ * @param value   the value of this facet
+ * @param count   the number of objects to which this facet applies
+ * @param applied whether or not this facet is activated in the response
+ * @param desc    a more verbose description of this facet value
+ */
+case class Facet(klass: FClass, value: String, count: Long, applied: Boolean = false, desc: String = "") {
+
+}
+
+class FacetProcessor(facets: response.query.Facet) {
+  
+}
+
 
 object Description {
-  def list(index: Option[String] = None, page: Int = 0, pageSize: Int = 20, orderBy: Int = 1, query: String = "*:*"): Page[Description] = {
+  def list(index: Option[String] = None, page: Int = 0, pageSize: Int = 20, orderBy: Int = 1, query: String = ""): Page[Description] = {
     val offset = page * pageSize
     var squery = index match {
       case Some(x) => "django_ct:portal." + x
@@ -21,7 +63,12 @@ object Description {
     }
 
     val client = Solr.httpServer(new java.net.URL("http://localhost:8983/solr")).newClient
-    val req = new QueryRequest(query = Query(squery))
+    val req = new QueryRequest(query=Query(squery))
+    req.facet = new facet.FacetParams(
+      enabled=true, 
+      params=List(new facet.FacetParam(facet.Param("facet.field"), facet.Value("django_ct")))
+    )
+
     req.setStartRow(request.query.StartRow(offset))
     req.setMaximumRowsReturned(request.query.MaximumRowsReturned(pageSize))
 
