@@ -30,6 +30,7 @@ trait FClass {
   def sortedByName: List[Facet] = {
     filtered.sortWith((a, b) => a.pretty < b.pretty)
   }
+  def asParams: List[facet.FacetParam]
 }
 
 /**
@@ -56,8 +57,50 @@ case class FacetClass(
   def addFacet(f: Facet) = {
     this.copy(facets = facets ::: List(f))
   }
+  def asParams: List[facet.FacetParam] = {
+    List(new facet.FacetParam(
+      facet.Param(fieldType),
+      facet.Value(key)
+    ))      
+  }
 }
 
+case class QueryFacetClass(
+  override val key: String,
+  override val name: String,
+  override val param: String,
+  override val render: (String) => String = s=>s,
+  override val facets: List[Facet] = Nil,
+  val points: List[String] = Nil
+) extends FClass {
+  override val fieldType: String = "facet.query"
+  def addFacet(f: Facet) = {
+    this.copy(facets = facets ::: List(f))
+  }
+  def asParams: List[facet.FacetParam] = {
+    points.map(p =>
+      new facet.FacetParam(
+        facet.Param(fieldType),
+        facet.Value("%s:%s".format(key, p))
+      )
+    )      
+  }
+}
+
+
+
+trait Facet {
+  val klass: FClass
+  val value: String
+  val count: Long
+  val applied: Boolean
+  val desc: Option[String]
+  
+  def pretty: String = desc match {
+    case Some(value) => klass.render(value)
+    case None => klass.render(value)
+  }
+}
 
 /**
  * Encapsulates a single facet.
@@ -68,12 +111,35 @@ case class FacetClass(
  * @param applied whether or not this facet is activated in the response
  * @param desc    a more verbose description of this facet value
  */
-case class Facet(klass: FClass, value: String, count: Long, applied: Boolean = false, desc: Option[String] = None) {
-  def pretty: String = desc match {
-    case Some(value) => klass.render(value)
-    case None => klass.render(value)
-  }
+case class FieldFacet(
+  override val klass: FClass,
+  override val value: String, 
+  override val count: Long,
+  override val applied: Boolean = false,
+  override val desc: Option[String] = None
+) extends Facet {
 }
+
+case class QueryFacet(
+  override val klass: FClass,
+  override val value: String, 
+  override val count: Long,
+  override val applied: Boolean = false,
+  override val desc: Option[String] = None
+) extends Facet {
+
+}
+
+case class DateFacet(
+  override val klass: FClass,
+  override val value: String, 
+  override val count: Long,
+  override val applied: Boolean = false,
+  override val desc: Option[String] = None
+) extends Facet {
+
+}
+
 
 
 object FacetData {
@@ -93,6 +159,15 @@ object FacetData {
         "django_ct",
         "Resource Type",
         "res"
+      ),
+      QueryFacetClass(
+        "years",
+        "Date",
+        "date",
+        points=List(
+          "[* TO 1939]",
+          "[1939 TO 1940]"
+        )
       )
     ),
     "repository" -> List(
@@ -106,12 +181,10 @@ object FacetData {
 
   def constrain(request: QueryRequest, rtype: String, appliedFacets: Map[String,Seq[String]]): Unit = {
     facets.get(rtype).map(flist => {
-      request.setFacet(new facet.FacetParams(enabled=true, params=flist.map(fclass => {
-        new facet.FacetParam(
-          facet.Param(fclass.fieldType),
-          facet.Value(fclass.key)
-        )      
-      })))
+      request.setFacet(new facet.FacetParams(
+        enabled=true, 
+        params=flist.map(_.asParams).flatten
+      ))
 
       // filter the results by applied facets
       // NB: Scalikesolr is a bit dim WRT filter queries: you can
@@ -121,28 +194,35 @@ object FacetData {
         appliedFacets.get(fclass.param).map(st =>
             st.map("%s:%s".format(fclass.key, _))
         ).getOrElse(Nil)
-      }).flatten.mkString("+")
+      }).flatten.mkString(" +") // NB: Space before + is important
       request.setFilterQuery(FilterQuery(fqstring))
     })
   }
 
-  def extract(response: QueryResponse, rtype: String, appliedFacets: Map[String,Seq[String]]): List[FClass] = {
+  def extractFrom[F <: Facet](keydocs: Map[String, SolrDocument], flist: List[FClass],
+      appliedFacets: Map[String,Seq[String]], factory: (FClass, String, Long, Boolean, Option[String] 
+        ) => F): List[FClass] = {
     // TODO: Find a less horrible way of doing this...
+    var fclasses = List[FClass]()
+    keydocs.foreach { case (key, solrdoc) => {
+      flist.find(_.key == key.split(":").head).map(fc => {
+        var ffc = fc
+        solrdoc.getMap.foreach { case (fval, num) => {
+          val applied = appliedFacets.get(fc.param).map(_.map(_.replace(fc.key + ":", "")).contains(fval)).getOrElse(false)
+          ffc = ffc.addFacet(
+            factory(fc, fval, num.toLongOrElse(0), applied, None)
+          )
+        }}
+        fclasses = fclasses ::: List(ffc)
+      })
+    }}
+    fclasses
+  }
+
+  def extract(response: QueryResponse, rtype: String, appliedFacets: Map[String,Seq[String]]): List[FClass] = {
     facets.get(rtype).map(flist => {
-      var fclasses = List[FClass]()
-      response.facet.facetFields.foreach { case (key, solrdoc) => {
-        flist.find(_.key == key).map(fc => {
-          var ffc = fc
-          solrdoc.getMap.foreach { case (fval, num) => {
-            val applied = appliedFacets.get(fc.param).map(_.contains(fval)).getOrElse(false)
-            ffc = ffc.addFacet(
-              Facet(klass=fc, value=fval, count=num.toLongOrElse(0), desc=None, applied=applied)
-            )
-          }}
-          fclasses = fclasses ::: List(ffc)
-        })
-      }}
-      fclasses
+      extractFrom(response.facet.facetFields, flist, appliedFacets, FieldFacet.apply) ++
+      extractFrom(response.facet.facetQueries, flist, appliedFacets, QueryFacet.apply)
     }).getOrElse(Nil)
   }
 }
