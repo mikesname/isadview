@@ -1,4 +1,6 @@
-@(rtype: String, currentPage: solr.models.Page[solr.models.Description], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
+@(rtype: String, currentPage: solr.models.Page[solr.models.Description],
+currentOrderBy: Int, currentFilter: String
+)(implicit flash: play.api.mvc.Flash)
 
 @main("Descriptions") {
     
@@ -11,7 +13,20 @@
                     </div>                        
                         <h2>@Messages("Search")</h2>
 
-                        <!-- facets go here -->
+                        @currentPage.facets.map { fc =>
+                            @if(fc.facets.length > 0) {
+                                <h4>@Messages(fc.name)</h4>
+                                <ul>
+                                @fc.facets.map { facet =>
+                                    @if(facet.applied) {
+                                        <li><a style="color:red" href="">@facet.pretty (@facet.count)</a></li>
+                                    } else {
+                                        <li><a href="">@facet.pretty (@facet.count)</a></li>
+                                    }
+                                }
+                                </ul>
+                            }
+                        }
                              &nbsp;
                 </div>
             </div>

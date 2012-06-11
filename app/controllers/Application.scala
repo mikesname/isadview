@@ -20,8 +20,15 @@ object Application extends Controller with Neo4jWrapper with RestGraphDatabaseSe
   }
   
   def list(rtype: String, page: Int, orderBy: Int, filter:String) = Action { implicit request =>
-    Ok(views.html.list(rtype, Description.list(index=Some(rtype), page=page, pageSize=20, orderBy=orderBy, query=filter), 
-        currentOrderBy=orderBy, currentFilter=filter))
+    Ok(views.html.list(rtype, Description.list(
+        index=Some(rtype),
+        page=page,
+        pageSize=20,
+        orderBy=orderBy,
+        query=filter,
+        facets=request.queryString
+      ), currentOrderBy=orderBy, currentFilter=filter)
+    )
   }
 
   def detail(rtype: String, slug:String) = Action { implicit request =>
