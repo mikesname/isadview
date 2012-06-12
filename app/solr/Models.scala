@@ -10,28 +10,15 @@ import play.api.i18n
 /**
  * Helper for pagination.
  */
-case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long, facets: List[FClass]) {
+case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long, facets: List[FacetClass]) {
   lazy val prev = Option(page - 1).filter(_ >= 0)
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
 
-trait FClass {
-  val key: String
-  val name: String
-  val param: String
-  val fieldType: String
-  val render: (String) => String
-  def facets: List[Facet] = Nil
-  def filtered: List[Facet] = facets.filter(_.count > 0)
-  def sortedByCount: List[Facet] = {
-    filtered.sortWith((a, b) => a.count < b.count)
-  }
-  def addFacet(f: Facet): FClass
-  def sortedByName: List[Facet] = {
-    filtered.sortWith((a, b) => a.pretty < b.pretty)
-  }
-  def asParams: List[facet.FacetParam]
-}
+// Scala's enum-like Phantom types for defining
+// how facets are ordered
+case object OrderedByName extends Enumeration
+case object OrderedByCount extends Enumeration
 
 /**
  * Encapulates rendering a facet to the response. Transforms
@@ -43,25 +30,78 @@ trait FClass {
  * @param render  a function (String => String) used to transform the
  *                facet values into human-readable ones, using, for
  *                example, i18n lookups.
- * @oaram facets  a list of individual Facet values
+ * @param facets  a list of individual Facet values
  */
+sealed abstract class FacetClass (
+  val key: String,
+  val name: String,
+  val param: String,
+  val render: (String) => String = s => s,
+  private var facets: List[Facet] = Nil,
+  val sort: Enumeration = OrderedByCount
+)
+{
+  val fieldType: String
+  def count: Int = facets.length
+  def filtered: List[Facet] = facets.filter(_.count > 0)
+  def sortedByCount: List[Facet] = {
+    filtered.sortWith((a, b) => a.count < b.count)
+  }
+  def addFacet(f: Facet) = {
+    facets = facets ::: List(f)
+  }
+  def clearFacets(): Unit = facets = Nil
+  def sortedByName: List[Facet] = {
+    filtered.sortWith((a, b) => a.paramVal < b.paramVal)
+  }
+  def sorted: List[Facet] = sort match {
+    case OrderedByName => sortedByName
+    case OrderedByCount => sortedByCount
+    case _ => filtered
+  }
+  def asParams: List[facet.FacetParam]
+  def populateFromSolr(data: xml.Elem, current: Map[String,Seq[String]]): FacetClass
+  def pretty(f: Facet): String = f.humanVal match {
+    case Some(desc) => render(desc)
+    case None => render(f.paramVal)
+  }
 
-case class FacetClass(
+  // Utility method, shouldn't really be part
+  // of this class
+  def findNodesWithAttrValue(data: List[xml.Node], attr: String, name: String) = {
+    data.filter(n => (n \\ ("@" + attr)).text == name)
+  }
+}
+
+case class FieldFacetClass(
   override val key: String,
   override val name: String,
   override val param: String,
   override val render: (String) => String = s=>s,
-  override val facets: List[Facet] = Nil
-) extends FClass {
+  val facets: List[Facet] = Nil,
+  override val sort: Enumeration = OrderedByCount
+) extends FacetClass(key,name, param,render,facets,sort) {
   override val fieldType: String = "facet.field"
-  def addFacet(f: Facet) = {
-    this.copy(facets = facets ::: List(f))
-  }
   def asParams: List[facet.FacetParam] = {
     List(new facet.FacetParam(
       facet.Param(fieldType),
       facet.Value(key)
     ))      
+  }
+  override def populateFromSolr(data: xml.Elem, current: Map[String,Seq[String]]): FacetClass = {
+    clearFacets()
+    val applied = current.getOrElse(param, Seq[String]())
+    val nodes = data.descendant.filter(n => (n \ "@name").text == "facet_fields") 
+    if (nodes.length > 0) {
+      val my = nodes.head.descendant.filter(n => (n \ "@name").text == key)
+      my.head.descendant.foreach(n => {
+        val name = n \ "@name"
+        if (name.length > 0) {
+          addFacet(new Facet(name.text, name.text, None, n.text.toInt, applied.contains(name.text)))
+        }
+      })
+    }
+    this  
   }
 }
 
@@ -70,73 +110,50 @@ case class QueryFacetClass(
   override val name: String,
   override val param: String,
   override val render: (String) => String = s=>s,
-  override val facets: List[Facet] = Nil,
-  val points: List[String] = Nil
-) extends FClass {
+  facets: List[Facet] = Nil,
+  override val sort: Enumeration = OrderedByName
+) extends FacetClass(key,name,param,render,facets,sort) {
   override val fieldType: String = "facet.query"
-  def addFacet(f: Facet) = {
-    this.copy(facets = facets ::: List(f))
-  }
   def asParams: List[facet.FacetParam] = {
-    points.map(p =>
+    facets.map(p =>
       new facet.FacetParam(
         facet.Param(fieldType),
-        facet.Value("%s:%s".format(key, p))
+        facet.Value("%s:%s".format(key, p.solrVal))
       )
     )      
   }
-}
-
-
-
-trait Facet {
-  val klass: FClass
-  val value: String
-  val count: Long
-  val applied: Boolean
-  val desc: Option[String]
-  
-  def pretty: String = desc match {
-    case Some(value) => klass.render(value)
-    case None => klass.render(value)
+  override def populateFromSolr(data: xml.Elem, current: Map[String,Seq[String]]): FacetClass = {
+    val applied = current.getOrElse(param, Seq[String]())
+    facets.foreach(f => {
+      var nameval = "%s:%s".format(key, f.solrVal)
+      findNodesWithAttrValue(data.descendant, "name", nameval).text match {
+        case "" =>
+        case v => {
+          f.count = v.toInt
+          f.applied = applied.contains(f.paramVal)
+        }
+      }
+    })
+    this
   }
 }
 
 /**
  * Encapsulates a single facet.
  *
- * @param klass   the `FacetClass` to which this facet belongs.
- * @param value   the value of this facet
- * @param count   the number of objects to which this facet applies
- * @param applied whether or not this facet is activated in the response
- * @param desc    a more verbose description of this facet value
+ * @param solrVal   the value of this facet to Solr
+ * @param paramVal  the value as a web parameter
+ * @param humanVal  the human-readable value
+ * @param count     the number of objects to which this facet applies
+ * @param applied   whether or not this facet is activated in the response
  */
-case class FieldFacet(
-  override val klass: FClass,
-  override val value: String, 
-  override val count: Long,
-  override val applied: Boolean = false,
-  override val desc: Option[String] = None
-) extends Facet {
-}
-
-case class QueryFacet(
-  override val klass: FClass,
-  override val value: String, 
-  override val count: Long,
-  override val applied: Boolean = false,
-  override val desc: Option[String] = None
-) extends Facet {
-
-}
-
-case class DateFacet(
-  override val klass: FClass,
-  override val value: String, 
-  override val count: Long,
-  override val applied: Boolean = false,
-  override val desc: Option[String] = None
-) extends Facet {
+case class Facet(
+  val solrVal: String,
+  val paramVal: String,
+  val humanVal: Option[String] = None,
+  var count: Int = 0,
+  var applied: Boolean = false
+) {
 
 }
 
@@ -145,36 +162,50 @@ case class DateFacet(
 object FacetData {
   val facets = Map(
     "collection" -> List(
-      FacetClass(
-        "publication_status",
-        "Status",
-        "pub",
-        (s: String) => s match {
+      FieldFacetClass(
+        key="publication_status",
+        name="Status",
+        param="pub",
+        render=(s: String) => s match {
           case "0" => "Draft"
           case "1" => "Published"
           case _ => "Unknown"
         }
       ),
-      FacetClass(
-        "django_ct",
-        "Resource Type",
-        "res"
+      FieldFacetClass(
+        key="django_ct",
+        name="Resource Type",
+        param="res",
+        render=(s: String) => s match {
+          case "portal.repository" => "Repository"
+          case "portal.authority" => "Authority"
+          case "portal.collection" => "Collection"
+          case _ => "Unknown"
+        }
       ),
       QueryFacetClass(
-        "years",
-        "Date",
-        "date",
-        points=List(
-          "[* TO 1939]",
-          "[1939 TO 1940]"
+        key="years",
+        name="Date",
+        param="date",
+        facets=List(
+          Facet("[* TO 1939]", "_1939", Some("Up to 1939")),
+          Facet("[1940 TO 1941]", "1940-1941", Some("1940 to 1941")),
+          Facet("1941", "1941", Some("1941")),
+          Facet("1946", "1946", Some("1946"))
         )
       )
     ),
     "repository" -> List(
-      FacetClass(
-        "django_ct",
-        "Resource Type",
-        "res"
+      FieldFacetClass(
+        key="django_ct",
+        name="Resource Type",
+        param="res",
+        render=(s: String) => s match {
+          case "portal.repository" => "Repository"
+          case "portal.authority" => "Authority"
+          case "portal.collection" => "Collection"
+          case _ => "Unknown"
+        }
       )
     )
   )
@@ -191,38 +222,29 @@ object FacetData {
       // apparently only have one. So instead of adding multiple
       // fq clauses, we need to join them all with '+'
       val fqstring = flist.map(fclass => {
-        appliedFacets.get(fclass.param).map(st =>
-            st.map("%s:%s".format(fclass.key, _))
+        appliedFacets.get(fclass.param).map(paramVals =>
+          fclass match {
+            case fc: FieldFacetClass => {
+              paramVals.map("%s:%s".format(fc.key, _))
+            }
+            case fc: QueryFacetClass => {
+              fc.facets.flatMap(facet => {
+                if (paramVals.contains(facet.paramVal)) {
+                  List("%s:%s".format(fc.key, facet.solrVal))
+                } else Nil
+              })
+            }
+          }
         ).getOrElse(Nil)
       }).flatten.mkString(" +") // NB: Space before + is important
       request.setFilterQuery(FilterQuery(fqstring))
     })
   }
 
-  def extractFrom[F <: Facet](keydocs: Map[String, SolrDocument], flist: List[FClass],
-      appliedFacets: Map[String,Seq[String]], factory: (FClass, String, Long, Boolean, Option[String] 
-        ) => F): List[FClass] = {
-    // TODO: Find a less horrible way of doing this...
-    var fclasses = List[FClass]()
-    keydocs.foreach { case (key, solrdoc) => {
-      flist.find(_.key == key.split(":").head).map(fc => {
-        var ffc = fc
-        solrdoc.getMap.foreach { case (fval, num) => {
-          val applied = appliedFacets.get(fc.param).map(_.map(_.replace(fc.key + ":", "")).contains(fval)).getOrElse(false)
-          ffc = ffc.addFacet(
-            factory(fc, fval, num.toLongOrElse(0), applied, None)
-          )
-        }}
-        fclasses = fclasses ::: List(ffc)
-      })
-    }}
-    fclasses
-  }
-
-  def extract(response: QueryResponse, rtype: String, appliedFacets: Map[String,Seq[String]]): List[FClass] = {
+  def extract(response: QueryResponse, rtype: String, appliedFacets: Map[String,Seq[String]]): List[FacetClass] = {
+    val rawData = xml.XML.loadString(response.rawBody)
     facets.get(rtype).map(flist => {
-      extractFrom(response.facet.facetFields, flist, appliedFacets, FieldFacet.apply) ++
-      extractFrom(response.facet.facetQueries, flist, appliedFacets, QueryFacet.apply)
+      flist.map(_.populateFromSolr(rawData, appliedFacets))
     }).getOrElse(Nil)
   }
 }

@@ -10,15 +10,12 @@
             <span class="label">@Messages("Draft")</span>
         }
         @{result.django_ct match {
-        case "portal.repository" => { 
+        case "portal.repository" =>
             result.asInstanceOf[solr.models.Repository].description.slice(0, 200)
-        }
-        case "portal.authority" => {  
+        case "portal.authority" =>
             result.asInstanceOf[solr.models.Authority].history.slice(0, 200)
-        }
-        case "portal.collection" => { 
+        case "portal.collection" =>
             result.asInstanceOf[solr.models.Collection].description.slice(0, 200)
-        }
         }}
     </p>
 </div>

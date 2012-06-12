@@ -1,0 +1,211 @@
+a {
+    color: #6C003B;
+}
+
+a:hover {
+    color: #6C003B;
+}
+
+legend {
+    padding-top: 80px;
+}
+
+.search-sidebar-heading {
+    min-height: 50px;
+}
+
+.tag-list a, .selected-facet {
+    display: inline-block;
+    color: #3E6D8E;
+    border: 1px solid #3E6D8E;
+    border-radius: 2px;
+    background-color: #E0EAF1;
+    padding: 0.2em 0.4em;
+    margin-right: 0.2em;
+    margin-bottom: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.selected-facet-list {
+    margin-top: 0.4em;
+}
+
+.result-list {
+    margin-top: 0.4em;
+}
+
+.search-result {
+    padding: 3px;
+}
+
+.search-result.draft {
+    background-color: #FFFDFD;
+}
+
+.search-item-title, .search-item-date {
+    margin-right: 0.2em;
+}
+
+.search-result.draft h4 a.search-item-title {
+    font-weight: 100;
+}
+
+.tag-list a:hover {
+    text-decoration: none;
+    background-color: #D0D9E1;
+}
+
+.highlighted {
+    font-weight: bold;
+}
+
+.keywords {
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.keywords a {
+    color: #063;
+}
+
+.collection-repo a {
+    color: #777;
+    font-weight: lighter;
+}
+
+.repository-country a {
+    padding-left: 0.2em;
+    color: #777;
+    font-weight: lighter;
+}
+
+.remove-filter:hover {
+    background-color: #DDD;    
+}
+
+.selected-filter {
+    color: #3E6D8E;
+}
+
+.result-paginator {
+    text-align: center;
+    margin-top: 3em;
+}
+
+.more-facets {
+    font-weight: bold;
+}
+
+.facet-header {
+    color: #333;
+}
+
+.facet-header:hover {
+
+}
+
+.logo-placeholder {
+    background-image: url(../img/repository_placeholder.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    padding: 1em;
+    border-radius: 0.2em;
+}
+
+.slide-out-div {
+    z-index: 2000;
+}
+
+.slide-out-div .handle:hover, .slide-out-div.open .handle {
+    opacity: 1;
+}
+
+.slide-out-div .handle {
+    opacity: 0.6;
+}
+
+.slide-out-div.open #suggestion-form {
+    -webkit-box-shadow: 2px 2px 15px rgba(50, 50, 50, 0.3);
+    -moz-box-shadow:    2px 2px 15px rgba(50, 50, 50, 0.3);
+    box-shadow:         2px 2px 15px rgba(50, 50, 50, 0.3);
+}
+
+#suggestion-form .well {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 0px;
+}
+
+#suggestion-thanks {
+    margin: 10px;
+    box-shadow:         2px 2px 15px rgba(50, 50, 50, 0.3);
+}
+
+/* Don't mess up google map controls */
+
+#map_canvas img {
+    max-width: none;
+}
+
+.repo-marker {
+    background-color: green;
+}
+
+a.openid-button {
+    margin: 20px;
+}
+
+a.openid-button:hover {
+    text-decoration: none;
+}
+
+.openid-buttons {
+    padding: 20px 0;
+    vertical-align: middle;
+}
+
+.controls.stackedmulti input {
+    clear: left;
+}
+
+.controls input.confirmed.inlinemulti {
+    border-color: #fff;
+    box-shadow: 0px;
+}
+
+.controls .inline-proxy {
+    padding-top: 5px;
+    padding-left: 15px;
+    margin-bottom: 5px;
+    list-style-image: disc;
+}
+
+.controls .inline-proxy:hover {
+    background-image: url(../img/delete.png);
+    background-repeat: no-repeat;
+    background-position: 0px 10px;
+    cursor: default;
+}
+
+.alternate-names {
+    color: #777;
+    font-style: italic;
+}
+
+.object-version-comment {
+    font-size: 0.9em;
+    font-weight: lighter;
+}
+
+.object-current-version {
+    background-color: #FCF8E3;
+}
+
+.more-history {
+    margin-top: 0.4em;
+}
+
+.admin-actions li {
+    padding: 5px;    
+}
