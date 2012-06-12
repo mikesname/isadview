@@ -10,7 +10,7 @@ body_id: String = "",
 body: Html = Html(""),
 extra_body: Html = Html(""),
 footer: Html = Html("")
-)
+)(implicit request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">

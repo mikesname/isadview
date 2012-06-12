@@ -2,10 +2,44 @@ package solr.models
 
 import com.github.seratch.scalikesolr._
 import com.github.seratch.scalikesolr.response.QueryResponse
-import com.github.seratch.scalikesolr.request.query.{Query, FilterQuery}
+import com.github.seratch.scalikesolr.request.query.{Query, FilterQuery, QueryParserType}
 import com.github.seratch.scalikesolr.request.query.facet
 
 import play.api.i18n
+
+object Utils {
+
+  def joinQueryString(qs: Map[String, Seq[String]]): String = {
+    import java.net.URLEncoder
+    qs.map { case (key, vals) => {
+      vals.map(v => "%s=%s".format(key, URLEncoder.encode(v, "UTF-8")))    
+    }}.flatten.mkString("&")
+  }
+
+  def pathWithoutFacet(fc: FacetClass, f: Facet, path: String, qs: Map[String, Seq[String]]): String = {
+    List(path, joinQueryString(qs.map(qv => {
+      qv._1 match {
+        case fc.param => (qv._1, qv._2.filter(_!=f.paramVal))
+        case _ => qv
+      }
+    }))).filter(_!="").mkString("?")
+  }
+
+  def pathWithFacet(fc: FacetClass, f: Facet, path: String, qs: Map[String, Seq[String]]): String = {
+    path + "?" + joinQueryString(
+      if (qs.contains(fc.param)) {
+        qs.map(qv => {
+          qv._1 match {
+            case fc.param => (qv._1, qv._2.union(Seq(f.paramVal)).distinct)
+            case _ => qv
+          }
+        })
+      } else {
+        qs.updated(fc.param, Seq(f.paramVal))
+      }
+    )
+  }
+}
 
 /**
  * Helper for pagination.
@@ -185,6 +219,11 @@ object FacetData {
           Facet("1941", "1941", Some("1941")),
           Facet("1946", "1946", Some("1946"))
         )
+      ),
+      FieldFacetClass(
+        key="tags_exact",
+        name="Keywords",
+        param="tag"
       )
     ),
     "repository" -> List(
@@ -247,25 +286,34 @@ object Description {
     page: Int = 0,
     pageSize: Int = 20,
     orderBy: Int = 1,
+    field: String = "",
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
   ): Page[Description] = {
     val offset = page * pageSize
-    var squery = index match {
-      case Some(x) => "django_ct:portal." + x
-      case None => "*:*"
-    }
+
+    val queryString = "%s:%s".format(
+      if (field.trim == "") "*" else field,
+      if (query.trim == "") "*" else query)
 
     val client = Solr.httpServer(new java.net.URL("http://localhost:8983/solr")).newClient
-    val req = new QueryRequest(query=Query(squery))
+    val req = new QueryRequest(query=Query(queryString))
     req.setFacet(new facet.FacetParams(
       enabled=true, 
       params=List(new facet.FacetParam(facet.Param("facet.field"), facet.Value("django_ct")))
     ))
+    req.setQueryParserType(QueryParserType("edismax"))
 
     // Facet the request accordingly
     index.map(FacetData.constrain(req, _, facets))
+
+    // if we're using a specific index, constrain on that as well
+    var squery = index match {
+      case Some(rt) => req.setFilterQuery(
+          FilterQuery(req.filterQuery.fq + " +django_ct:portal." + rt))
+      case None => 
+    }
 
     // Setup start and number of objects returned
     req.setStartRow(request.query.StartRow(offset))

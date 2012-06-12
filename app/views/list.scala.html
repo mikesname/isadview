@@ -1,6 +1,8 @@
 @(rtype: String, currentPage: solr.models.Page[solr.models.Description],
 currentOrderBy: Int, currentFilter: String
-)(implicit flash: play.api.mvc.Flash)
+)(implicit request: RequestHeader)
+
+@import solr.models.Utils
 
 @main("Descriptions") {
     
@@ -12,22 +14,8 @@ currentOrderBy: Int, currentFilter: String
                     <div class="search-sidebar-heading">
                     </div>                        
                         <h2>@Messages("Search")</h2>
-
-                        @currentPage.facets.map { fc =>
-                            @if(fc.count > 0) {
-                                <h4>@Messages(fc.name)</h4>
-                                <ul>
-                                @fc.sorted.map { facet =>
-                                    @if(facet.applied) {
-                                        <li><a style="color:red" href="">@fc.pretty(facet) (@facet.count)</a></li>
-                                    } else {
-                                        <li><a href="">@fc.pretty(facet) (@facet.count)</a></li>
-                                    }
-                                }
-                                </ul>
-                            }
-                        }
-                             &nbsp;
+                        @common.facetList(request, currentPage.facets)
+                         &nbsp;
                 </div>
             </div>
             <div class="span9 columns">

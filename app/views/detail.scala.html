@@ -1,4 +1,4 @@
-@(rtype: String, node: org.neo4j.graphdb.Node)
+@(rtype: String, node: org.neo4j.graphdb.Node)(implicit request: RequestHeader)
 
 @main("Descriptions") {
     <h1>@node.getProperty("name")</h1>
