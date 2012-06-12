@@ -4,6 +4,8 @@ import com.github.seratch.scalikesolr._
 import com.github.seratch.scalikesolr.response.QueryResponse
 import com.github.seratch.scalikesolr.request.query.{Query, FilterQuery, QueryParserType}
 import com.github.seratch.scalikesolr.request.query.facet
+import com.github.seratch.scalikesolr.request.query.highlighting.{
+    IsPhraseHighlighterEnabled, HighlightingParams}
 
 import play.api.i18n
 
@@ -304,6 +306,9 @@ object Description {
       params=List(new facet.FacetParam(facet.Param("facet.field"), facet.Value("django_ct")))
     ))
     req.setQueryParserType(QueryParserType("edismax"))
+    req.setHighlighting(HighlightingParams(
+        enabled=true,
+        isPhraseHighlighterEnabled=IsPhraseHighlighterEnabled(true)))
 
     // Facet the request accordingly
     index.map(FacetData.constrain(req, _, facets))
