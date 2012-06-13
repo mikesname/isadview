@@ -17,6 +17,7 @@ currentOrderBy: Int, currentFilter: String
                 </div>
             </div>
             <div class="span9 columns">
+                <h2>@request.headers</h2>
                 <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
                 <input type="submit" value="Search">
                 <!-- facets go here -->

@@ -88,9 +88,13 @@ sealed abstract class FacetClass (
   
   def filtered: List[Facet] = facets.filter(_.count > 0)
   
+  def sortedByName = filtered.sortWith((a, b) => a.paramVal < b.paramVal)
+
+  def sortedByCount = filtered.sortWith((a, b) => b.count < a.count)
+
   def sorted: List[Facet] = sort match {
-    case OrderedByName => filtered.sortWith((a, b) => a.paramVal < b.paramVal) 
-    case OrderedByCount => filtered.sortWith((a, b) => b.count < a.count) 
+    case OrderedByName => sortedByName
+    case OrderedByCount => sortedByCount
     case _ => filtered
   }
   

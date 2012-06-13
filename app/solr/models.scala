@@ -8,7 +8,7 @@ import com.github.seratch.scalikesolr.request.query.highlighting.{
 
 import play.api.i18n
 
-import solr.facet.{FacetData,FacetClass,FieldFacetClass,QueryFacetClass}
+import solr.facet.{FacetData,FacetClass,FieldFacetClass,QueryFacetClass,Facet}
 import com.github.seratch.scalikesolr.request.query.facet.{FacetParams,FacetParam,Param,Value}
 
 /**
@@ -57,21 +57,9 @@ object SolrHelper {
       flist.map(_.populateFromSolr(rawData, appliedFacets))
     }).getOrElse(Nil)
   }
-}
 
-
-object Description {
-  def list(
-    index: Option[String] = None,
-    page: Int = 0,
-    pageSize: Int = 20,
-    orderBy: Int = 1,
-    field: String = "",
-    query: String = "",
-    facets: Map[String, Seq[String]] = Map()
-  
-  ): Page[Description] = {
-    val offset = page * pageSize
+  def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: Int,
+        field: String, query: String, facets: Map[String, Seq[String]]): Tuple2[QueryResponse, List[FacetClass]] = {
 
     val queryString = "%s:%s".format(
       if (field.trim == "") "*" else field,
@@ -107,17 +95,67 @@ object Description {
 
     // extract the useful classes from the response
     val fclasses = index.map(SolrHelper.extract(response, _, facets)).getOrElse(Nil)
+    (response, fclasses)
+  }       
+}
+
+
+object Description {
+  def list(
+    index: Option[String] = None,
+    page: Int = 0,
+    pageSize: Int = 20,
+    orderBy: Int = 1,
+    field: String = "",
+    query: String = "",
+    facets: Map[String, Seq[String]] = Map()
+  
+  ): Page[Description] = {
+    val offset = page * pageSize
+
+    val(resp, fclasses) = SolrHelper.buildQuery(
+          index, offset, pageSize, orderBy, field, query, facets)
 
     // We only care about documents with the following content types,
     // so use a flatMap to extract them into the correct classes
-    Page(response.response.documents.flatMap(d => {
+    Page(resp.response.documents.flatMap(d => {
       d.get("django_ct").toString match {
         case "portal.repository" => List(d.bind(classOf[Repository]))
         case "portal.collection" => List(d.bind(classOf[Collection]))
         case "portal.authority" => List(d.bind(classOf[Authority]))
         case _ => Nil
       }
-    }), page, offset, response.response.numFound, fclasses)
+    }), page, offset, resp.response.numFound, fclasses)
+  }
+  
+  def facet(
+    facet: String,
+    index: Option[String] = None,
+    page: Int = 0,
+    pageSize: Int = 20,
+    sort: String = "name",
+    field: String = "",
+    query: String = "",
+    facets: Map[String, Seq[String]] = Map()
+  
+  ): Tuple2[FacetClass, List[Facet]] = {
+    val offset = page * pageSize
+
+    // create a response returning only 1 document - we don't
+    // actually care about the documents, so even this is
+    // not strictly necessary... we also don't care about the
+    // ordering.
+    val (resp, fclasses) = SolrHelper.buildQuery(
+          index=index, offset=0, pageSize=1, orderBy=0,
+          field=field, query=query, facets=facets)
+    
+    val fclass = fclasses.find(_.param==facet).getOrElse(
+        throw new Exception("Unknown facet: " + facet))
+    val flist = sort match {
+      case "name" => fclass.sortedByName.slice(offset, pageSize)
+      case _ => fclass.sortedByCount.slice(offset, pageSize)
+    }
+    (fclass, flist)
   }
 }
 

@@ -32,6 +32,12 @@ object Application extends Controller with Neo4jWrapper with RestGraphDatabaseSe
     )
   }
 
+  def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:String) = Action { implicit request =>
+    val (fclass, flist) = Description.facet(
+      facet=facet, index=Some(rtype), page=page, sort=sort, query=filter, field=field)
+    Ok(views.html.facets(fclass, flist, page, sort))
+  }
+
   def detail(rtype: String, slug:String) = Action { implicit request =>
     val node = withTx { implicit ds =>
       ds.gds.index().forNodes(rtype).query("slug", slug).getSingle()
