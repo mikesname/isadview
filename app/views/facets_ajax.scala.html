@@ -1,11 +1,11 @@
-@(fc: solr.facet.FacetClass, flist: List[solr.facet.Facet], page: Int, sort: String)(implicit req: RequestHeader)
+@(page: solr.models.FacetPage, sort: String)(implicit req: RequestHeader)
 
 <div class="modal-header">
     <a href="#" class="close modal-close">&times;</a>
-    <h3>@fc.name</h3>
+    <h3>@page.fc.name</h3>
 </div>
-<div id="facet-popup" class="modal-body" data-fclass="@fc.param">
-    @common.expandedFacetList(fc, flist, page, sort)
+<div id="facet-popup" class="modal-body" data-fclass="@page.fc.param">
+    @common.expandedFacetList(page, sort)
 </div>
 
 

@@ -19,6 +19,11 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long, facets: 
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
 
+case class FacetPage(fc: FacetClass, facets: List[Facet], page: Int, offset: Long, total: Long) {
+  lazy val prev = Option(page - 1).filter(_ >= 0)
+  lazy val next = Option(page + 1).filter(_ => (offset + facets.size) < total)
+}
+
 object SolrHelper {
   def constrain(request: QueryRequest, rtype: String, appliedFacets: Map[String,Seq[String]]): Unit = {
     FacetData.facets.get(rtype).map(flist => {
@@ -35,7 +40,7 @@ object SolrHelper {
         appliedFacets.get(fclass.param).map(paramVals =>
           fclass match {
             case fc: FieldFacetClass => {
-              paramVals.map("%s:%s".format(fc.key, _))
+              paramVals.map("%s:\"%s\"".format(fc.key, _))
             }
             case fc: QueryFacetClass => {
               fc.facets.flatMap(facet => {
@@ -138,24 +143,24 @@ object Description {
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
-  ): Tuple2[FacetClass, List[Facet]] = {
+  ): FacetPage = {
     val offset = page * pageSize
 
-    // create a response returning only 1 document - we don't
+    // create a response returning 0 documents - we don't
     // actually care about the documents, so even this is
     // not strictly necessary... we also don't care about the
     // ordering.
     val (resp, fclasses) = SolrHelper.buildQuery(
-          index=index, offset=0, pageSize=1, orderBy=0,
+          index=index, offset=0, pageSize=0, orderBy=0,
           field=field, query=query, facets=facets)
     
     val fclass = fclasses.find(_.param==facet).getOrElse(
         throw new Exception("Unknown facet: " + facet))
     val flist = sort match {
-      case "name" => fclass.sortedByName.slice(offset, pageSize)
-      case _ => fclass.sortedByCount.slice(offset, pageSize)
+      case "name" => fclass.sortedByName.slice(offset, offset + pageSize)
+      case _ => fclass.sortedByCount.slice(offset, offset + pageSize)
     }
-    (fclass, flist)
+    FacetPage(fclass, flist, page, offset, fclass.count)
   }
 }
 

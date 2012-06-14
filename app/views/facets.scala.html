@@ -1,6 +1,6 @@
-@(fc: solr.facet.FacetClass, flist: List[solr.facet.Facet], page: Int, sort: String)(implicit req: RequestHeader)
+@(page: solr.models.FacetPage, sort: String)(implicit req: RequestHeader)
 
 @main("Facets") {
-    <h1>@fc.name</h1>
-    @common.expandedFacetList(fc, flist, page, sort)    
+    <h1>@page.fc.name</h1>
+    @common.expandedFacetList(page, sort)    
 }

@@ -1,0 +1,22 @@
+@(page: solr.models.Page[solr.models.Description])(implicit req: RequestHeader)
+
+@import solr.facet.Utils
+
+<div class="selected-facet-list">
+    @page.facets.map{ fclass =>
+        @fclass.sorted.map{ facet =>
+            @if(facet.applied) {
+                <input type="hidden" name="@fclass.param" value="@facet.paramVal" />
+            <span class="selected-facet">
+                @fclass.name: @fclass.pretty(facet) <a class="remove-filter"
+                    href="@Utils.pathWithoutFacet(fclass, facet,
+                    req.path, req.queryString.filterKeys(_!="page"))"><i
+            class="icon-remove"></i></a>
+            </span>
+            }
+        }
+    }
+</div>
+
+
+

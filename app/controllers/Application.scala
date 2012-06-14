@@ -37,12 +37,12 @@ object Application extends Controller with Neo4jWrapper with RestGraphDatabaseSe
   }
 
   def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:String) = Action { implicit request =>
-    val (fclass, flist) = Description.facet(
+    var fpage = Description.facet(
       facet=facet, index=Some(rtype), page=page, sort=sort, query=filter, field=field, facets=request.queryString)
     if(isAjaxRequest(request))
-      Ok(views.html.facets_ajax(fclass, flist, page, sort))
+      Ok(views.html.facets_ajax(fpage, sort))
     else
-      Ok(views.html.facets(fclass, flist, page, sort))
+      Ok(views.html.facets(fpage, sort))
   }
 
   def detail(rtype: String, slug:String) = Action { implicit request =>

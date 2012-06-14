@@ -21,6 +21,7 @@ currentOrderBy: Int, currentFilter: String
                 <input type="submit" value="Search">
                 <!-- facets go here -->
                 @* include "_selected_facets.html" *@
+                @common.selectedFacets(currentPage)
 
                 <h3 id="result-summary"><!-- TODO: Summary --></h3>
                 @if(currentPage.items) {
