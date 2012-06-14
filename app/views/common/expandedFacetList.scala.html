@@ -1,0 +1,43 @@
+@(fc: solr.facet.FacetClass, flist: List[solr.facet.Facet], page: Int, sort: String)(implicit req: RequestHeader)
+
+@import solr.facet.Utils
+
+<div class="btn-toolbar">
+    <div class="btn-group">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">@Messages("Sort items by...")
+        <span class="caret"></span></a>
+      <ul class="dropdown-menu">
+          <li>
+            <a class="ajax sort-header"
+                href="@Utils.joinPath(req.path, req.queryString.updated("sort", Seq("name")))">@Messages("Name")</a>
+          </li>
+          <li>
+            <a class="ajax sort-header"
+                href="@Utils.joinPath(req.path, req.queryString.updated("sort", Seq("count")))">@Messages("Count")</a>
+          </li>
+      </ul>
+    </div>
+</div>
+<table class="table table-striped table-bordered table-condensed">
+<tbody>
+    @flist.map{f =>        
+    <tr>
+        <td>
+            @if(f.applied) {
+            <span class="selected-filter">
+                @fc.pretty(f)<a class="remove-filter"
+                    href="@Utils.pathWithoutFacet(fc, f, req.path.replace("/facets/" + fc.param, ""), req.queryString.filterKeys(_!="page"))">
+                        <i class="icon-remove"></i>
+                </a>
+            </span>
+            } else {
+                <a href="@Utils.pathWithFacet(fc, f, req.path.replace("/facets/" + fc.param,""), req.queryString.filterKeys(_!="page"))">@fc.pretty(f)</a>
+            }
+        </td>
+        <td>@f.count</td>
+    </tr>
+    }
+</tbody>
+</table>
+{% paginate 2 %}
+

@@ -4,6 +4,11 @@ import com.github.seratch.scalikesolr.request.query.facet.{FacetParams, FacetPar
 
 
 object Utils {
+
+  def joinPath(path: String, qs: Map[String, Seq[String]]): String = {
+    List(path, joinQueryString(qs)).filterNot(_=="").mkString("?")
+  }
+
   def joinQueryString(qs: Map[String, Seq[String]]): String = {
     import java.net.URLEncoder
     qs.map { case (key, vals) => {
@@ -12,26 +17,23 @@ object Utils {
   }
 
   def pathWithoutFacet(fc: FacetClass, f: Facet, path: String, qs: Map[String, Seq[String]]): String = {
-    List(path, joinQueryString(qs.map(qv => {
+    joinPath(path, qs.map(qv => {
       qv._1 match {
         case fc.param => (qv._1, qv._2.filter(_!=f.paramVal))
         case _ => qv
       }
-    }))).filter(_!="").mkString("?")
+    }))
   }
 
   def pathWithFacet(fc: FacetClass, f: Facet, path: String, qs: Map[String, Seq[String]]): String = {
-    path + "?" + joinQueryString(
-      if (qs.contains(fc.param)) {
+    joinPath(path, if (qs.contains(fc.param)) {
         qs.map(qv => {
           qv._1 match {
             case fc.param => (qv._1, qv._2.union(Seq(f.paramVal)).distinct)
             case _ => qv
           }
         })
-      } else {
-        qs.updated(fc.param, Seq(f.paramVal))
-      }
+      } else qs.updated(fc.param, Seq(f.paramVal))
     )
   }
 }
