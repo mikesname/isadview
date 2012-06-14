@@ -65,7 +65,7 @@ object SolrHelper {
       if (field.trim == "") "*" else field,
       if (query.trim == "") "*" else query)
 
-    val client = Solr.httpServer(new java.net.URL("http://localhost:8983/solr")).newClient
+    val client = Solr.httpServer(new java.net.URL(play.Play.application.configuration.getString("solr.path"))).newClient
     val req = new QueryRequest(query=Query(queryString))
     req.setFacet(new FacetParams(
       enabled=true, 

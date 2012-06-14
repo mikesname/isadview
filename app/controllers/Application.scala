@@ -12,7 +12,7 @@ import org.neo4j.scala._
 
 object Application extends Controller with Neo4jWrapper with RestGraphDatabaseServiceProvider {
 
-  override def uri = new java.net.URI("http://localhost:7474/db/data")
+  override def uri = new java.net.URI(play.Play.application.configuration.getString("neo4j.path"))
   override def userPw: Option[(String, String)] = None
   
   def isAjaxRequest[T](request: Request[T]): Boolean = {
