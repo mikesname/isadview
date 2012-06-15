@@ -20,10 +20,10 @@ trait ContactType
 
 
 case class Description(
-  identifier: String,
-  name: String
+  val identifier: String,
+  val slug: String,
+  val name: String
 ) {
-
 } 
 
 //case class Contact(

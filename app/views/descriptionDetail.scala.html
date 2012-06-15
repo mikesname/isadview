@@ -1,0 +1,17 @@
+@(desc: app.models.Description)(implicit request: RequestHeader)
+
+
+@mainContent("Description: " + desc.name) {
+
+    <h1>@desc.name</h1>
+
+    <p>Slug: @desc.slug</p>
+    <p>Id: @desc.identifier</p>
+
+    <div class="form-actions">
+        <a href="@routes.Description.create" class="btn">New</a>
+        <a href="@routes.Description.update(slug=desc.slug)" class="btn">Edit</a>
+    </div>
+}
+
+

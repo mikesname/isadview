@@ -1,7 +1,7 @@
 @(resource: String, items: Seq[solr.models.Description], currentPage: solr.models.Page[solr.models.Description], currentOrderBy: Int, currentFilter:String)
 
 @link(newPage: Int, newOrderBy: Option[Int] = None) = @{
-    routes.Application.list(resource, newPage, newOrderBy.map { orderBy =>
+    routes.Search.list(resource, newPage, newOrderBy.map { orderBy =>
         if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
     }.getOrElse(currentOrderBy), currentFilter)
 }

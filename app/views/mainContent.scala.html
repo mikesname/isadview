@@ -1,0 +1,10 @@
+@(title: String)(content: Html = Html(""))(implicit request: RequestHeader)
+
+@main(title) {
+<div class="row" data-spy="scroll" data-offset="40">
+    <div class="span12">
+        @content
+    </div>
+</div>
+
+}

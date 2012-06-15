@@ -1,0 +1,16 @@
+@(form: Form[app.models.Description], action: Call)(implicit request: RequestHeader)
+
+@import helper.twitterBootstrap._
+
+@mainContent("Create Description") {
+    @helper.form(action = action) {
+    @helper.inputText(form("identifier"), '_label -> "Identifier")
+    @helper.inputText(form("slug"), '_label -> "Slug")
+    @helper.inputText(form("name"), '_label -> "Title")
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">@Messages("Create")</button>
+            <a href="@routes.Search.list("collection")" class="btn">@Messages("Cancel")</a>
+        </div>
+    }
+}
