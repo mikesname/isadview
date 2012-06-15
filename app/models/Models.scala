@@ -69,8 +69,8 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
       }
       d.id = Some(node.getId())
     }
+    Unit
   }
-  Unit
 
   def fromForm(ident: String, slug: String, name: String): Description = {
     new Description(
