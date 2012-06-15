@@ -13,6 +13,6 @@ object Forms {
         "identifier" -> nonEmptyText,
         "slug" -> nonEmptyText,
         "name" -> nonEmptyText
-      )(Description.apply)(Description.unapply)
+      )(Description.fromForm)(Description.toForm)
     )
 }
