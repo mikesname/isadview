@@ -7,6 +7,9 @@
     @helper.inputText(form("identifier"), '_label -> "Identifier")
     @helper.inputText(form("slug"), '_label -> "Slug")
     @helper.inputText(form("name"), '_label -> "Title")
+    @helper.repeat(form("otherNames"), min = 2) { on =>
+        @helper.inputText(on)
+    }
         
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">@Messages("Create")</button>

@@ -42,7 +42,7 @@ object Description extends Controller with Neo4jWrapper with RestGraphDatabaseSe
   }
 
   def update(slug: String) = Action { implicit request =>
-    val desc = getFromLookup(slug)
+    val desc = models.Description.get(slug)
     desc match {
       case Some(d) => Ok(views.html.descriptionForm(
             form=DescForms.descriptionForm.fill(d),
@@ -59,14 +59,7 @@ object Description extends Controller with Neo4jWrapper with RestGraphDatabaseSe
             action=routes.Description.createPost)
       ),
       desc => {
-        withTx { implicit ds =>
-          val node = createNode(desc)
-          val nIndex = getNodeIndex(descIndex).get
-          for ((key, value) <- getCCParams(desc)) {
-            nIndex += (node, key, value.toString)
-          }
-          node
-        }
+        desc.save
         Redirect(routes.Description.detail(desc.slug))
       }
     )
@@ -79,24 +72,15 @@ object Description extends Controller with Neo4jWrapper with RestGraphDatabaseSe
             action=routes.Description.updatePost(slug))
       ),
       desc => {
-        val node = withTx { implicit ds =>
-          val node = ds.gds.index().forNodes(descIndex).query(lookupProp, slug).getSingle()
-          val nIndex = getNodeIndex(descIndex).get
-          for ((key, value) <- getCCParams(desc)) {
-            // update node values as well as indexes
-            node(key) = value
-            nIndex -= (node, key)
-            nIndex += (node, key, value.toString)
-          }
-          node
-        }
+        desc.save
         Redirect(routes.Description.detail(desc.slug))
       }
     )
   }
 
   def detail(slug:String) = Action { implicit request =>
-    val desc = getFromLookup(slug)
+    val desc = models.Description.get(slug)
+    println("Got: %s".format(desc))
     desc match {
       case Some(d) => Ok(views.html.descriptionDetail(desc=d))
       case _ => BadRequest("Unable to case description to case class (???)")

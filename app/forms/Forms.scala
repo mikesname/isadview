@@ -12,7 +12,8 @@ object Forms {
       mapping(
         "identifier" -> nonEmptyText,
         "slug" -> nonEmptyText,
-        "name" -> nonEmptyText
+        "name" -> nonEmptyText,
+        "otherNames" -> list(text)
       )(Description.fromForm)(Description.toForm)
     )
 }

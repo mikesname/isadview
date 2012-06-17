@@ -25,6 +25,7 @@ trait ContactType
 object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider with Neo4jIndexProvider {
   var descIndex = "descriptions"
   var lookupProp = "slug"
+  private val ARR_SEP = ",,"
   override def NodeIndexConfig = (descIndex, Some(Map("provider" -> "lucene", "type" -> "fulltext"))) :: Nil
   override def uri = new java.net.URI(play.Play.application.configuration.getString("neo4j.path"))
   override def userPw: Option[(String, String)] = None
@@ -37,34 +38,52 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
   }
 
   // fetch
-  def getNode(slug: String): Node = {
+  def getNode(slug: String): Option[Node] = {
     withTx { implicit ds =>
-      ds.gds.index().forNodes(descIndex).query(lookupProp, slug).getSingle()
+      try {
+        Some(ds.gds.index().forNodes(descIndex).query(lookupProp, slug).getSingle())
+      } catch {
+        case _ => None
+      }
     }           
   }
 
-  def get(slug: String): Description = {
-    withTx { implicit ds =>
-      fromNode(ds.gds.index().forNodes(descIndex).query(lookupProp, slug).getSingle())
-    }           
+  def get(slug: String): Option[Description] = {
+    getNode(slug) match {
+      case Some(n) => Some(fromNode(n))
+      case None => None
+    }
   }
   
   def fromNode(node: Node): Description = {
-    new Description()
+    new Description(
+      id=Some(node.getId()),
+      identifier=node("identifier").getOrElse(""),
+      slug=node("slug").getOrElse(""),
+      name=node("name").getOrElse(""),
+      otherNames=node("otherNames").getOrElse("").split(ARR_SEP).toList.filterNot(_=="")
+    )
   }
 
   def save(d: Description): Unit = {
     withTx { implicit ds =>
       val node = d.id match {
-        case Some(v) => getNode(d.slug)
+        case Some(v) => getNode(d.slug).getOrElse(throw new Exception("Node not found with slug: %s".format(d.slug)))
         case None => createNode
       }
       val nIndex = getNodeIndex(descIndex).get
       for ((key, value) <- getCCParams(d)) {
-        node(key) = value /* match {
-          case a: List[String] => a.toArray
-          case v => v
-        }                   */
+      value match {
+          case s: String => node.setProperty(key, s)
+          case i: Number => node.setProperty(key, i)
+          case null =>
+          case None =>
+          case other => {
+            println("Saving array: %s".format(other))
+            //node.setProperty(key, other.asInstanceOf[Array[String]])
+            node.setProperty(key, other.asInstanceOf[List[String]].filterNot(_=="").mkString(ARR_SEP)) 
+          }
+        }
         nIndex += (node, key, value.toString)
       }
       d.id = Some(node.getId())
@@ -72,17 +91,18 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
     Unit
   }
 
-  def fromForm(ident: String, slug: String, name: String): Description = {
+  def fromForm(ident: String, slug: String, name: String, otherNames: List[String]): Description = {
     new Description(
       id=None,
       identifier=ident,
       slug=slug,
-      name=name
+      name=name,
+      otherNames=otherNames
     )
   }
 
-  def toForm(d: Description): Option[(String,String,String)] = {
-    Some((d.identifier, d.slug, d.name))
+  def toForm(d: Description): Option[(String,String,String,List[String])] = {
+    Some((d.identifier, d.slug, d.name, d.otherNames))
   }
 }
 
@@ -90,7 +110,8 @@ case class Description(
   var id: Option[Long] = None,
   var identifier: String = "",
   var slug: String = "",
-  var name: String = ""
+  var name: String = "",
+  var otherNames: List[String] = Nil
 ) {
   def save: Unit = Description.save(this)
 } 
