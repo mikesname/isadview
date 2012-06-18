@@ -90,20 +90,6 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
     }
     Unit
   }
-
-  def fromForm(ident: String, slug: String, name: String, otherNames: List[String]): Description = {
-    new Description(
-      id=None,
-      identifier=ident,
-      slug=slug,
-      name=name,
-      otherNames=otherNames
-    )
-  }
-
-  def toForm(d: Description): Option[(String,String,String,List[String])] = {
-    Some((d.identifier, d.slug, d.name, d.otherNames))
-  }
 }
 
 case class Description(

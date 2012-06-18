@@ -5,6 +5,7 @@
 # Home page
 GET     /                               controllers.Application.index
 GET     /home                           controllers.Application.index
+GET     /test                           controllers.Gremlin.async
 
 # Description CRUD
 GET     /description                    controllers.Description.create
