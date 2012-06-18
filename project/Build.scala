@@ -17,7 +17,8 @@ object ApplicationBuild extends Build {
       "org.neo4j" % "neo4j-scala" % "0.2.0-M1",
       "org.neo4j" % "neo4j-shell" % "1.8.M04",
       "org.scala-tools.time" % "time_2.9.1" % "0.5",
-      "net.liftweb" %% "lift-json-ext" % "2.4-M5"
+      "net.liftweb" %% "lift-json-ext" % "2.4-M5",
+      "org.codehaus.groovy" % "groovy-all" % "1.8.6"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
