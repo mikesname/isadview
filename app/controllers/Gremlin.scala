@@ -24,6 +24,7 @@ class GremlinResponse(r: Response) {
   
   def toList[T: Manifest]: Seq[T] = {
     net.liftweb.json.parse(r.body).children.map(_.extract[T])
+    //stream[T](new java.io.ByteArrayInputStream(r.body.toCharArray.map(_.toByte))).toList
   }
 
   def one[T: Manifest]: T = {
@@ -62,7 +63,7 @@ object Gremlin extends Controller {
       )
       gremlin("query_exact_index", params).map { r1 =>
         val repo = new GremlinResponse(r1).one[Repository]
-
+        println(repo)
         Async {
           // get contacts
           gremlin("inV", Map("_id" -> repo.id.getOrElse(0), "label" -> "addressOf")).map { r2 =>
