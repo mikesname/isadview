@@ -1,7 +1,7 @@
 @(result: solr.models.Description)
 
 <div class="search-result@if(result.publication_status == 0) { draft }">
-    <h4><a href="controllers.routes.Application.detail(rtype=result.index, slug=result.slug)">@result.name</a></h4>
+    <h4><a href="@controllers.routes.Gremlin.detail(rtype=result.index, slug=result.slug)">@result.name</a></h4>
     @if(result.other_names.nonEmpty) {
         <h5 class="alternate-names">@result.other_names.mkString(", ")</h5>
     }

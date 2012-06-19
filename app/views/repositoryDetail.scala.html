@@ -1,0 +1,58 @@
+@(repo: neo4j.models.Repository, data: neo4j.models.RepositoryData, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
+
+@main(data.name + " (" + repo.id.getOrElse(0).toString + ")") {
+<div class="row">
+    <div class="span3 columns">
+
+        <div class="sidebar">
+            @repository.sidebarDetails(data, contacts)
+            <div class="export-actions well">
+                <h4>@Messages("Export Resource")</h4>
+                <ul class="unstyled">
+                    <li>
+                        <a class="export-link" title="@Messages("Export description as XML")" target="_blank"  
+                            href="{% url api_dispatch_detail slug=data.slug resource_name=data.resource_type api_name="v1" %}?format=xml" />XML</a>
+                   </li>
+                    <li>
+                    <a class="export-link" title="@Messages("Export description as JSON")" target="_blank" 
+                            href="{% url api_dispatch_detail slug=data.slug resource_name=data.resource_type api_name="v1" %}?format=json" />JSON</a>
+                   </li>
+                </ul>
+            </div>
+            @if(true) { 
+                <div class="admin-actions well">
+                    <h4>@Messages("Administration Actions")</h4>
+                    <ul class="unstyled">
+                        <li><a class="btn" target="_blank"
+                            href="http://localhost:7474/webadmin/#/data/search/@repo.id.getOrElse(0)">@Messages("Edit Description")</a></li>
+                        <li><a class="btn btn-danger" href="{{data.get_delete_url}}">@Messages("Delete")</a></li>
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="span9 columns">
+        <h2>
+            @data.name
+            @if(data.publication_status == 0) {
+                <span class="label">@Messages("Draft Description")</span>
+            }
+        </h2>
+        @if(data.otherNames.size > 0) {
+            <h3 class="alternate-name">
+                @data.otherNames.mkString(",")
+            </h3>
+        }
+
+        @if(!data.geocultural_context.getOrElse("").isEmpty) {
+            <h4>@Messages("Geocultural Context")</h4>
+            @data.geocultural_context
+        }
+        @if(!data.history.getOrElse("").isEmpty) {
+            <h4>@Messages("History")</h4>
+            @data.history
+        }
+        <hr />
+    </div>
+</div>
+}
