@@ -10,6 +10,8 @@ import com.codahale.jerkson.Json._
 
 object Gremlin extends Controller {
 
+  val scripts = new neo4j.ScriptSource()
+
   implicit val formats = json.DefaultFormats
 
   val gremlinPath = "http://localhost:7474/db/data/ext/GremlinPlugin/graphdb/execute_script"
@@ -26,8 +28,12 @@ object Gremlin extends Controller {
     "Content-Type" -> "application/json; charset=utf8"
   )
 
-  def gremlin(script: AnyRef) = {
-    WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(script))
+  def gremlin(scriptName: String, params: AnyRef) = {
+    scripts.loadScript("app/neo4j/gremlin.groovy")
+    val scriptBody = scripts.get(scriptName)
+    val data = Map("script" -> scriptBody, "params" -> params)
+    println("Running params: %s".format(data))
+    WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))
   }
 
   case class Repo(
@@ -46,8 +52,9 @@ object Gremlin extends Controller {
     Async {
 
       val extractEid = """.+/(\d+)$""".r
-
-      gremlin(testScript).map { response =>
+      val params = Map("index_name" -> "repository",
+          "key" -> "slug", "query_string" -> "wiener-library")
+      gremlin("query_exact_index", params).map { response =>
         println("%s, %s".format(response, response.status))
         val parsed = json.parse(response.body)
         val repos = parsed.children.map(_.extract[Repo])
