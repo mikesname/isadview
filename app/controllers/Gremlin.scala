@@ -23,8 +23,8 @@ class GremlinResponse(r: Response) {
   implicit val formats = net.liftweb.json.DefaultFormats
   
   def toList[T: Manifest]: Seq[T] = {
-    net.liftweb.json.parse(r.body).children.map(_.extract[T])
-    //stream[T](new java.io.ByteArrayInputStream(r.body.toCharArray.map(_.toByte))).toList
+    // FIXME: The response is coming back encoding wrong, so fix it with a hack...
+    net.liftweb.json.parse(new String(r.body.getBytes("ISO-8859-1"), "UTF-8")).children.map(_.extract[T])
   }
 
   def one[T: Manifest]: T = {
@@ -50,7 +50,6 @@ object Gremlin extends Controller {
     scripts.loadScript("app/neo4j/gremlin.groovy")
     val scriptBody = scripts.get(scriptName)
     val data = Map("script" -> scriptBody, "params" -> params)
-    println("Running params: %s".format(data))
     WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))
   }
 
@@ -63,12 +62,10 @@ object Gremlin extends Controller {
       )
       gremlin("query_exact_index", params).map { r1 =>
         val repo = new GremlinResponse(r1).one[Repository]
-        println(repo)
         Async {
           // get contacts
           gremlin("inV", Map("_id" -> repo.id.getOrElse(0), "label" -> "addressOf")).map { r2 =>
             val contacts = new GremlinResponse(r2).toList[Contact]
-            println(contacts)
             Ok(views.html.repositoryDetail(repo=repo, data=repo.data, contacts=contacts))
           }
         }
