@@ -1,5 +1,9 @@
 package solr.facet
 
+import java.util.Locale
+
+import app.util.Helpers
+
 import com.github.seratch.scalikesolr.request.query.facet.{FacetParams, FacetParam, Param, Value}
 
 
@@ -183,6 +187,11 @@ case class QueryFacetClass(
 object FacetData {
   // Temporary hard-coded facet definitions... this will
   // be loaded from a config file at some point
+  
+  // FIXME: Work out out to get the preferred lang
+  // from the application context somehow
+  implicit val locale: Locale = new Locale("en", "GB")
+
   val facets = Map(
     "collection" -> List(
       FieldFacetClass(
@@ -216,6 +225,12 @@ object FacetData {
           Facet("1941", "1941", Some("1941")),
           Facet("1946", "1946", Some("1946"))
         )
+      ),
+      FieldFacetClass(
+        key="languages",
+        name="Languages of Materials",
+        param="lang",
+        render=Helpers.languageCodeToName
       ),
       FieldFacetClass(
         key="tags_exact",

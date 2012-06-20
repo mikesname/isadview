@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.Locale
+
 import play.api._
 import play.api.mvc._
 
@@ -8,6 +10,10 @@ import solr.models
 
 
 object Search extends Controller with ControllerHelpers {
+
+  // FIXME: Work out out to get the preferred lang
+  // from the application context somehow
+  implicit val locale: Locale = new Locale("de", "GB")
 
   def index = Action { implicit request =>
     Ok(views.html.index("Your new application is ready."))
