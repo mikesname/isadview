@@ -25,34 +25,42 @@ case class FacetPage(fc: FacetClass, facets: List[Facet], page: Int, offset: Lon
 }
 
 object SolrHelper {
+
+  private def setRequestFacets(request: QueryRequest, flist: List[FacetClass]): Unit = {
+    request.setFacet(new FacetParams(
+      enabled=true, 
+      params=flist.map(_.asParams).flatten
+    ))
+  }
+
+  private def setRequestFilters(request: QueryRequest, flist: List[FacetClass], applied: Map[String,Seq[String]]): Unit = {
+    // filter the results by applied facets
+    // NB: Scalikesolr is a bit dim WRT filter queries: you can
+    // apparently only have one. So instead of adding multiple
+    // fq clauses, we need to join them all with '+'
+    val fqstring = flist.map(fclass => {
+      applied.get(fclass.param).map(paramVals =>
+        fclass match {
+          case fc: FieldFacetClass => {
+            paramVals.map("%s:\"%s\"".format(fc.key, _))
+          }
+          case fc: QueryFacetClass => {
+            fc.facets.flatMap(facet => {
+              if (paramVals.contains(facet.paramVal)) {
+                List("%s:%s".format(fc.key, facet.solrVal))
+              } else Nil
+            })
+          }
+        }
+      ).getOrElse(Nil)
+    }).flatten.mkString(" +") // NB: Space before + is important
+    request.setFilterQuery(FilterQuery(fqstring))
+  }
+
   def constrain(request: QueryRequest, rtype: String, appliedFacets: Map[String,Seq[String]]): Unit = {
     FacetData.facets.get(rtype).map(flist => {
-      request.setFacet(new FacetParams(
-        enabled=true, 
-        params=flist.map(_.asParams).flatten
-      ))
-
-      // filter the results by applied facets
-      // NB: Scalikesolr is a bit dim WRT filter queries: you can
-      // apparently only have one. So instead of adding multiple
-      // fq clauses, we need to join them all with '+'
-      val fqstring = flist.map(fclass => {
-        appliedFacets.get(fclass.param).map(paramVals =>
-          fclass match {
-            case fc: FieldFacetClass => {
-              paramVals.map("%s:\"%s\"".format(fc.key, _))
-            }
-            case fc: QueryFacetClass => {
-              fc.facets.flatMap(facet => {
-                if (paramVals.contains(facet.paramVal)) {
-                  List("%s:%s".format(fc.key, facet.solrVal))
-                } else Nil
-              })
-            }
-          }
-        ).getOrElse(Nil)
-      }).flatten.mkString(" +") // NB: Space before + is important
-      request.setFilterQuery(FilterQuery(fqstring))
+      setRequestFacets(request, flist)
+      setRequestFilters(request, flist, appliedFacets)
     })
   }
 
