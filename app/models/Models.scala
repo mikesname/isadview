@@ -22,7 +22,7 @@ trait ContactType
 // TODO: Different types of contact
 
 
-object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider with Neo4jIndexProvider {
+object Neo4jDescription extends Neo4jWrapper with RestGraphDatabaseServiceProvider with Neo4jIndexProvider {
   var descIndex = "descriptions"
   var lookupProp = "slug"
   private val ARR_SEP = ",,"
@@ -48,15 +48,15 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
     }           
   }
 
-  def get(slug: String): Option[Description] = {
+  def get(slug: String): Option[Neo4jDescription] = {
     getNode(slug) match {
       case Some(n) => Some(fromNode(n))
       case None => None
     }
   }
   
-  def fromNode(node: Node): Description = {
-    new Description(
+  def fromNode(node: Node): Neo4jDescription = {
+    new Neo4jDescription(
       id=Some(node.getId()),
       identifier=node("identifier").getOrElse(""),
       slug=node("slug").getOrElse(""),
@@ -65,7 +65,7 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
     )
   }
 
-  def save(d: Description): Unit = {
+  def save(d: Neo4jDescription): Unit = {
     withTx { implicit ds =>
       val node = d.id match {
         case Some(v) => getNode(d.slug).getOrElse(throw new Exception("Node not found with slug: %s".format(d.slug)))
@@ -92,14 +92,14 @@ object Description extends Neo4jWrapper with RestGraphDatabaseServiceProvider wi
   }
 }
 
-case class Description(
+case class Neo4jDescription(
   var id: Option[Long] = None,
   var identifier: String = "",
   var slug: String = "",
   var name: String = "",
   var otherNames: List[String] = Nil
 ) {
-  def save: Unit = Description.save(this)
+  def save: Unit = Neo4jDescription.save(this)
 } 
 
 //case class Contact(
@@ -115,7 +115,7 @@ case class Description(
 //    telephone: Option[String],
 //    fax: Option[String],
 //    contact: Option[ContactType],
-//    note: Option[String]) extends Description {
+//    note: Option[String]) extends Neo4jDescription {
 //
 //}
 //
@@ -150,6 +150,6 @@ case class Description(
 //    scripts: List[String] = Nil,
 //    sources: Option[String] = None,
 //    maintenanceNotes: Option[String] = None
-//  ) extends Description {
+//  ) extends Neo4jDescription {
 //
 //}

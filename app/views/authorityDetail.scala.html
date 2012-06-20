@@ -1,11 +1,12 @@
-@(repo: neo4j.models.Repository, data: neo4j.models.RepositoryData, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
+@(auth: neo4j.models.Authority, data: neo4j.models.AuthorityData, created: Seq[neo4j.models.Collection], mentioned:
+Seq[neo4j.models.Collection])(implicit request: RequestHeader)
 
-@main(data.name + " (" + repo.id.getOrElse(0).toString + ")") {
+@main(data.name + " (" + auth.id.getOrElse(0).toString + ")") {
 <div class="row">
     <div class="span3 columns">
 
         <div class="sidebar">
-            @repository.sidebarDetails(data, contacts)
+            @authority.sidebarDetails(data)
             <div class="export-actions well">
                 <h4>@Messages("Export Resource")</h4>
                 <ul class="unstyled">
@@ -24,7 +25,7 @@
                     <h4>@Messages("Administration Actions")</h4>
                     <ul class="unstyled">
                         <li><a class="btn" target="_blank"
-                            href="http://localhost:7474/webadmin/#/data/search/@repo.id.getOrElse(0)">@Messages("Edit Description")</a></li>
+                            href="http://localhost:7474/webadmin/#/data/search/@auth.id.getOrElse(0)">@Messages("Edit Description")</a></li>
                         <li><a class="btn btn-danger" href="{{data.get_delete_url}}">@Messages("Delete")</a></li>
                     </ul>
                 </div>
@@ -44,15 +45,27 @@
             </h3>
         }
 
-        @if(!data.geocultural_context.getOrElse("").isEmpty) {
-            <h4>@Messages("Geocultural Context")</h4>
-            <p>@data.geocultural_context</p>
+        @if(!data.dates_of_existence.getOrElse("").isEmpty) {
+            <h4>@Messages("Dates of Existence")</h4>
+            <p>@data.dates_of_existence</p>
         }
         @if(!data.history.getOrElse("").isEmpty) {
             <h4>@Messages("History")</h4>
             <p>@data.history</p>
         }
         <hr />
+        @if(created.length > 0) {
+            <h4>@Messages("Collections as Creator")</h4>
+            @created.map { c =>
+                <a href="@routes.Gremlin.collectionDetail(slug=c.data.slug)">@c.data.name</a>
+            }
+        }
+        @if(mentioned.length > 0) {
+            <h4>@Messages("Collections as Name Access Point")</h4>
+            @mentioned.map { c =>
+                <a href="@routes.Gremlin.collectionDetail(slug=c.data.slug)">@c.data.name</a>
+            }
+        }
     </div>
 </div>
 }

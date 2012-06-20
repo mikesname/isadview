@@ -11,7 +11,7 @@ import net.liftweb.json
 
 import com.codahale.jerkson.Json._
 
-import neo4j.models.{Repository,Contact}
+import neo4j.models.{Repository,Contact,Collection,FuzzyDate,Authority}
 
 
 case class NoResultsFound(err: String = "") extends Exception
@@ -53,10 +53,10 @@ object Gremlin extends Controller {
     WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))
   }
 
-  def detail(index: String, slug: String) = Action { implicit request =>
+  def repositoryDetail(slug: String) = Action { implicit request =>
     Async {
       val params = Map(
-        "index_name" -> index,
+        "index_name" -> "repository",
         "key" -> "slug",
         "query_string" -> slug
       )
@@ -67,6 +67,66 @@ object Gremlin extends Controller {
           gremlin("inV", Map("_id" -> repo.id.getOrElse(0), "label" -> "addressOf")).map { r2 =>
             val contacts = new GremlinResponse(r2).toList[Contact]
             Ok(views.html.repositoryDetail(repo=repo, data=repo.data, contacts=contacts))
+          }
+        }
+      }
+    }
+  }
+
+  def collectionDetail(slug: String) = Action { implicit request =>
+    Async {
+      val params = Map(
+        "index_name" -> "collection",
+        "key" -> "slug",
+        "query_string" -> slug
+      )
+      gremlin("query_exact_index", params).map { r1 =>
+        val collection = new GremlinResponse(r1).one[Collection]
+        Async {
+          // get contacts
+          gremlin("inV", Map("_id" -> collection.id.getOrElse(0), "label" -> "locatesInTime")).map { r2 =>
+            val dates = new GremlinResponse(r2).toList[FuzzyDate]
+            Async {
+              gremlin("outV", Map("_id" -> collection.id.getOrElse(0), "label" -> "heldBy")).map { r3 =>
+                val repo = new GremlinResponse(r3).one[Repository]
+                Async {
+                  gremlin("outV", Map("_id" -> collection.id.getOrElse(0), "label" -> "createdBy")).map { r4 =>
+                    val creator: Option[Authority] = try {
+                      Some(new GremlinResponse(r4).one[Authority])
+                    } catch {
+                      case e: NoResultsFound => None
+                      case other => throw other
+                    }
+                    Ok(views.html.collectionDetail(collection, collection.data, dates, repo.data, creator))
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def authorityDetail(slug: String) = Action { implicit request =>
+    Async {
+      val params = Map(
+        "index_name" -> "authority",
+        "key" -> "slug",
+        "query_string" -> slug
+      )
+      gremlin("query_exact_index", params).map { r1 =>
+        val auth = new GremlinResponse(r1).one[Authority]
+        Async {
+          // get collections
+          gremlin("inV", Map("_id" -> auth.id.getOrElse(0), "label" -> "createdBy")).map { r2 =>
+            val createdCollections = new GremlinResponse(r2).toList[Collection]
+            Async {
+              gremlin("inV", Map("_id" -> auth.id.getOrElse(0), "label" -> "mentionedIn")).map { r3 =>
+                val mentionedCollections = new GremlinResponse(r3).toList[Collection]
+                Ok(views.html.authorityDetail(auth, auth.data, createdCollections, mentionedCollections))
+              }
+            }
           }
         }
       }

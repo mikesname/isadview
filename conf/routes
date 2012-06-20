@@ -7,17 +7,19 @@ GET     /                               controllers.Application.index
 GET     /home                           controllers.Application.index
 
 # Description CRUD
-GET     /description                    controllers.Description.create
-GET     /description/:slug              controllers.Description.detail(slug: String)
-POST    /description                    controllers.Description.createPost
-GET     /description/edit/:slug         controllers.Description.update(slug: String)
-POST    /description/edit/:slug         controllers.Description.updatePost(slug: String)
+GET     /description                    controllers.Neo4jDescription.create
+GET     /description/:slug              controllers.Neo4jDescription.detail(slug: String)
+POST    /description                    controllers.Neo4jDescription.createPost
+GET     /description/edit/:slug         controllers.Neo4jDescription.update(slug: String)
+POST    /description/edit/:slug         controllers.Neo4jDescription.updatePost(slug: String)
 
 # Searching
 GET     /$rtype<(collection|repository|authority)>     controllers.Search.list(rtype:String, page:Int ?= 0, s:Int ?= 2, q ?= "", field ?= "")
 GET     /$rtype<(collection|repository|authority)>/facets/:facet          controllers.Search.facets(facet:String, rtype:String, page:Int ?= 0, sort:String ?= "count", q ?= "", field ?= "")
 
-GET     /$rtype<(collection|repository|authority)>/:slug     controllers.Gremlin.detail(rtype:String, slug:String)
+GET     /repository/:slug       controllers.Gremlin.repositoryDetail(slug:String)
+GET     /authority/:slug        controllers.Gremlin.authorityDetail(slug:String)
+GET     /collection/:slug       controllers.Gremlin.collectionDetail(slug:String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

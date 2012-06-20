@@ -12,7 +12,7 @@ import app.forms.{Forms => DescForms}
 
 
 
-object Description extends Controller with Neo4jWrapper with RestGraphDatabaseServiceProvider with Neo4jIndexProvider {
+object Neo4jDescription extends Controller with Neo4jWrapper with RestGraphDatabaseServiceProvider with Neo4jIndexProvider {
   var descIndex = "descriptions"
   var lookupProp = "slug"
   override def NodeIndexConfig = (descIndex, Some(Map("provider" -> "lucene", "type" -> "fulltext"))) :: Nil
@@ -27,26 +27,26 @@ object Description extends Controller with Neo4jWrapper with RestGraphDatabaseSe
   }
 
   // fetch
-  private def getFromLookup(slug: String): Option[models.Description] = {
+  private def getFromLookup(slug: String): Option[models.Neo4jDescription] = {
     withTx { implicit ds =>
       val node = ds.gds.index().forNodes(descIndex).query(lookupProp, slug).getSingle()
-      node.toCC[models.Description]
+      node.toCC[models.Neo4jDescription]
     }           
   }
 
   def create = Action { implicit request => 
     Ok(views.html.descriptionForm(
         form=DescForms.descriptionForm,
-        action=routes.Description.createPost)
+        action=routes.Neo4jDescription.createPost)
     )
   }
 
   def update(slug: String) = Action { implicit request =>
-    val desc = models.Description.get(slug)
+    val desc = models.Neo4jDescription.get(slug)
     desc match {
       case Some(d) => Ok(views.html.descriptionForm(
             form=DescForms.descriptionForm.fill(d),
-            action=routes.Description.updatePost(slug))
+            action=routes.Neo4jDescription.updatePost(slug))
       )
       case _ => BadRequest("Unable to case description to case class (???)")
     }
@@ -56,11 +56,11 @@ object Description extends Controller with Neo4jWrapper with RestGraphDatabaseSe
     DescForms.descriptionForm.bindFromRequest.fold(
       errors => BadRequest(views.html.descriptionForm(
             form=errors,
-            action=routes.Description.createPost)
+            action=routes.Neo4jDescription.createPost)
       ),
       desc => {
         desc.save
-        Redirect(routes.Description.detail(desc.slug))
+        Redirect(routes.Neo4jDescription.detail(desc.slug))
       }
     )
   }
@@ -69,17 +69,17 @@ object Description extends Controller with Neo4jWrapper with RestGraphDatabaseSe
     DescForms.descriptionForm.bindFromRequest.fold(
       errors => BadRequest(views.html.descriptionForm(
             form=errors, 
-            action=routes.Description.updatePost(slug))
+            action=routes.Neo4jDescription.updatePost(slug))
       ),
       desc => {
         desc.save
-        Redirect(routes.Description.detail(desc.slug))
+        Redirect(routes.Neo4jDescription.detail(desc.slug))
       }
     )
   }
 
   def detail(slug:String) = Action { implicit request =>
-    val desc = models.Description.get(slug)
+    val desc = models.Neo4jDescription.get(slug)
     println("Got: %s".format(desc))
     desc match {
       case Some(d) => Ok(views.html.descriptionDetail(desc=d))

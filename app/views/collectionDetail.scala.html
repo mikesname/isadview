@@ -1,11 +1,12 @@
-@(repo: neo4j.models.Repository, data: neo4j.models.RepositoryData, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
+@(c: neo4j.models.Collection, data: neo4j.models.CollectionData, dates: Seq[neo4j.models.FuzzyDate], repodata:
+neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit request: RequestHeader)
 
-@main(data.name + " (" + repo.id.getOrElse(0).toString + ")") {
+@main(data.name + " (" + c.id.getOrElse(0).toString + ")") {
 <div class="row">
     <div class="span3 columns">
 
         <div class="sidebar">
-            @repository.sidebarDetails(data, contacts)
+            @collection.sidebarDetails(data, dates)
             <div class="export-actions well">
                 <h4>@Messages("Export Resource")</h4>
                 <ul class="unstyled">
@@ -24,7 +25,7 @@
                     <h4>@Messages("Administration Actions")</h4>
                     <ul class="unstyled">
                         <li><a class="btn" target="_blank"
-                            href="http://localhost:7474/webadmin/#/data/search/@repo.id.getOrElse(0)">@Messages("Edit Description")</a></li>
+                            href="http://localhost:7474/webadmin/#/data/search/@c.id.getOrElse(0)">@Messages("Edit Description")</a></li>
                         <li><a class="btn btn-danger" href="{{data.get_delete_url}}">@Messages("Delete")</a></li>
                     </ul>
                 </div>
@@ -44,13 +45,33 @@
             </h3>
         }
 
-        @if(!data.geocultural_context.getOrElse("").isEmpty) {
-            <h4>@Messages("Geocultural Context")</h4>
-            <p>@data.geocultural_context</p>
+        @if(!creator.isEmpty) {
+            <h4>@Messages("Created By")</h4>
+            <p>
+                @creator.map { auth =>
+                    <a href="@routes.Gremlin.authorityDetail(slug=auth.data.slug)">@auth.data.name</a>
+                }
+            </p>
+        }
+        @if(!data.scope_and_content.getOrElse("").isEmpty) {
+            <h4>@Messages("Scope and Content")</h4>
+            <p>@data.scope_and_content</p> 
         }
         @if(!data.history.getOrElse("").isEmpty) {
             <h4>@Messages("History")</h4>
-            <p>@data.history</p>
+            <p>@data.history</p> 
+        }
+        @if(!data.acquisition.getOrElse("").isEmpty) {
+            <h4>@Messages("Acquisition")</h4>
+            <p>@data.acquisition</p> 
+        }
+        @if(!data.arrangement.getOrElse("").isEmpty) {
+            <h4>@Messages("Arrangement")</h4>
+            <p>@data.arrangement</p> 
+        }
+        @if(!data.sources.getOrElse("").isEmpty) {
+            <h4>@Messages("Sources")</h4>
+            <p>@data.sources</p> 
         }
         <hr />
     </div>

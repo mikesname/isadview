@@ -1,8 +1,8 @@
-@(form: Form[app.models.Description], action: Call)(implicit request: RequestHeader)
+@(form: Form[app.models.Neo4jDescription], action: Call)(implicit request: RequestHeader)
 
 @import helper.twitterBootstrap._
 
-@mainContent("Create Description") {
+@mainContent("Create Neo4j Description") {
     @helper.form(action = action) {
     @helper.inputText(form("identifier"), '_label -> "Identifier")
     @helper.inputText(form("slug"), '_label -> "Slug")

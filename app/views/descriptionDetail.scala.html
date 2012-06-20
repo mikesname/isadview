@@ -1,4 +1,4 @@
-@(desc: app.models.Description)(implicit request: RequestHeader)
+@(desc: app.models.Neo4jDescription)(implicit request: RequestHeader)
 
 
 @mainContent("Description: " + desc.name) {
@@ -18,8 +18,8 @@
     </table>
 
     <div class="form-actions">
-        <a href="@routes.Description.create" class="btn">New</a>
-        <a href="@routes.Description.update(slug=desc.slug)" class="btn">Edit</a>
+        <a href="@routes.Neo4jDescription.create" class="btn">New</a>
+        <a href="@routes.Neo4jDescription.update(slug=desc.slug)" class="btn">Edit</a>
     </div>
 }
 
