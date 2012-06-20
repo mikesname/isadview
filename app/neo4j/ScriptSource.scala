@@ -4,6 +4,15 @@ import org.codehaus.groovy.antlr.{GroovySourceAST,SourceBuffer,UnicodeEscapingRe
 import org.codehaus.groovy.antlr.parser.{GroovyLexer,GroovyRecognizer}
 import org.codehaus.groovy.antlr.parser.GroovyTokenTypes._
 
+object ScriptSource {}
+
+// 
+// This class handles loading and storing Groovy scripts.
+// Scripts for Gremlin are written as standard functions.
+// The ScriptSource uses Groovy's lexer to obtain the AST
+// tree of each source file and extract from it each 
+// function name, params, and body.
+//
 class ScriptSource() {
 
   private val methods: collection.mutable.Map[String,String] = collection.mutable.Map[String,String]()
