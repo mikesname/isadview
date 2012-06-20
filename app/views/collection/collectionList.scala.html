@@ -1,0 +1,15 @@
+@(clist: Seq[neo4j.models.Collection], title: String = "")(implicit req: RequestHeader)
+
+@if(!clist.isEmpty) {
+    @if(!title.isEmpty) {
+        <h4>@Messages(title)</h4>
+    }
+    <ul class="collection-list">
+    @clist.map { c =>
+        <li>
+            <a href="@routes.Gremlin.collectionDetail(slug=c.data.slug)">@c.data.name</a>
+        </li>
+    }
+    </ul>
+}
+

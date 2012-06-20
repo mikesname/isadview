@@ -1,0 +1,17 @@
+@(entity: neo4j.models.Description)(implicit req: RequestHeader)
+
+<div class="export-actions well">
+    <h4>@Messages("Export Resource")</h4>
+    <ul class="unstyled">
+        <li>
+            <a class="export-link" title="@Messages("Export description as XML")" target="_blank"  
+                href="{% url api_dispatch_detail slug=data.slug resource_name=data.resource_type api_name="v1" %}?format=xml" />XML</a>
+       </li>
+        <li>
+        <a class="export-link" title="@Messages("Export description as JSON")" target="_blank" 
+                href="{% url api_dispatch_detail slug=data.slug resource_name=data.resource_type api_name="v1" %}?format=json" />JSON</a>
+       </li>
+    </ul>
+</div>
+
+

@@ -7,29 +7,8 @@ neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit r
 
         <div class="sidebar">
             @collection.sidebarDetails(data, dates)
-            <div class="export-actions well">
-                <h4>@Messages("Export Resource")</h4>
-                <ul class="unstyled">
-                    <li>
-                        <a class="export-link" title="@Messages("Export description as XML")" target="_blank"  
-                            href="{% url api_dispatch_detail slug=data.slug resource_name=data.resource_type api_name="v1" %}?format=xml" />XML</a>
-                   </li>
-                    <li>
-                    <a class="export-link" title="@Messages("Export description as JSON")" target="_blank" 
-                            href="{% url api_dispatch_detail slug=data.slug resource_name=data.resource_type api_name="v1" %}?format=json" />JSON</a>
-                   </li>
-                </ul>
-            </div>
-            @if(true) { 
-                <div class="admin-actions well">
-                    <h4>@Messages("Administration Actions")</h4>
-                    <ul class="unstyled">
-                        <li><a class="btn" target="_blank"
-                            href="http://localhost:7474/webadmin/#/data/search/@c.id.getOrElse(0)">@Messages("Edit Description")</a></li>
-                        <li><a class="btn btn-danger" href="{{data.get_delete_url}}">@Messages("Delete")</a></li>
-                    </ul>
-                </div>
-            }
+            @common.exportActions(c)
+            @common.adminActions(c)
         </div>
     </div>
     <div class="span9 columns">
@@ -53,26 +32,12 @@ neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit r
                 }
             </p>
         }
-        @if(!data.scope_and_content.getOrElse("").isEmpty) {
-            <h4>@Messages("Scope and Content")</h4>
-            <p>@data.scope_and_content</p> 
-        }
-        @if(!data.history.getOrElse("").isEmpty) {
-            <h4>@Messages("History")</h4>
-            <p>@data.history</p> 
-        }
-        @if(!data.acquisition.getOrElse("").isEmpty) {
-            <h4>@Messages("Acquisition")</h4>
-            <p>@data.acquisition</p> 
-        }
-        @if(!data.arrangement.getOrElse("").isEmpty) {
-            <h4>@Messages("Arrangement")</h4>
-            <p>@data.arrangement</p> 
-        }
-        @if(!data.sources.getOrElse("").isEmpty) {
-            <h4>@Messages("Sources")</h4>
-            <p>@data.sources</p> 
-        }
+        
+        @common.descriptionValue(data.scope_and_content, "Scope and Content")
+        @common.descriptionValue(data.history, "History")
+        @common.descriptionValue(data.acquisition, "Acquisition")
+        @common.descriptionValue(data.arrangement, "Arrangement")
+        @common.descriptionValue(data.sources, "Sources")
         <hr />
     </div>
 </div>

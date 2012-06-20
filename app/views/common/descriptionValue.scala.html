@@ -1,0 +1,7 @@
+@(value: Option[String], title: String)(implicit req: RequestHeader)
+
+@if(!value.getOrElse("").isEmpty) {
+    <h4>@Messages(title)</h4>
+    <p>@value</p>
+}
+
