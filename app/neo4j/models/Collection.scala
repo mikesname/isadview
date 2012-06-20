@@ -22,5 +22,7 @@ case class CollectionData(
 )
 {
   lazy val otherNames: List[String] = Nil
+  lazy val languages: List[String] = Nil
+  lazy val scripts: List[String] = Nil
 }
 

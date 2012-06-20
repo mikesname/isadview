@@ -1,1 +1,57 @@
 @(data: neo4j.models.CollectionData, dates: Seq[neo4j.models.FuzzyDate])(implicit req: RequestHeader)
+
+<table class="table table-striped well">
+    @if(!data.identifier.isEmpty) {
+        <tr>
+            <td>
+                <h5>@Messages("Local ID")</h5>
+            </td>
+            <td>
+                @data.identifier
+            </td>
+        </tr>
+    }
+    @if(dates.length > 0) {    
+        <tr>
+            <td>
+                <h5>@Messages("Dates")</h5>
+            </td>
+            <td>
+                @dates.map(_.data.toString).mkString(", ")
+            </td>
+        </tr>
+    }
+    @if(data.languages.length > 0) {
+        <tr>
+            <td colspan="2">
+                <h5>@Messages("Languages:")</h5>
+                @data.languages.map { lang =>
+                    <br />
+                    @lang
+                }
+            </td>
+        </tr>
+    }
+    @if(data.scripts.length > 0) {
+        <tr>
+            <td colspan="2">
+                <h5>@Messages("Scripts:")</h5>
+                @data.scripts.map { script =>
+                    <br />
+                    @script
+                }
+            </td>
+        </tr>
+    }
+    @if(!data.extent_and_medium.getOrElse("").isEmpty) {
+        <tr>
+            <td>
+                <h5>@Messages("Extent:")</h5>
+            </td>
+            <td>@data.extent_and_medium.getOrElse("")</td>
+        </tr>
+    }
+</table>
+
+
+
