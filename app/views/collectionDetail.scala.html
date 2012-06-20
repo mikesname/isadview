@@ -1,7 +1,7 @@
 @(c: neo4j.models.Collection, data: neo4j.models.CollectionData, dates: Seq[neo4j.models.FuzzyDate], repodata:
 neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit request: RequestHeader)
 
-@main(data.name + " (" + c.id.getOrElse(0).toString + ")") {
+@main(data.name + " (" + c.id.getOrElse(0).toString + ")", body_class="collection") {
 <div class="row">
     <div class="span3 columns">
 

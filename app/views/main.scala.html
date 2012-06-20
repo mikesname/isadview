@@ -1,22 +1,16 @@
 
 @(
-title: String)(
-content: Html = Html(""),
-extra_style: Html = Html(""),
-extra_script: Html = Html(""),
-extra_head: Html = Html(""),
-body_class: String = "",
-body_id: String = "",
-body: Html = Html(""),
-extra_body: Html = Html(""),
-footer: Html = Html("")
+title: String = "Welcome to EHRI", body_class: String = "")(
+content: => Html = Html(""),
+extra_body: => Html = Html(""),
+footer: => Html = Html("")
 )(implicit request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
     <head>
         <meta charset="utf-8" />
-        <title>@title</title>
+        <title>@Messages(title)</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <!-- HTML5 shim, for IE6-8 support of HTML elements -->
@@ -25,20 +19,18 @@ footer: Html = Html("")
         <![endif]-->
 
         <link href="@routes.Assets.at("bootstrap/css/bootstrap.css")" rel="stylesheet">
-        <link href="@routes.Assets.at("bootstrap/css/bootstrap-responsive.css")" rel="stylesheet">
+        <!--<link href="@routes.Assets.at("bootstrap/css/bootstrap-responsive.css")" rel="stylesheet">-->
         <link href="@routes.Assets.at("stylesheets/theme.css")" rel="stylesheet">
         <link href="@routes.Assets.at("stylesheets/portal.css")" rel="stylesheet">
-        @extra_style
         
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")"></script>
         <script src="@routes.Assets.at("javascripts/jquery.form.js")"></script>
         <script src="@routes.Assets.at("bootstrap/js/bootstrap.js")"></script>
         <script src="@routes.Assets.at("javascripts/pinax.modal.js")"></script>
+        <script src="@routes.Assets.at("javascripts/theme.js")"></script>
         <script src="@routes.Assets.at("javascripts/portal.js")"></script>
-        @extra_script
-        @extra_head
     </head>
-    <body class="@body_class" id="@body_id">
+    <body class="@body_class" id="">
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
@@ -50,13 +42,13 @@ footer: Html = Html("")
                     <a class="brand" href="@routes.Application.index">EHRI Test Site</a>
                     <div class="nav-collapse">
                         <ul class="nav">
-                            <li id="tab_collections">
+                            <li id="tab_collection">
                                 <a href="@routes.Search.list(rtype="collection")">@Messages("Collections")</a>
                             </li>
-                            <li id="tab_repositories">
+                            <li id="tab_repository">
                                 <a href="@routes.Search.list(rtype="repository")">@Messages("Repositories")</a>
                             </li>
-                            <li id="tab_authorities">
+                            <li id="tab_authority">
                                 <a href="@routes.Search.list(rtype="authority")">@Messages("Authorities")</a>
                             </li>
                             <li id="tab_map">

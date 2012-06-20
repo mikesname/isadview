@@ -1,6 +1,6 @@
 @(repo: neo4j.models.Repository, data: neo4j.models.RepositoryData, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
 
-@main(data.name + " (" + repo.id.getOrElse(0).toString + ")") {
+@main(title=data.name + " (" + repo.id.getOrElse(0).toString + ")", body_class="repository") {
 <div class="row">
     <div class="span3 columns">
         <div class="sidebar">

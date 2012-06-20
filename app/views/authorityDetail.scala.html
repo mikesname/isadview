@@ -1,7 +1,7 @@
 @(auth: neo4j.models.Authority, data: neo4j.models.AuthorityData, created: Seq[neo4j.models.Collection], mentioned:
 Seq[neo4j.models.Collection])(implicit request: RequestHeader)
 
-@main(data.name + " (" + auth.id.getOrElse(0).toString + ")") {
+@main(data.name + " (" + auth.id.getOrElse(0).toString + ")", body_class="authority") {
 <div class="row">
     <div class="span3 columns">
 
