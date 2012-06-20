@@ -16,7 +16,7 @@ case class FuzzyDateData(
     val end_date: Option[String] = None,
     val precision: Option[String] = None,
     val circa: Boolean = false
-) {
+) extends DescriptionData {
 
   lazy val startDate: Option[DateTime] = start_date match {
     case Some(str) => Some(new DateTime(str))

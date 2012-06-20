@@ -17,7 +17,6 @@ case class RepositoryData(
   val geocultural_context: Option[String] = None,
   val history: Option[String] = None,
   val date: Option[java.util.Date] = None
-)
-{
+) extends DescriptionData {
   lazy val otherNames: List[String] = Nil
 }

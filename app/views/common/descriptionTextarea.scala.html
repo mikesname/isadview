@@ -1,0 +1,9 @@
+@(f: play.api.data.Field, label: String = "")(implicit req: RequestHeader)
+
+@import helper.twitterBootstrap._
+
+@helper.input(f, '_label -> label) { (id, name, value, args) =>
+  <textarea name="@name" id="@id" @toHtmlArgs(args)>@value</textarea>
+} 
+
+

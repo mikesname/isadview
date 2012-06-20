@@ -1,0 +1,29 @@
+@(f: Form[neo4j.models.CollectionData], action: Call, c: Option[neo4j.models.Collection] = None)(implicit request: RequestHeader)
+
+@import helper.twitterBootstrap._
+
+@main("Edit Collection", body_class="collection") {
+<div class="row">
+    <div class="span12 columns">
+        <h1>@Messages("Edit Collection"): @c.map(_.data.name).getOrElse("")</h1>
+
+        @helper.form(action = action) {
+          @helper.inputText(f("identifier"), '_label -> "Identifier")
+          @helper.inputText(f("slug"), '_label -> "Slug")
+          @helper.inputText(f("name"), '_label -> "Title")
+          @helper.inputText(f("publicationStatus"), '_label -> "Published")
+
+          @common.descriptionTextarea(f("scope_and_content"), "Scope and Content")
+          @common.descriptionTextarea(f("sources"), "Sources")
+          @common.descriptionTextarea(f("acquisition"), "Acquisition")
+          @common.descriptionTextarea(f("extent_and_medium"), "Extent and Medium")
+
+          <div class="form-actions">
+              <button type="submit" class="btn btn-primary">@Messages("Create")</button>
+              <a href="@routes.Search.list("collection")" class="btn">@Messages("Cancel")</a>
+          </div>
+        }
+    
+    </div>
+</div>
+}

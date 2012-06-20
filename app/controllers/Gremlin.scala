@@ -12,6 +12,7 @@ import net.liftweb.json
 import com.codahale.jerkson.Json._
 
 import neo4j.models.{Repository,Contact,Collection,FuzzyDate,Authority}
+import neo4j.forms.CollectionForm
 
 
 case class NoResultsFound(err: String = "") extends Exception
@@ -33,7 +34,13 @@ class GremlinResponse(r: Response) {
     else if (list.length > 1) throw new MultipleResultsFound()
     list.head
   }
+}
 
+class SingleGremlinResponse(r: Response) {
+  implicit val formats = net.liftweb.json.DefaultFormats
+  def one[T: Manifest]: T = {
+    net.liftweb.json.parse(new String(r.body.getBytes("ISO-8859-1"), "UTF-8")).extract[T]
+  }
 }
 
 object Gremlin extends Controller {
@@ -129,6 +136,56 @@ object Gremlin extends Controller {
             }
           }
         }
+      }
+    }
+  }
+
+  def collectionEdit(slug: String) = Action { implicit request =>
+    Async {
+      val params = Map(
+        "index_name" -> "collection",
+        "key" -> "slug",
+        "query_string" -> slug
+      )
+      gremlin("query_exact_index", params).map { r1 =>
+        val collection = new GremlinResponse(r1).one[Collection]
+
+        val form = CollectionForm.form.fill(collection.data)
+        val action = routes.Gremlin.collectionSave(slug)
+        Ok(views.html.collectionForm(f=form, action=action, c=Some(collection)))
+      }
+    }
+  }
+
+  def collectionSave(slug: String) = Action { implicit request =>
+    Async {
+      val params = Map(
+        "index_name" -> "collection",
+        "key" -> "slug",
+        "query_string" -> slug
+      )
+      gremlin("query_exact_index", params).map { r1 =>
+        val collection = new GremlinResponse(r1).one[Collection]
+        CollectionForm.form.bindFromRequest.fold(
+          errors => BadRequest(
+            views.html.collectionForm(f=errors,
+            action=routes.Gremlin.collectionSave(slug), c=Some(collection))),
+          data => {
+            Async {
+              val params = Map(
+                "index_name" -> "collection",
+                "_id" -> collection.id.getOrElse(-1), // shouldn't happen!
+                "data" -> data.toMap,
+                "keys" -> null // this means: index every field
+              )
+              gremlin("update_indexed_vertex", params).map { resp =>
+                // TODO: Handle error if this doesn't work!
+                val updated = new SingleGremlinResponse(resp).one[Collection]
+                Redirect(routes.Gremlin.collectionDetail(slug=updated.data.slug))
+              }
+            }
+          }
+        )
       }
     }
   }

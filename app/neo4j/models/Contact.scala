@@ -23,7 +23,7 @@ case class ContactData(
   val email: Option[String] = None,
   val website: Option[String] = None,
   val note: Option[String] = None
-) {
+) extends DescriptionData {
   def countryName(loc: Locale): Option[String] = country_code match {
     case Some(code) => Some(new Locale("", code).getDisplayCountry(loc))
     case _ => None

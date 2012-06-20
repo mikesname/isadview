@@ -19,8 +19,7 @@ case class CollectionData(
   val acquisition: Option[String] = None,
   val sources: Option[String] = None,
   val rules: Option[String] = None
-)
-{
+) extends DescriptionData {
   lazy val otherNames: List[String] = Nil
   lazy val languages: List[String] = Nil
   lazy val scripts: List[String] = Nil

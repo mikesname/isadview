@@ -23,5 +23,8 @@ GET     /repository/:slug       controllers.Gremlin.repositoryDetail(slug:String
 GET     /authority/:slug        controllers.Gremlin.authorityDetail(slug:String)
 GET     /collection/:slug       controllers.Gremlin.collectionDetail(slug:String)
 
+GET     /collection/edit/:slug  controllers.Gremlin.collectionEdit(slug: String)
+POST    /collection/edit/:slug    controllers.Gremlin.collectionSave(slug: String)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

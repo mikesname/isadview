@@ -14,7 +14,6 @@ case class AuthorityData(
   val publication_status: Int = 0,
   val dates_of_existence: Option[String] = None,
   val history: Option[String] = None
-)
-{
+) extends DescriptionData {
   lazy val otherNames: List[String] = Nil
 }
