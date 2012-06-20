@@ -13,6 +13,8 @@ POST    /description                    controllers.Neo4jDescription.createPost
 GET     /description/edit/:slug         controllers.Neo4jDescription.update(slug: String)
 POST    /description/edit/:slug         controllers.Neo4jDescription.updatePost(slug: String)
 
+GET     /dbtest                         controllers.Application.dbtest()
+
 # Searching
 GET     /$rtype<(collection|repository|authority)>     controllers.Search.list(rtype:String, page:Int ?= 0, s:Int ?= 2, q ?= "", field ?= "")
 GET     /$rtype<(collection|repository|authority)>/facets/:facet          controllers.Search.facets(facet:String, rtype:String, page:Int ?= 0, sort:String ?= "count", q ?= "", field ?= "")
