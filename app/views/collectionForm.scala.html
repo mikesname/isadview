@@ -4,6 +4,8 @@
 
 @main("Edit Collection", body_class="collection") {
 
+<h2>@c.map(_.identity.name).getOrElse(Messages("Create Collection"))</h2>
+
 <div class="subnav">
     <ul class="nav nav-pills">
         <li><a href="#identity-area">@Messages("Identity")</a></li>
@@ -20,7 +22,6 @@
 <div class="row">
     <script src="@routes.Assets.at("javascripts/subnav.js")"></script>
     <div class="span12 columns">
-        <h1>@Messages("Edit Collection"): @c.map(_.identity.name).getOrElse("")</h1>
 
         @helper.form(action = action, 'class -> "entity-form form-horizontal") {
 
