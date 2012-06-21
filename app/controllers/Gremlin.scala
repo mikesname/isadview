@@ -43,6 +43,32 @@ class SingleGremlinResponse(r: Response) {
   }
 }
 
+class AltGremlinResponse(r: Response) {
+  implicit val formats = net.liftweb.json.DefaultFormats
+  
+  def toList: Seq[Collection] = {
+    // FIXME: The response is coming back encoding wrong, so fix it with a hack...
+    println("PARSING: " + r.body)
+    net.liftweb.json.parse(new String(r.body.getBytes("ISO-8859-1"), "UTF-8")).children.map( m =>
+      Collection.fromJson(m)  
+    )
+  }
+
+  def one: Collection = {
+    var list = toList
+    if (list.length == 0) throw new NoResultsFound()
+    else if (list.length > 1) throw new MultipleResultsFound()
+    list.head
+  }
+}
+
+class AltSingleGremlinResponse(r: Response) {
+  implicit val formats = net.liftweb.json.DefaultFormats
+  def one: Collection = {
+    Collection.fromJson(net.liftweb.json.parse(new String(r.body.getBytes("ISO-8859-1"), "UTF-8")))
+  }
+}
+
 object Gremlin extends Controller {
 
   val scripts = new neo4j.ScriptSource()
@@ -88,7 +114,7 @@ object Gremlin extends Controller {
         "query_string" -> slug
       )
       gremlin("query_exact_index", params).map { r1 =>
-        val collection = new GremlinResponse(r1).one[Collection]
+        val collection = new AltGremlinResponse(r1).one
         Async {
           // get contacts
           gremlin("inV", Map("_id" -> collection.id.getOrElse(0), "label" -> "locatesInTime")).map { r2 =>
@@ -104,7 +130,7 @@ object Gremlin extends Controller {
                       case e: NoResultsFound => None
                       case other => throw other
                     }
-                    Ok(views.html.collectionDetail(collection, collection.data, dates, repo.data, creator))
+                    Ok(views.html.collectionDetail(collection, dates, repo.data, creator))
                   }
                 }
               }
@@ -148,9 +174,9 @@ object Gremlin extends Controller {
         "query_string" -> slug
       )
       gremlin("query_exact_index", params).map { r1 =>
-        val collection = new GremlinResponse(r1).one[Collection]
+        val collection = new AltGremlinResponse(r1).one
 
-        val form = CollectionForm.form.fill(collection.data)
+        val form = CollectionForm.form.fill(collection)
         val action = routes.Gremlin.collectionSave(slug)
         Ok(views.html.collectionForm(f=form, action=action, c=Some(collection)))
       }
@@ -164,12 +190,16 @@ object Gremlin extends Controller {
         "key" -> "slug",
         "query_string" -> slug
       )
+      println(request.body.asFormUrlEncoded)
       gremlin("query_exact_index", params).map { r1 =>
-        val collection = new GremlinResponse(r1).one[Collection]
+        val collection = new AltGremlinResponse(r1).one
         CollectionForm.form.bindFromRequest.fold(
-          errors => BadRequest(
-            views.html.collectionForm(f=errors,
-            action=routes.Gremlin.collectionSave(slug), c=Some(collection))),
+          errorForm => {
+            println(errorForm)
+            BadRequest(
+            views.html.collectionForm(f=errorForm,
+            action=routes.Gremlin.collectionSave(slug), c=Some(collection)))
+          },
           data => {
             Async {
               val params = Map(
@@ -178,10 +208,11 @@ object Gremlin extends Controller {
                 "data" -> data.toMap,
                 "keys" -> null // this means: index every field
               )
+              println("Submitting with params: " + params)
               gremlin("update_indexed_vertex", params).map { resp =>
                 // TODO: Handle error if this doesn't work!
-                val updated = new SingleGremlinResponse(resp).one[Collection]
-                Redirect(routes.Gremlin.collectionDetail(slug=updated.data.slug))
+                val updated = new AltSingleGremlinResponse(resp).one
+                Redirect(routes.Gremlin.collectionDetail(slug=updated.identity.slug))
               }
             }
           }

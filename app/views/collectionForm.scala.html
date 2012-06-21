@@ -1,22 +1,93 @@
-@(f: Form[neo4j.models.CollectionData], action: Call, c: Option[neo4j.models.Collection] = None)(implicit request: RequestHeader)
+@(f: Form[neo4j.models.Collection], action: Call, c: Option[neo4j.models.Collection] = None)(implicit request: RequestHeader)
 
-@import helper.twitterBootstrap._
+@implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
 @main("Edit Collection", body_class="collection") {
+
+<div class="subnav">
+    <ul class="nav nav-pills">
+        <li><a href="#identity-area">@Messages("Identity")</a></li>
+        <li><a href="#context-area">@Messages("Context")</a></li>
+        <li><a href="#content-area">@Messages("Content and Structure")</a></li>
+        <li><a href="#access-area">@Messages("Conditions of Access and Use")</a></li>
+        <li><a href="#materials-area">@Messages("Allied Materials")</a></li>
+        <li><a href="#notes-area">@Messages("Notes")</a></li>
+        <li><a href="#control-area">@Messages("Control")</a></li>
+        <li><a href="#admin-area">@Messages("Administration")</a></li>
+    </ul>
+</div>
+
 <div class="row">
+    <script src="@routes.Assets.at("javascripts/subnav.js")"></script>
     <div class="span12 columns">
-        <h1>@Messages("Edit Collection"): @c.map(_.data.name).getOrElse("")</h1>
+        <h1>@Messages("Edit Collection"): @c.map(_.identity.name).getOrElse("")</h1>
 
-        @helper.form(action = action) {
-          @helper.inputText(f("identifier"), '_label -> "Identifier")
-          @helper.inputText(f("slug"), '_label -> "Slug")
-          @helper.inputText(f("name"), '_label -> "Title")
-          @helper.inputText(f("publicationStatus"), '_label -> "Published")
+        @helper.form(action = action, 'class -> "entity-form form-horizontal") {
 
-          @common.descriptionTextarea(f("scope_and_content"), "Scope and Content")
-          @common.descriptionTextarea(f("sources"), "Sources")
-          @common.descriptionTextarea(f("acquisition"), "Acquisition")
-          @common.descriptionTextarea(f("extent_and_medium"), "Extent and Medium")
+    <fieldset id="identity-area">
+        <legend>@Messages("Identity")</legend>
+        @helper.inputText(f("self"), '_label -> "Self")
+        @helper.inputText(f("identity.identifier"), '_label -> "Identifier")
+        @helper.inputText(f("identity.slug"), '_label -> "Slug")
+        @helper.inputText(f("identity.name"), '_label -> "Title")
+
+        @common.descriptionChoice(f("identity.levelOfDescription"), neo4j.models.LevelOfDescription, "Level of Description", blank=true)
+        @common.descriptionTextarea(f("identity.extentAndMedium"), "Extent and Medium")
+
+    </fieldset>
+
+    <fieldset id="context-area">
+        <legend>@Messages("Context")</legend>
+          @*common.descriptionTextarea(f("creator"), "creator")                            *@
+          @*common.descriptionTextarea(f("repository"), "repository")                         *@
+          @common.descriptionTextarea(f("context.archivalHistory"), "Archival History")
+          @common.descriptionTextarea(f("context.acquisition"), "Immediate Source of Acquisition or Transfer")
+    </fieldset>
+
+    <fieldset id="content-area">
+        <legend>@Messages("Content and Structure")</legend>
+          @common.descriptionTextarea(f("content.scopeAndContent"), "Scope and Content")
+          @common.descriptionTextarea(f("content.appraisal"), "Appraisal")
+          @common.descriptionTextarea(f("content.accruals"), "Accruals")
+          @common.descriptionTextarea(f("content.systemOfArrangement"), "System_of Arrangement")
+    </fieldset>
+
+    <fieldset id="access-area">
+        <legend>@Messages("Conditions of Access and Use")</legend>
+          @common.descriptionTextarea(f("conditions.conditionsOfAccess"), "Conditions of Access")
+          @common.descriptionTextarea(f("conditions.conditionsOfReproduction"), "Conditions of Reproduction")
+          @common.descriptionTextarea(f("conditions.languages"), "Languages")
+          @common.descriptionTextarea(f("conditions.scripts"), "Scripts")
+          @common.descriptionTextarea(f("conditions.physicalCharacteristics"), "Physical Characteristics") 
+          @common.descriptionTextarea(f("conditions.findingAids"), "Finding Aids")
+    </fieldset>
+
+    <fieldset id="materials-area">
+        <legend>@Messages("Allied Material")</legend>
+          @common.descriptionTextarea(f("materials.locationOfOriginals"), "Location of Originals")
+          @common.descriptionTextarea(f("materials.locationOfCopies"), "Location of Copies")
+          @common.descriptionTextarea(f("materials.relatedUnitsOfDescription"), "Related Units of Description")
+          @*common.descriptionTextarea(f("materials.publicationNotes"), "publication_notes")
+    </fieldset>
+
+    <fieldset id="notes-area">
+        <legend>@Messages("Notes")</legend>
+          @*common.descriptionTextarea(f("notes"), "notes")    *@
+    </fieldset>
+
+    <fieldset id="control-area">
+        <legend>@Messages("Control")</legend>
+          @*common.descriptionTextarea(f("description_identifier"), "Description Identifier")   *@
+          @*common.descriptionTextarea(f("institution_identifier"), "Institution Identifier")     *@
+          @common.descriptionTextarea(f("control.rules"), "Rules")
+          @common.descriptionTextarea(f("control.languagesOfDescription"), "Languages of Description")
+          @common.descriptionTextarea(f("control.scriptsOfDescription"), "Scripts of Description")
+          @common.descriptionTextarea(f("control.sources"), "Sources")
+    </fieldset>
+
+    <fieldset id="admin-area">
+        @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
+    </fieldset>
 
           <div class="form-actions">
               <button type="submit" class="btn btn-primary">@Messages("Create")</button>

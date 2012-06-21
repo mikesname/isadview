@@ -4,30 +4,27 @@ package neo4j.models
 import org.joda.time.DateTime
 
 
-case class FuzzyDate(
-  val self:String = "",
-  val data: FuzzyDateData
-) extends Description {
-
+object FuzzyDate extends JsonInstantiatable[FuzzyDate] {
+  implicit val formats = net.liftweb.json.DefaultFormats
+  
+  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+    FuzzyDate(
+      url = (data \ "self").extractOpt[String],
+      startDate = (data \ "data" \ "start_date").extractOpt[String].map(new DateTime(_)),
+      endDate = (data \ "data" \ "end_date").extractOpt[String].map(new DateTime(_)),
+      precision = (data \ "data" \ "precision").extractOpt[String],
+      circa = (data \ "circa" \ "circa").extractOpt[Boolean].getOrElse(false)
+    )
+  }
 }
 
-case class FuzzyDateData(
-    val start_date: Option[String] = None,
-    val end_date: Option[String] = None,
-    val precision: Option[String] = None,
-    val circa: Boolean = false
-) extends DescriptionData {
-
-  lazy val startDate: Option[DateTime] = start_date match {
-    case Some(str) => Some(new DateTime(str))
-    case None => None
-  }
-
-  lazy val endDate: Option[DateTime] = end_date match {
-    case Some(str) => Some(new DateTime(str))
-    case None => None
-  }
-
+case class FuzzyDate(
+  val startDate: Option[DateTime] = None,
+  val endDate: Option[DateTime] = None,
+  val precision: Option[String] = None,
+  val circa: Boolean = false,
+  val url: Option[String] = None
+) extends Description {
   override def toString: String = {
     """Print a sensible representation."""
     var out = ""
@@ -38,6 +35,7 @@ case class FuzzyDateData(
     }.mkString("-")
   }
 }
+
 
 
 

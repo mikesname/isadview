@@ -1,53 +1,54 @@
 package neo4j.forms
 
-//case class Collection(
-//  val self: String,
-//  val data: CollectionData
-//) extends Description {
-//
-//}
-//
-//case class CollectionData(
-//  val slug: String = "",
-//  val name: String = "",
-//  val identifier: String = "",
-//  val publication_status: Int = 0,
-//  val scope_and_content: Option[String] = None,
-//  val history: Option[String] = None,
-//  val arrangement: Option[String] = None,
-//  val extent_and_medium: Option[String] = None,
-//  val acquisition: Option[String] = None,
-//  val sources: Option[String] = None,
-//  val rules: Option[String] = None
-//)
-//{
-//  lazy val otherNames: List[String] = Nil
-//  lazy val languages: List[String] = Nil
-//  lazy val scripts: List[String] = Nil
-//}
-//
-
-
 import play.api.data._
 import play.api.data.Forms._
 
-import neo4j.models.{Collection,CollectionData}
+import neo4j.models._
 
 object CollectionForm {
 
   val form = Form(
     mapping(
-      "slug" -> nonEmptyText,
-      "name" -> nonEmptyText,
-      "identifier" -> nonEmptyText,
-      "publicationStatus" -> number,
-      "scope_and_content" -> optional(text),
-      "history" -> optional(text), 
-      "arrangement" -> optional(text),  
-      "extent_and_medium" -> optional(text),  
-      "acquisition" -> optional(text),  
-      "sources" -> optional(text),  
-      "rules" -> optional(text)  
-    )(CollectionData.apply)(CollectionData.unapply)
+      "self" -> text,
+      "identity" -> mapping(
+        "identifier" -> nonEmptyText,
+        "slug" -> nonEmptyText,
+        "name" -> nonEmptyText,
+        "levelOfDescription" -> optional(number),
+        "extentAndMedium" -> optional(text)
+      )(CollectionIdentity.apply)(CollectionIdentity.unapply),
+      "context" -> mapping(
+        "archivalHistory" -> optional(text),
+        "acquisition" -> optional(text)
+      )(CollectionContext.apply)(CollectionContext.unapply),
+      "content" -> mapping(
+        "scopeAndContent" -> optional(text),
+        "appraisal" -> optional(text),
+        "accrurals" -> optional(text),
+        "systemOfArrangement" -> optional(text)
+      )(CollectionContent.apply)(CollectionContent.unapply),
+      "conditions" -> mapping(
+        "conditionsOfAccess" -> optional(text),
+        "conditionsOfReproduction" -> optional(text),
+        "languages" -> list(text),
+        "scripts" -> list(text),
+        "physicalCharacteristics" -> optional(text),
+        "findingAids" -> optional(text)
+      )(CollectionConditions.apply)(CollectionConditions.unapply),
+      "material" -> mapping(
+        "locationOfOriginals" -> optional(text),
+        "locationOfCopies" -> optional(text),
+        "relatedUnitsOfDescription" -> optional(text)
+      )(CollectionMaterials.apply)(CollectionMaterials.unapply),
+      "control" -> mapping(
+        "rules" -> optional(text),
+        "languagesOfDescription" -> list(text),
+        "scriptsOfDescription" -> list(text),
+        "sources" -> optional(text)
+      )(CollectionControl.apply)(CollectionControl.unapply),
+      "admin" -> mapping(
+        "publicationStatus" -> number
+      )(CollectionAdmin.apply)(CollectionAdmin.unapply)
+    )(Collection.apply)(Collection.unapply)
   )
 }

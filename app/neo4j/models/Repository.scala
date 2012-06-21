@@ -1,7 +1,5 @@
 package neo4j.models
 
-import neo4j.models.Description
-
 case class Repository(
   val self: String,
   val data: RepositoryData

@@ -1,26 +1,26 @@
-@(c: neo4j.models.Collection, data: neo4j.models.CollectionData, dates: Seq[neo4j.models.FuzzyDate], repodata:
+@(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate], repodata:
 neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit request: RequestHeader)
 
-@main(data.name + " (" + c.id.getOrElse(0).toString + ")", body_class="collection") {
+@main(c.identity.name + " (" + c.id.getOrElse(0).toString + ")", body_class="collection") {
 <div class="row">
     <div class="span3 columns">
 
         <div class="sidebar">
-            @collection.sidebarDetails(data, dates)
+            @collection.sidebarDetails(c, dates)
             @common.exportActions(c)
             @common.adminActions(c)
         </div>
     </div>
     <div class="span9 columns">
         <h2>
-            @data.name
-            @if(data.publication_status == 0) {
+            @c.identity.name
+            @if(c.admin.publicationStatus == 0) {
                 <span class="label">@Messages("Draft Description")</span>
             }
         </h2>
-        @if(data.otherNames.size > 0) {
+        @if(c.identity.otherNames.size > 0) {
             <h3 class="alternate-name">
-                @data.otherNames.mkString(",")
+                @c.identity.otherNames.mkString(",")
             </h3>
         }
 
@@ -33,11 +33,16 @@ neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit r
             </p>
         }
         
-        @common.descriptionValue(data.scope_and_content, "Scope and Content")
-        @common.descriptionValue(data.history, "History")
-        @common.descriptionValue(data.acquisition, "Acquisition")
-        @common.descriptionValue(data.arrangement, "Arrangement")
-        @common.descriptionValue(data.sources, "Sources")
+        @common.descriptionValue(c.context.archivalHistory, "Archival History")
+        @common.descriptionValue(c.context.acquisition, "Acquisition")
+        
+        @common.descriptionValue(c.content.scopeAndContent, "Scope and Content")
+        @common.descriptionValue(c.content.appraisal, "Appraisal")
+        @common.descriptionValue(c.content.accrurals, "Accrurals")
+        @common.descriptionValue(c.content.systemOfArrangement, "Arrangement")
+
+        @common.descriptionValue(c.control.rules, "Rules")
+        @common.descriptionValue(c.control.sources, "Sources")
         <hr />
     </div>
 </div>

@@ -1,13 +1,13 @@
-@(data: neo4j.models.CollectionData, dates: Seq[neo4j.models.FuzzyDate])(implicit req: RequestHeader)
+@(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate])(implicit req: RequestHeader)
 
 <table class="table table-striped well">
-    @if(!data.identifier.isEmpty) {
+    @if(!c.identity.identifier.isEmpty) {
         <tr>
             <td>
                 <h5>@Messages("Local ID")</h5>
             </td>
             <td>
-                @data.identifier
+                @c.identity.identifier
             </td>
         </tr>
     }
@@ -21,34 +21,34 @@
             </td>
         </tr>
     }
-    @if(data.languages.length > 0) {
+    @if(c.conditions.languages.length > 0) {
         <tr>
             <td colspan="2">
                 <h5>@Messages("Languages:")</h5>
-                @data.languages.map { lang =>
+                @c.conditions.languages.map { lang =>
                     <br />
                     @lang
                 }
             </td>
         </tr>
     }
-    @if(data.scripts.length > 0) {
+    @if(c.conditions.scripts.length > 0) {
         <tr>
             <td colspan="2">
                 <h5>@Messages("Scripts:")</h5>
-                @data.scripts.map { script =>
+                @c.conditions.scripts.map { script =>
                     <br />
                     @script
                 }
             </td>
         </tr>
     }
-    @if(!data.extent_and_medium.getOrElse("").isEmpty) {
+    @if(!c.identity.extentAndMedium.getOrElse("").isEmpty) {
         <tr>
             <td>
                 <h5>@Messages("Extent:")</h5>
             </td>
-            <td>@data.extent_and_medium.getOrElse("")</td>
+            <td>@c.identity.extentAndMedium.getOrElse("")</td>
         </tr>
     }
 </table>

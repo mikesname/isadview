@@ -2,41 +2,53 @@ package neo4j.models
 
 import java.util.Locale
 
-case class Contact(
-  val self:String = "",
-  val data: ContactData
-) extends Description {
-
+object Contact extends JsonInstantiatable[Contact] {
+  implicit val formats = net.liftweb.json.DefaultFormats
+  
+  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+    Contact(
+      primary = (data \ "data" \ "primary").extractOpt[Boolean].getOrElse(false),
+      contactPerson = (data \ "data" \ "contact_person").extractOpt[String],
+      streetAddress = (data \ "data" \ "identifier").extractOpt[String],
+      city = (data \ "data" \ "city").extractOpt[String],
+      region = (data \ "data" \ "region").extractOpt[String],
+      countryCode = (data \ "data" \ "country_code").extractOpt[String],
+      postalCode = (data \ "data" \ "postal_code").extractOpt[String],
+      telephone = (data \ "data" \ "telephone").extractOpt[String],
+      fax = (data \ "data" \ "fax").extractOpt[String],
+      email = (data \ "data" \ "email").extractOpt[String],
+      website = (data \ "data" \ "website").extractOpt[String],
+      note = (data \ "data" \ "note").extractOpt[String],
+      url = (data \ "self").extractOpt[String]
+    )
+  }
 }
 
-case class ContactData(
+case class Contact(
   val primary: Boolean = false,
-  val contact_person: Option[String] = None,
-  val street_address: Option[String] = None,
+  val contactPerson: Option[String] = None,
+  val streetAddress: Option[String] = None,
   val city: Option[String] = None,
   val region: Option[String] = None,
-  val postal_code: Option[String] = None,
-  val country_code: Option[String] = None,
-  val publication_status: Int = 0,
+  val postalCode: Option[String] = None,
+  val countryCode: Option[String] = None,
   val telephone: Option[String] = None,
   val fax: Option[String] = None,
   val email: Option[String] = None,
   val website: Option[String] = None,
-  val note: Option[String] = None
-) extends DescriptionData {
-  def countryName(loc: Locale): Option[String] = country_code match {
+  val note: Option[String] = None,
+  val url: Option[String] = None
+) extends Description {
+  def countryName(loc: Locale): Option[String] = countryCode match {
     case Some(code) => Some(new Locale("", code).getDisplayCountry(loc))
     case _ => None
   }
 
   def format(loc: Locale = new Locale("en", "GB")): String = {
-    List(street_address, city, region, postal_code, countryName(loc)).flatMap {
+    List(streetAddress, city, region, postalCode, countryName(loc)).flatMap {
         case Some(addr) if addr.trim != "" => List(addr)
         case _ => Nil
     }.mkString("\n")
   }
 }
 
-
-
-// vim: set ts=4 sw=4 et:

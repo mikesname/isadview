@@ -1,17 +1,41 @@
 package neo4j.models
 
-object Description {
-  private def idMatch = "^.+/(\\d+)$".r
+// Enum definitions
+object PublicationStatus extends Enumeration(
+    "Draft", "Published") {
+  type PublicationStatus = Value
+  val Draft, Published = Value
 }
 
+object LevelOfDetail extends Enumeration(
+    "Minimal", "Partial", "Complete") {
+  type LevelOfDetail = Value
+  val Minimal, Partial, Complete = Value
+}
+
+object LevelOfDescription extends Enumeration(
+    "Collection", "File", "Fonds", "Subfonds", "Series", "Subseries", "Item") {
+  type LevelOfDescription = Value
+  val Collection, File, Fonds, Subfonds, Series, Subseries, Item = Value
+}
+
+trait JsonInstantiatable[T] {
+  def fromJson(data: net.liftweb.json.JsonAST.JValue): T
+}
 
 trait Description {
-  def self: String
-  lazy val id: Option[Long] = self match {
+  def url: Option[String]
+  lazy val id: Option[Long] = url match {
     case Description.idMatch(id) => Some(id.toLong)
     case _ => None
   }
 }
+
+object Description {
+  private def idMatch = "^.+/(\\d+)$".r
+
+}
+
 
 trait DescriptionData {
   // deconstruct a case class to a Map
