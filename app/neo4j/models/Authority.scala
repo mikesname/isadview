@@ -39,6 +39,7 @@ case class AuthorityIdentity(
   val slug: String = "",
   val name: String = ""
 ) {
+  def otherNames = Nil
   def toMap = Map(
     "type_of_entity" -> typeOfEntity,
     "identifier" -> identifier,

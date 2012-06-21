@@ -1,29 +1,29 @@
-@(repo: neo4j.models.Repository, data: neo4j.models.RepositoryData, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
+@(repo: neo4j.models.Repository, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
 
-@main(title=data.name + " (" + repo.id.getOrElse(0).toString + ")", body_class="repository") {
+@main(title=repo.identity.name + " (" + repo.id.getOrElse(0).toString + ")", body_class="repository") {
 <div class="row">
     <div class="span3 columns">
         <div class="sidebar">
-            @repository.sidebarDetails(data, contacts)
+            @repository.sidebarDetails(repo, contacts)
             @common.exportActions(repo)
             @common.adminActions(repo)
         </div>
     </div>
     <div class="span9 columns">
         <h2>
-            @data.name
-            @if(data.publication_status == 0) {
+            @repo.identity.name
+            @if(repo.admin.publicationStatus == 0) {
                 <span class="label">@Messages("Draft Description")</span>
             }
         </h2>
-        @if(data.otherNames.size > 0) {
+        @if(repo.identity.otherNames.size > 0) {
             <h3 class="alternate-name">
-                @data.otherNames.mkString(",")
+                @repo.identity.otherNames.mkString(",")
             </h3>
         }
 
-        @common.descriptionValue(data.geocultural_context, "Geocultural Context")
-        @common.descriptionValue(data.history, "History")
+        @common.descriptionValue(repo.description.geoculturalContext, "Geocultural Context")
+        @common.descriptionValue(repo.description.history, "History")
         <hr />
     </div>
 </div>

@@ -1,5 +1,5 @@
-@(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate], repodata:
-neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit request: RequestHeader)
+@(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate], repo:
+neo4j.models.Repository, creator: Option[neo4j.models.Authority])(implicit request: RequestHeader)
 
 @main(c.identity.name + " (" + c.id.getOrElse(0).toString + ")", body_class="collection") {
 <div class="row">
@@ -28,7 +28,7 @@ neo4j.models.RepositoryData, creator: Option[neo4j.models.Authority])(implicit r
             <h4>@Messages("Created By")</h4>
             <p>
                 @creator.map { auth =>
-                    <a href="@routes.Gremlin.authorityDetail(slug=auth.data.slug)">@auth.data.name</a>
+                    <a href="@routes.Gremlin.authorityDetail(slug=auth.identity.slug)">@auth.identity.name</a>
                 }
             </p>
         }

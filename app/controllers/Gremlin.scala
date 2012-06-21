@@ -99,7 +99,7 @@ object Gremlin extends Controller {
           // get contacts
           gremlin("inV", Map("_id" -> repo.id.getOrElse(0), "label" -> "addressOf")).map { r2 =>
             val contacts = new GremlinResponse(r2).toList[Contact]
-            Ok(views.html.repositoryDetail(repo=repo, data=repo.data, contacts=contacts))
+            Ok(views.html.repositoryDetail(repo=repo, contacts=contacts))
           }
         }
       }
@@ -130,7 +130,7 @@ object Gremlin extends Controller {
                       case e: NoResultsFound => None
                       case other => throw other
                     }
-                    Ok(views.html.collectionDetail(collection, dates, repo.data, creator))
+                    Ok(views.html.collectionDetail(collection, dates, repo, creator))
                   }
                 }
               }
@@ -157,7 +157,7 @@ object Gremlin extends Controller {
             Async {
               gremlin("inV", Map("_id" -> auth.id.getOrElse(0), "label" -> "mentionedIn")).map { r3 =>
                 val mentionedCollections = new GremlinResponse(r3).toList[Collection]
-                Ok(views.html.authorityDetail(auth, auth.data, createdCollections, mentionedCollections))
+                Ok(views.html.authorityDetail(auth, createdCollections, mentionedCollections))
               }
             }
           }

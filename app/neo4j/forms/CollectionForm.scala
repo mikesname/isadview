@@ -9,7 +9,6 @@ object CollectionForm {
 
   val form = Form(
     mapping(
-      "self" -> text,
       "identity" -> mapping(
         "identifier" -> nonEmptyText,
         "slug" -> nonEmptyText,
@@ -48,7 +47,8 @@ object CollectionForm {
       )(CollectionControl.apply)(CollectionControl.unapply),
       "admin" -> mapping(
         "publicationStatus" -> number
-      )(CollectionAdmin.apply)(CollectionAdmin.unapply)
+      )(CollectionAdmin.apply)(CollectionAdmin.unapply),
+      "url" -> optional(text)
     )(Collection.apply)(Collection.unapply)
   )
 }

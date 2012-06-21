@@ -1,4 +1,4 @@
-@(repo: neo4j.models.RepositoryData, contacts: Seq[neo4j.models.Contact])(implicit req: RequestHeader)
+@(repo: neo4j.models.Repository, contacts: Seq[neo4j.models.Contact])(implicit req: RequestHeader)
 
 <div class="repo-logo">
     <a href="{{object.get_absolute_url}}">
@@ -14,13 +14,13 @@
     <h3>@Messages("Contact details")</h3>
     <p>
     @contacts.map { contact =>
-        @Html(contact.data.format().replace("\n", "<br />"))
+        @Html(contact.format().replace("\n", "<br />"))
         <br />
-        Tel: @contact.data.telephone.getOrElse("")
+        Tel: @contact.telephone.getOrElse("")
         <br />
-        Fax: @contact.data.fax.getOrElse("")
+        Fax: @contact.fax.getOrElse("")
         <br />
-        @contact.data.email.getOrElse("")
+        @contact.email.getOrElse("")
     }
     </p>
 </address>
