@@ -1,9 +1,9 @@
 package neo4j.models
 
-object Authority extends JsonInstantiatable[Authority] {
+object Authority extends JsonBuilder[Authority] {
   implicit val formats = net.liftweb.json.DefaultFormats
   
-  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+  def apply(data: net.liftweb.json.JsonAST.JValue): Authority = {
     Authority(
       url = (data \ "self").extractOpt[String],
       identity = AuthorityIdentity(
@@ -29,7 +29,7 @@ case class Authority(
   val description: AuthorityDescription,
   val admin: AuthorityAdmin,
   val url: Option[String] = None
-) extends Description {
+) extends Description with IdFromUrl {
   def toMap = identity.toMap ++ admin.toMap
 }
 

@@ -1,10 +1,10 @@
 package neo4j.models
 
 
-object Repository extends JsonInstantiatable[Repository] {
+object Repository extends JsonBuilder[Repository] {
   implicit val formats = net.liftweb.json.DefaultFormats
   
-  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+  def apply(data: net.liftweb.json.JsonAST.JValue): Repository = {
     Repository(
       url = (data \ "self").extractOpt[String],
       identity = RepositoryIdentity(
@@ -31,7 +31,7 @@ case class Repository(
   val description: RepositoryDescription,
   val admin: RepositoryAdmin,
   val url: Option[String] = None
-) extends Description {
+) extends Description with IdFromUrl {
   def toMap = {
     identity.toMap ++
     description.toMap ++

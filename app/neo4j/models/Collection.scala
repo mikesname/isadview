@@ -1,9 +1,9 @@
 package neo4j.models
 
-object Collection extends JsonInstantiatable[Collection] {
+object Collection extends JsonBuilder[Collection] {
   implicit val formats = net.liftweb.json.DefaultFormats
 
-  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+  def apply(data: net.liftweb.json.JsonAST.JValue): Collection = {
     Collection(
       // adjust these as appropriate!
       url = (data \ "self").extractOpt[String],
@@ -58,7 +58,7 @@ case class Collection(
   val control: CollectionControl,
   val admin: CollectionAdmin,
   val url: Option[String] = None
-) extends Description {
+) extends Description with IdFromUrl {
   def toMap = {
     identity.toMap ++
     context.toMap ++

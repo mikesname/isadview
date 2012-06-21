@@ -2,10 +2,10 @@ package neo4j.models
 
 import java.util.Locale
 
-object Contact extends JsonInstantiatable[Contact] {
+object Contact extends JsonBuilder[Contact] {
   implicit val formats = net.liftweb.json.DefaultFormats
   
-  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+  def apply(data: net.liftweb.json.JsonAST.JValue): Contact = {
     Contact(
       primary = (data \ "data" \ "primary").extractOpt[Boolean].getOrElse(false),
       contactPerson = (data \ "data" \ "contact_person").extractOpt[String],
@@ -38,7 +38,7 @@ case class Contact(
   val website: Option[String] = None,
   val note: Option[String] = None,
   val url: Option[String] = None
-) extends Description {
+) extends IdFromUrl {
   def countryName(loc: Locale): Option[String] = countryCode match {
     case Some(code) => Some(new Locale("", code).getDisplayCountry(loc))
     case _ => None

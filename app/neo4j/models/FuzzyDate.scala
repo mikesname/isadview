@@ -4,10 +4,10 @@ package neo4j.models
 import org.joda.time.DateTime
 
 
-object FuzzyDate extends JsonInstantiatable[FuzzyDate] {
+object FuzzyDate extends JsonBuilder[FuzzyDate] {
   implicit val formats = net.liftweb.json.DefaultFormats
   
-  def fromJson(data: net.liftweb.json.JsonAST.JValue) = {
+  def apply(data: net.liftweb.json.JsonAST.JValue): FuzzyDate = {
     FuzzyDate(
       url = (data \ "self").extractOpt[String],
       startDate = (data \ "data" \ "start_date").extractOpt[String].map(new DateTime(_)),
@@ -24,7 +24,7 @@ case class FuzzyDate(
   val precision: Option[String] = None,
   val circa: Boolean = false,
   val url: Option[String] = None
-) extends Description {
+) extends Description with IdFromUrl {
   override def toString: String = {
     """Print a sensible representation."""
     var out = ""
