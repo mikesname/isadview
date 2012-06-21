@@ -66,7 +66,7 @@
           @common.descriptionTextarea(f("materials.locationOfOriginals"), "Location of Originals")
           @common.descriptionTextarea(f("materials.locationOfCopies"), "Location of Copies")
           @common.descriptionTextarea(f("materials.relatedUnitsOfDescription"), "Related Units of Description")
-          @*common.descriptionTextarea(f("materials.publicationNotes"), "publication_notes")
+          @*common.descriptionTextarea(f("materials.publicationNotes"), "publication_notes") *@
     </fieldset>
 
     <fieldset id="notes-area">
@@ -85,6 +85,7 @@
     </fieldset>
 
     <fieldset id="admin-area">
+        <legend>@Messages("Administration")</legend>
         @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
     </fieldset>
 
