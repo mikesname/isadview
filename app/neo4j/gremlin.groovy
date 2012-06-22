@@ -78,18 +78,22 @@ def update_indexed_vertex_with_subordinates(_id, data, index_name, subs) {
       def label = sub.key
       def relationshipType = DynamicRelationshipType.withName(label)
       def ridx = manager.forRelationships(label)
-      // remove existing subordinates...
-      for (s in g.v(_id).in(label)) {
-        g.removeVertex(s)
-      }
+      def current = g.v(_id).in(label).collect{neo4j.getNodeById(it.id)}
       def sublist = sub.value
-      for (node in sublist) {
-        def idxname = node["index_name"]
-        def s = neo4j.createNode()
-        update_vertex(node.getAt("index_name"), s, node.getAt("data"))
-        def sedge = s.createRelationshipTo(vertex,relationshipType)
-        // edge indexed props here...
-        // ridx.add(sedge, prop, val)
+
+      // update the existing ones...
+      [current, sublist].transpose().collect {
+        def (existing, subdata) = it
+        update_vertex(subdata.getAt("index_name"), existing, subdata.getAt("data"))
+      }
+      // remove any that've been deleted...
+      for (i = sublist.size; i < current.size; i++)
+        g.removeVertex(g.v(current[i].id))
+      // add any that are new...
+      for (i = current.size; i < sublist.size; i++) {
+        n = neo4j.createNode()
+        update_vertex(sublist[i].getAt("index_name"), n, sublist[i].getAt("data"))
+        n.createRelationshipTo(vertex, relationshipType)
       }
     }
 

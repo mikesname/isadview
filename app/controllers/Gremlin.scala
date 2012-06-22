@@ -167,7 +167,7 @@ object Gremlin extends Controller {
                 "_id" -> collection.id,
                 "data" -> data.toMap,
                 "subs" -> Map(
-                  "locatesInTime" -> data.identity.dates.map(d => {
+                  "locatesInTime" -> data.identity.dates.filterNot(_.startDate.isEmpty).map(d => {
                     Map(
                       "index_name" -> "fuzzydate",
                       "data" -> d.toMap
