@@ -61,7 +61,21 @@
         <legend>@Messages("Conditions of Access and Use")</legend>
           @common.descriptionTextarea(f("conditions.conditionsOfAccess"), "Conditions of Access")
           @common.descriptionTextarea(f("conditions.conditionsOfReproduction"), "Conditions of Reproduction")
-          @common.descriptionTextarea(f("conditions.languages"), "Languages")
+          @*common.descriptionTextarea(f("conditions.languages"), "Languages")*@
+
+          <div class="control-group">
+              <label for="conditions_languages">@Messages("Languages")</label>
+              <div class="controls input">
+                  <select multiple="multiple" id="conditions_languages" name="conditions.languages">
+                    @List(("en", "English"), ("de", "German"), ("fr", "French")).map{t =>
+                        <option value="@t._1" @(if(c.map(_.conditions.languages).getOrElse(List()).contains(t._1))
+                        "selected" else "")>@t._2</option>
+                    }
+                  </select>
+              </div>
+          </div>
+
+
           @common.descriptionTextarea(f("conditions.scripts"), "Scripts")
           @common.descriptionTextarea(f("conditions.physicalCharacteristics"), "Physical Characteristics") 
           @common.descriptionTextarea(f("conditions.findingAids"), "Finding Aids")

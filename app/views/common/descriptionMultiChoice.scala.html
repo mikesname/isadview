@@ -1,0 +1,9 @@
+@(f: play.api.data.Field, label: String = "")(implicit req: RequestHeader)
+
+@implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
+
+@helper.input(f) { (id, name, value, htmlArgs) =>
+
+}
+
+

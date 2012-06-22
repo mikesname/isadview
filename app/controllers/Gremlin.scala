@@ -145,6 +145,25 @@ object Gremlin extends Controller {
   }
 
   def collectionSave(slug: String) = Action { implicit request =>
+    println("Body: " + request.body.asFormUrlEncoded)
+
+    // transform input for multiselects
+    val multies = List(
+      "conditions.languages"
+    )
+  val transformed = request.body.asFormUrlEncoded.map(b => {
+      b.flatMap { (t: (String,Seq[String])) =>
+        t match {
+          case (n, s) if multies.contains(n) => {
+            s.zipWithIndex.map {t => 
+              n + "[" + t._2 + "]" -> List(t._1)
+            }
+          }
+          case other => List(other)
+        }
+      }
+    })
+    println("Transformed: " + transformed)
     Async {
       val params = Map(
         "index_name" -> "collection",
