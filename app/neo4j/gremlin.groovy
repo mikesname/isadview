@@ -30,6 +30,76 @@ def create_indexed_vertex(data,index_name,keys) {
   }
 }
 
+/* Update a vertex and all it's subordinate relations.
+ * These are vertices with the given outgoing relationships
+ * pointing to the parent node:
+ *
+ * The subs data structure looks like:
+ *
+ * {
+ *    relationName -> [
+ *      {
+ *        index_name -> 'idxName',
+ *        data -> {
+ *          prop1 -> val1,
+ *          prop2 -> val2
+ *        }
+ *      },
+ *      ... more
+ *    ]
+ */
+
+
+def update_indexed_vertex_with_subordinates(_id, data, index_name, subs) {
+  import org.neo4j.graphdb.DynamicRelationshipType;
+  vertex = g.getRawGraph().getNodeById(_id)
+  def neo4j = g.getRawGraph()
+  manager = neo4j.index()
+  g.setMaxBufferSize(0)
+  g.startTransaction()
+
+  def update_vertex(idx, v, data) {
+    index = manager.forNodes(idx)
+    index.remove(v)
+    for (String key in v.getPropertyKeys()) {
+      v.removeProperty(key)
+    }
+    for (entry in data.entrySet()) {
+      if (entry.value == null) continue;
+      v.setProperty(entry.key,entry.value)
+      index.add(v,entry.key,String.valueOf(entry.value))
+    }
+    return v
+  }
+
+  try {
+    update_vertex(index_name, vertex, data)
+    for (sub in subs.entrySet()) {
+      def label = sub.key
+      def relationshipType = DynamicRelationshipType.withName(label)
+      def ridx = manager.forRelationships(label)
+      // remove existing subordinates...
+      for (s in g.v(_id).in(label)) {
+        g.removeVertex(s)
+      }
+      def sublist = sub.value
+      for (node in sublist) {
+        def idxname = node["index_name"]
+        def s = neo4j.createNode()
+        update_vertex(node.getAt("index_name"), s, node.getAt("data"))
+        def sedge = s.createRelationshipTo(vertex,relationshipType)
+        // edge indexed props here...
+        // ridx.add(sedge, prop, val)
+      }
+    }
+
+    g.stopTransaction(TransactionalGraph.Conclusion.SUCCESS)
+    return vertex 
+  } catch (e) {
+    g.stopTransaction(TransactionalGraph.Conclusion.FAILURE)
+    return e
+  }
+}
 
 def update_indexed_vertex(_id, data, index_name, keys) {
   vertex = g.getRawGraph().getNodeById(_id)

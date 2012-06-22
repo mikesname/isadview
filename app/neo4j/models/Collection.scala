@@ -3,10 +3,11 @@ package neo4j.models
 object Collection extends JsonBuilder[Collection] {
   implicit val formats = net.liftweb.json.DefaultFormats
 
+  // JSON Constructor...
   def apply(data: net.liftweb.json.JsonAST.JValue): Collection = {
     Collection(
       // adjust these as appropriate!
-      url = (data \ "self").extractOpt[String],
+      id = idFromUrl((data \ "self").extractOpt[String]),
       identity = CollectionIdentity(
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         slug = (data \ "data" \ "slug").extractOpt[String].getOrElse(""),
@@ -47,18 +48,43 @@ object Collection extends JsonBuilder[Collection] {
       )
     )
   }
+
+  // Alternative constructor to construct a Collection without
+  // an ID.
+  def formApply(
+    identity: CollectionIdentity,
+    context: CollectionContext,
+    content: CollectionContent,
+    conditions: CollectionConditions,
+    materials: CollectionMaterials,
+    control: CollectionControl,
+    admin: CollectionAdmin): Collection = {
+    new Collection(-1, identity, context, content, conditions, materials, control, admin)
+  }
+
+  def formUnapply(c: Collection): Option[(
+    CollectionIdentity,
+    CollectionContext,
+    CollectionContent,
+    CollectionConditions,
+    CollectionMaterials,
+    CollectionControl,
+    CollectionAdmin
+   )] = Some((
+    c.identity, c.context, c.content, c.conditions, c.materials, c.control, c.admin)
+  )
 }
 
 case class Collection(
+  val id: Long,
   val identity: CollectionIdentity,
   val context: CollectionContext,
   val content: CollectionContent,
   val conditions: CollectionConditions,
   val materials: CollectionMaterials,
   val control: CollectionControl,
-  val admin: CollectionAdmin,
-  val url: Option[String] = None
-) extends Description with IdFromUrl {
+  val admin: CollectionAdmin
+) extends Description {
   def toMap = {
     identity.toMap ++
     context.toMap ++
@@ -68,6 +94,19 @@ case class Collection(
     control.toMap ++
     admin.toMap
   }
+
+  def withDates(dates: List[FuzzyDate]): Collection = {
+    Collection(
+      id=id,
+      identity=identity.withDates(dates),
+      context=context,
+      content=content,
+      conditions=conditions,
+      materials=materials,
+      control=control,
+      admin=admin
+    )
+  }
 }
 
 
@@ -75,6 +114,7 @@ case class CollectionIdentity(
   val identifier: String = "",
   val slug: String = "",
   val name: String = "",
+  val dates: List[FuzzyDate] = Nil,
   val levelOfDescription: Option[Int] = Some(0),
   val extentAndMedium: Option[String] = None
 ) {
@@ -86,6 +126,8 @@ case class CollectionIdentity(
     "level_of_description" -> levelOfDescription,
     "extent_and_medium" -> extentAndMedium
   )
+  def withDates(newDates: List[FuzzyDate]) = CollectionIdentity(
+    identifier, slug, name, newDates, levelOfDescription, extentAndMedium)
 }
 
 case class CollectionContext(

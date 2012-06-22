@@ -31,9 +31,15 @@ case class NoResultsFound(err: String = "") extends Exception
 case class MultipleResultsFound(err: String = "") extends Exception
 
 trait JsonBuilder[T] {
+  private val idMatch = "^.+/(\\d+)$".r
+  def idFromUrl(url: Option[String]): Long = url match {
+    case Some(idMatch(s)) => s.toLong
+    case _ => -1
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): T
   
-  def list(data: JValue): Seq[T] = {
+  def list(data: JValue): List[T] = {
     data.children.map(apply(_))
   }
 
@@ -45,17 +51,7 @@ trait JsonBuilder[T] {
   }
 }
 
-trait Description
-
-trait IdFromUrl {
-  private val idMatch = "^.+/(\\d+)$".r
-  def url: Option[String]
-  lazy val id: Option[Long] = url.map(urlval => {
-      urlval match {
-        case idMatch(id) => id.toLong
-        case _ => -1
-      }
-    }
-  )
+trait Description {
+  val id: Long
 }
 

@@ -7,6 +7,7 @@ object Contact extends JsonBuilder[Contact] {
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Contact = {
     Contact(
+      id = idFromUrl((data \ "self").extractOpt[String]),
       primary = (data \ "data" \ "primary").extractOpt[Boolean].getOrElse(false),
       contactPerson = (data \ "data" \ "contact_person").extractOpt[String],
       streetAddress = (data \ "data" \ "identifier").extractOpt[String],
@@ -18,8 +19,7 @@ object Contact extends JsonBuilder[Contact] {
       fax = (data \ "data" \ "fax").extractOpt[String],
       email = (data \ "data" \ "email").extractOpt[String],
       website = (data \ "data" \ "website").extractOpt[String],
-      note = (data \ "data" \ "note").extractOpt[String],
-      url = (data \ "self").extractOpt[String]
+      note = (data \ "data" \ "note").extractOpt[String]
     )
   }
 }
@@ -37,8 +37,8 @@ case class Contact(
   val email: Option[String] = None,
   val website: Option[String] = None,
   val note: Option[String] = None,
-  val url: Option[String] = None
-) extends IdFromUrl {
+  val id: Long = -1
+) extends Description {
   def countryName(loc: Locale): Option[String] = countryCode match {
     case Some(code) => Some(new Locale("", code).getDisplayCountry(loc))
     case _ => None

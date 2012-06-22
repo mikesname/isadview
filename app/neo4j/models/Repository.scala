@@ -6,7 +6,7 @@ object Repository extends JsonBuilder[Repository] {
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Repository = {
     Repository(
-      url = (data \ "self").extractOpt[String],
+      id = idFromUrl((data \ "self").extractOpt[String]),
       identity = RepositoryIdentity(
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
@@ -30,8 +30,8 @@ case class Repository(
   val identity: RepositoryIdentity,
   val description: RepositoryDescription,
   val admin: RepositoryAdmin,
-  val url: Option[String] = None
-) extends Description with IdFromUrl {
+  val id: Long = -1
+) extends Description {
   def toMap = {
     identity.toMap ++
     description.toMap ++

@@ -13,6 +13,11 @@ object CollectionForm {
         "identifier" -> nonEmptyText,
         "slug" -> nonEmptyText,
         "name" -> nonEmptyText,
+        "dates" -> list(mapping(
+          "startDate" -> optional(date("yyyy-MM-dd")),
+          "endDate" -> optional(date("yyyy-MM-dd"))
+          )(FuzzyDate.formApply)(FuzzyDate.formUnapply)
+        ),
         "levelOfDescription" -> optional(number),
         "extentAndMedium" -> optional(text)
       )(CollectionIdentity.apply)(CollectionIdentity.unapply),
@@ -47,8 +52,7 @@ object CollectionForm {
       )(CollectionControl.apply)(CollectionControl.unapply),
       "admin" -> mapping(
         "publicationStatus" -> number
-      )(CollectionAdmin.apply)(CollectionAdmin.unapply),
-      "url" -> optional(text)
-    )(Collection.apply)(Collection.unapply)
+      )(CollectionAdmin.apply)(CollectionAdmin.unapply)
+    )(Collection.formApply)(Collection.formUnapply)
   )
 }

@@ -53,7 +53,7 @@ object Gremlin extends Controller {
         val repo = Repository.one(getJson(r1))
         Async {
           // get contacts
-          gremlin("inV", Map("_id" -> repo.id.getOrElse(0), "label" -> "addressOf")).map { r2 =>
+          gremlin("inV", Map("_id" -> repo.id, "label" -> "addressOf")).map { r2 =>
             val contacts = Contact.list(getJson(r2))
             Ok(views.html.repository.detail(repo=repo, contacts=contacts))
           }
@@ -72,14 +72,14 @@ object Gremlin extends Controller {
       gremlin("query_exact_index", params).map { r1 =>
         val collection = Collection.one(getJson(r1))
         Async {
-          // get contacts
-          gremlin("inV", Map("_id" -> collection.id.getOrElse(0), "label" -> "locatesInTime")).map { r2 =>
+          // get dates
+          gremlin("inV", Map("_id" -> collection.id, "label" -> "locatesInTime")).map { r2 =>
             val dates = FuzzyDate.list(getJson(r2))
             Async {
-              gremlin("outV", Map("_id" -> collection.id.getOrElse(0), "label" -> "heldBy")).map { r3 =>
+              gremlin("outV", Map("_id" -> collection.id, "label" -> "heldBy")).map { r3 =>
                 val repo = Repository.one(getJson(r3))
                 Async {
-                  gremlin("outV", Map("_id" -> collection.id.getOrElse(0), "label" -> "createdBy")).map { r4 =>
+                  gremlin("outV", Map("_id" -> collection.id, "label" -> "createdBy")).map { r4 =>
                     val creator: Option[Authority] = try {
                       Some(Authority.one(getJson(r4)))
                     } catch {
@@ -108,10 +108,10 @@ object Gremlin extends Controller {
         val auth = Authority.one(getJson(r1))
         Async {
           // get collections
-          gremlin("inV", Map("_id" -> auth.id.getOrElse(0), "label" -> "createdBy")).map { r2 =>
+          gremlin("inV", Map("_id" -> auth.id, "label" -> "createdBy")).map { r2 =>
             val createdCollections = Collection.list(getJson(r2))
             Async {
-              gremlin("inV", Map("_id" -> auth.id.getOrElse(0), "label" -> "mentionedIn")).map { r3 =>
+              gremlin("inV", Map("_id" -> auth.id, "label" -> "mentionedIn")).map { r3 =>
                 val mentionedCollections = Collection.list(getJson(r3))
                 Ok(views.html.authority.detail(auth, createdCollections, mentionedCollections))
               }
@@ -131,9 +131,15 @@ object Gremlin extends Controller {
       )
       gremlin("query_exact_index", params).map { r1 =>
         val collection = Collection.one(getJson(r1))
-        val form = CollectionForm.form.fill(collection)
-        val action = routes.Gremlin.collectionSave(slug)
-        Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
+        Async {
+          // get dates
+          gremlin("inV", Map("_id" -> collection.id, "label" -> "locatesInTime")).map { r2 =>
+            val dates = FuzzyDate.list(getJson(r2))
+            val form = CollectionForm.form.fill(collection.withDates(dates))
+            val action = routes.Gremlin.collectionSave(slug)
+            Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
+          }
+        }
       }
     }
   }
@@ -154,14 +160,24 @@ object Gremlin extends Controller {
             action=routes.Gremlin.collectionSave(slug), c=Some(collection)))
           },
           data => {
+            println("Got Data", data)
             Async {
               val params = Map(
                 "index_name" -> "collection",
-                "_id" -> collection.id.getOrElse(-1), // shouldn't happen!
+                "_id" -> collection.id,
                 "data" -> data.toMap,
-                "keys" -> null // this means: index every field
+                "subs" -> Map(
+                  "locatesInTime" -> data.identity.dates.map(d => {
+                    Map(
+                      "index_name" -> "fuzzydate",
+                      "data" -> d.toMap
+                    )
+                  })
+                )
               )
-              gremlin("update_indexed_vertex", params).map { resp =>
+              println("Running params: " + params)
+              gremlin("update_indexed_vertex_with_subordinates", params).map { resp =>
+                println(resp.body)
                 // TODO: Handle error if this doesn't work!
                 val updated = Collection(getJson(resp))
                 Redirect(routes.Gremlin.collectionDetail(slug=updated.identity.slug))

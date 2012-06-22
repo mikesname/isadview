@@ -5,7 +5,7 @@ object Authority extends JsonBuilder[Authority] {
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Authority = {
     Authority(
-      url = (data \ "self").extractOpt[String],
+      id = idFromUrl((data \ "self").extractOpt[String]),
       identity = AuthorityIdentity(
         typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int].getOrElse(0),
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
@@ -28,8 +28,8 @@ case class Authority(
   val identity: AuthorityIdentity,
   val description: AuthorityDescription,
   val admin: AuthorityAdmin,
-  val url: Option[String] = None
-) extends Description with IdFromUrl {
+  val id: Long = -1
+) extends Description {
   def toMap = identity.toMap ++ admin.toMap
 }
 
