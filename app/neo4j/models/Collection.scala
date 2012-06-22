@@ -8,28 +8,28 @@ object Collection extends JsonBuilder[Collection] {
       // adjust these as appropriate!
       url = (data \ "self").extractOpt[String],
       identity = CollectionIdentity(
-        (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
-        (data \ "data" \ "name").extractOpt[String].getOrElse(""),
-        (data \ "data" \ "slug").extractOpt[String].getOrElse(""),
-        (data \ "data" \ "level_of_description").extractOpt[Int],
-        (data \ "data" \ "extent_and_medium").extractOpt[String]
+        identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
+        slug = (data \ "data" \ "slug").extractOpt[String].getOrElse(""),
+        name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
+        levelOfDescription = (data \ "data" \ "level_of_description").extractOpt[Int],
+        extentAndMedium = (data \ "data" \ "extent_and_medium").extractOpt[String]
       ),
       context = CollectionContext(
-        (data \ "data" \ "archival_history").extractOpt[String],
-        (data \ "data" \ "acquisition").extractOpt[String]
+        archivalHistory = (data \ "data" \ "archival_history").extractOpt[String],
+        acquisition = (data \ "data" \ "acquisition").extractOpt[String]
       ),
       content = CollectionContent(
-        (data \ "data" \ "scope_and_content").extractOpt[String],
-        (data \ "data" \ "appraisal").extractOpt[String],
-        (data \ "data" \ "accrurals").extractOpt[String]
+        scopeAndContent = (data \ "data" \ "scope_and_content").extractOpt[String],
+        appraisal = (data \ "data" \ "appraisal").extractOpt[String],
+        accrurals = (data \ "data" \ "accrurals").extractOpt[String]
       ),
       conditions = CollectionConditions(
-        (data \ "data" \ "conditions_of_access").extractOpt[String],
-        (data \ "data" \ "conditions_of_reproduction").extractOpt[String],
-        (data \ "data" \ "languages").extractOpt[String].getOrElse("").split(",").toList,
-        (data \ "data" \ "scripts").extractOpt[String].getOrElse("").split(",").toList,
-        (data \ "data" \ "physical_characteristics").extractOpt[String],
-        (data \ "data" \ "finding_aids").extractOpt[String]
+        conditionsOfAccess = (data \ "data" \ "conditions_of_access").extractOpt[String],
+        conditionsOfReproduction = (data \ "data" \ "conditions_of_reproduction").extractOpt[String],
+        languages = (data \ "data" \ "languages").extractOpt[String].getOrElse("").split(",").toList,
+        scripts = (data \ "data" \ "scripts").extractOpt[String].getOrElse("").split(",").toList,
+        physicalCharacteristics = (data \ "data" \ "physical_characteristics").extractOpt[String],
+        findingAids = (data \ "data" \ "finding_aids").extractOpt[String]
       ),
       materials = CollectionMaterials(
         (data \ "data" \ "location_of_materials").extractOpt[String],
@@ -73,8 +73,8 @@ case class Collection(
 
 case class CollectionIdentity(
   val identifier: String = "",
-  val name: String = "",
   val slug: String = "",
+  val name: String = "",
   val levelOfDescription: Option[Int] = Some(0),
   val extentAndMedium: Option[String] = None
 ) {

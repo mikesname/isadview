@@ -91,7 +91,7 @@
     </fieldset>
 
           <div class="form-actions">
-              <button type="submit" class="btn btn-primary">@Messages("Create")</button>
+              <button type="submit" class="btn btn-primary">@Messages(c.map(s => "Update Collection").getOrElse("Create Collection"))</button>
               <a href="@routes.Search.list("collection")" class="btn">@Messages("Cancel")</a>
           </div>
         }

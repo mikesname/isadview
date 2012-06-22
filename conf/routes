@@ -6,13 +6,6 @@
 GET     /                               controllers.Application.index
 GET     /home                           controllers.Application.index
 
-# Description CRUD
-GET     /description                    controllers.Neo4jDescription.create
-GET     /description/:slug              controllers.Neo4jDescription.detail(slug: String)
-POST    /description                    controllers.Neo4jDescription.createPost
-GET     /description/edit/:slug         controllers.Neo4jDescription.update(slug: String)
-POST    /description/edit/:slug         controllers.Neo4jDescription.updatePost(slug: String)
-
 GET     /dbtest                         controllers.Application.dbtest()
 
 # Searching

@@ -55,7 +55,7 @@ object Gremlin extends Controller {
           // get contacts
           gremlin("inV", Map("_id" -> repo.id.getOrElse(0), "label" -> "addressOf")).map { r2 =>
             val contacts = Contact.list(getJson(r2))
-            Ok(views.html.repositoryDetail(repo=repo, contacts=contacts))
+            Ok(views.html.repository.detail(repo=repo, contacts=contacts))
           }
         }
       }
@@ -86,7 +86,7 @@ object Gremlin extends Controller {
                       case e: neo4j.models.NoResultsFound => None
                       case other => throw other
                     }
-                    Ok(views.html.collectionDetail(collection, dates, repo, creator))
+                    Ok(views.html.collection.detail(collection, dates, repo, creator))
                   }
                 }
               }
@@ -113,7 +113,7 @@ object Gremlin extends Controller {
             Async {
               gremlin("inV", Map("_id" -> auth.id.getOrElse(0), "label" -> "mentionedIn")).map { r3 =>
                 val mentionedCollections = Collection.list(getJson(r3))
-                Ok(views.html.authorityDetail(auth, createdCollections, mentionedCollections))
+                Ok(views.html.authority.detail(auth, createdCollections, mentionedCollections))
               }
             }
           }
@@ -133,7 +133,7 @@ object Gremlin extends Controller {
         val collection = Collection.one(getJson(r1))
         val form = CollectionForm.form.fill(collection)
         val action = routes.Gremlin.collectionSave(slug)
-        Ok(views.html.collectionForm(f=form, action=action, c=Some(collection)))
+        Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
       }
     }
   }
@@ -150,7 +150,7 @@ object Gremlin extends Controller {
         CollectionForm.form.bindFromRequest.fold(
           errorForm => {
             BadRequest(
-            views.html.collectionForm(f=errorForm,
+            views.html.collection.form(f=errorForm,
             action=routes.Gremlin.collectionSave(slug), c=Some(collection)))
           },
           data => {

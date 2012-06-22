@@ -3,6 +3,12 @@ package neo4j.models
 import net.liftweb.json.JsonAST.JValue
 
 // Enum definitions
+object InstitutionType extends Enumeration(
+    "International", "National", "Regional", "Community") {
+  type InstitutionType = Value
+  val International, National, Regional, Community = Value
+}
+
 object PublicationStatus extends Enumeration(
     "Draft", "Published") {
   type PublicationStatus = Value
