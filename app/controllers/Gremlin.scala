@@ -42,6 +42,25 @@ object Gremlin extends Controller {
     WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))
   }
 
+  /*
+   * Play Forms don't currently support multi-value select widgets. We 
+   * need to transform the input from:
+   *  key -> Seq(va1, val2, val3) to:
+   *  key[0] -> Seq(val1), key[1] -> Seq(val2), key[2] -> Seq(val3)
+   */
+  def transformMultiSelects(formData: Option[Map[String,Seq[String]]], multies: List[String]) = {
+    formData.map(b => {
+      b.flatMap { (t: (String,Seq[String])) =>
+        t match {
+          case (n, s) if multies.contains(n) => {
+            s.zipWithIndex.map(t => n + "[" + t._2 + "]" -> List(t._1))
+          }
+          case other => List(other)
+        }
+      }
+    }).getOrElse(Map[String,Seq[String]]())
+  }
+
   def repositoryDetail(slug: String) = Action { implicit request =>
     Async {
       val params = Map(
@@ -145,25 +164,12 @@ object Gremlin extends Controller {
   }
 
   def collectionSave(slug: String) = Action { implicit request =>
-    println("Body: " + request.body.asFormUrlEncoded)
-
     // transform input for multiselects
-    val multies = List(
-      "conditions.languages"
-    )
-  val transformed = request.body.asFormUrlEncoded.map(b => {
-      b.flatMap { (t: (String,Seq[String])) =>
-        t match {
-          case (n, s) if multies.contains(n) => {
-            s.zipWithIndex.map {t => 
-              n + "[" + t._2 + "]" -> List(t._1)
-            }
-          }
-          case other => List(other)
-        }
-      }
-    })
-    println("Transformed: " + transformed)
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "conditions.languages",
+      "conditions.scripts"
+    ))
+
     Async {
       val params = Map(
         "index_name" -> "collection",
@@ -172,14 +178,13 @@ object Gremlin extends Controller {
       )
       gremlin("query_exact_index", params).map { r1 =>
         val collection = Collection.one(getJson(r1))
-        CollectionForm.form.bindFromRequest.fold(
+        CollectionForm.form.bindFromRequest(formData).fold(
           errorForm => {
             BadRequest(
             views.html.collection.form(f=errorForm,
             action=routes.Gremlin.collectionSave(slug), c=Some(collection)))
           },
           data => {
-            println("Got Data", data)
             Async {
               val params = Map(
                 "index_name" -> "collection",
@@ -194,9 +199,7 @@ object Gremlin extends Controller {
                   })
                 )
               )
-              println("Running params: " + params)
               gremlin("update_indexed_vertex_with_subordinates", params).map { resp =>
-                println(resp.body)
                 // TODO: Handle error if this doesn't work!
                 val updated = Collection(getJson(resp))
                 Redirect(routes.Gremlin.collectionDetail(slug=updated.identity.slug))
