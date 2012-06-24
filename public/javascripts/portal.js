@@ -1,5 +1,8 @@
 jQuery(function($) {
 
+    // Chosen selects...
+    $(".chzn-select").chosen();
+
     $(".more-facets").each(function(i, elem) {
         $(elem).modal({backdrop:true, 
             shown: function(e) { alert("show"); },

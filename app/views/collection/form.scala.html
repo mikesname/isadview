@@ -1,5 +1,9 @@
 @(f: Form[neo4j.models.Collection], action: Call, c: Option[neo4j.models.Collection] = None)(implicit request: RequestHeader)
 
+@import app.util.Helpers 
+
+@implicitlocale = @{new java.util.Locale("en", "UK")}
+
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
 @main("Edit Collection", body_class="collection") {
@@ -66,8 +70,8 @@
           <div class="control-group">
               <label for="conditions_languages">@Messages("Languages")</label>
               <div class="controls input">
-                  <select multiple="multiple" id="conditions_languages" name="conditions.languages">
-                    @List(("en", "English"), ("de", "German"), ("fr", "French")).map{t =>
+                  <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple id="conditions_languages" name="conditions.languages">
+                    @Helpers.languageList.map{t =>
                         <option value="@t._1" @(if(c.map(_.conditions.languages).getOrElse(List()).contains(t._1))
                         "selected" else "")>@t._2</option>
                     }
