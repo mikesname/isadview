@@ -2,12 +2,12 @@
 
 <div class="search-result@if(result.publication_status == 0) { draft }">
     @if(result.django_ct == "portal.repository") {
-        <h4><a href="@routes.Gremlin.repositoryDetail(slug=result.slug)">@result.name</a></h4>
+        <h4><a href="@routes.Repositories.detail(slug=result.slug)">@result.name</a></h4>
     } else {
         @if(result.django_ct == "portal.collection") {
-        <h4><a href="@routes.Gremlin.collectionDetail(slug=result.slug)">@result.name</a></h4>
+        <h4><a href="@routes.Collections.detail(slug=result.slug)">@result.name</a></h4>
         } else {
-        <h4><a href="@routes.Gremlin.authorityDetail(slug=result.slug)">@result.name</a></h4>
+        <h4><a href="@routes.Authorities.detail(slug=result.slug)">@result.name</a></h4>
         }
     }
     @if(result.other_names.nonEmpty) {

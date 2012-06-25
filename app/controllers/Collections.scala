@@ -16,22 +16,8 @@ import neo4j.forms.CollectionForm
 
 
 
-object Gremlin extends Controller with ControllerHelpers {
-
-  def repositoryDetail(slug: String) = Action { implicit request =>
-    Async {
-      Repository.fetchBySlug(slug).map { repo =>
-        Async {
-          // get contacts
-          Contact.findRelatedTo(repo, Contact.Direction.In, "addressOf").map { contacts =>
-            Ok(views.html.repository.detail(repo=repo, contacts=contacts))
-          }
-        }
-      }
-    }
-  }
-
-  def collectionDetail(slug: String) = Action { implicit request =>
+object Collections extends Controller with ControllerHelpers {
+  def detail(slug: String) = Action { implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         Async {
@@ -54,31 +40,14 @@ object Gremlin extends Controller with ControllerHelpers {
     }
   }
 
-  def authorityDetail(slug: String) = Action { implicit request =>
-    Async {
-      Authority.fetchBySlug(slug).map { auth =>
-        Async {
-          // get collections
-          Collection.findRelatedTo(auth, Collection.Direction.In, "createdBy").map { createdCollections =>
-            Async {
-              Collection.findRelatedTo(auth, Collection.Direction.In, "mentionedIn").map { mentionedCollections =>
-                Ok(views.html.authority.detail(auth, createdCollections, mentionedCollections))
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  def collectionEdit(slug: String) = Action { implicit request =>
+  def edit(slug: String) = Action { implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         Async {
           // get dates
           FuzzyDate.findRelatedTo(collection, FuzzyDate.Direction.In, "locatesInTime").map { dates =>
             val form = CollectionForm.form.fill(collection.withDates(dates))
-            val action = routes.Gremlin.collectionSave(slug)
+            val action = routes.Collections.save(slug)
             Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
           }
         }
@@ -86,7 +55,7 @@ object Gremlin extends Controller with ControllerHelpers {
     }
   }
 
-  def collectionSave(slug: String) = Action { implicit request =>
+  def save(slug: String) = Action { implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "conditions.languages",
@@ -101,12 +70,12 @@ object Gremlin extends Controller with ControllerHelpers {
           errorForm => {
             BadRequest(
             views.html.collection.form(f=errorForm,
-            action=routes.Gremlin.collectionSave(slug), c=Some(collection)))
+            action=routes.Collections.save(slug), c=Some(collection)))
           },
           data => {
             Async {
               Collection.persist(collection.id, data).map { updated =>
-                Redirect(routes.Gremlin.collectionDetail(slug=updated.identity.slug))
+                Redirect(routes.Collections.detail(slug=updated.identity.slug))
               }
             }
           }

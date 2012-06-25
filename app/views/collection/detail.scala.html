@@ -29,7 +29,7 @@ neo4j.models.Repository, creator: Option[neo4j.models.Authority])(implicit reque
             <h4>@Messages("Created By")</h4>
             <p>
                 @creator.map { auth =>
-                    <a href="@routes.Gremlin.authorityDetail(slug=auth.identity.slug)">@auth.identity.name</a>
+                    <a href="@routes.Authorities.detail(slug=auth.identity.slug)">@auth.identity.name</a>
                 }
             </p>
         }
