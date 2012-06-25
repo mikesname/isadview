@@ -167,7 +167,9 @@ object Gremlin extends Controller {
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "conditions.languages",
-      "conditions.scripts"
+      "conditions.scripts",
+      "control.languagesOfDescription",
+      "control.scriptsOfDescription"
     ))
 
     Async {

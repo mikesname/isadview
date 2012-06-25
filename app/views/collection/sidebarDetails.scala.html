@@ -1,5 +1,8 @@
 @(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate])(implicit req: RequestHeader)
 
+@import app.util.Helpers
+@implicitlocale = @{Helpers.localeFromRequest(req)}
+
 <table class="table table-striped well">
     @if(!c.identity.identifier.isEmpty) {
         <tr>
@@ -25,7 +28,7 @@
         <tr>
             <td colspan="2">
                 <h5>@Messages("Languages:")</h5>
-                @c.conditions.languages.map { lang =>
+                @c.conditions.languages.map(Helpers.languageCodeToName(_)).sorted.map { lang =>
                     <br />
                     @lang
                 }
@@ -36,7 +39,7 @@
         <tr>
             <td colspan="2">
                 <h5>@Messages("Scripts:")</h5>
-                @c.conditions.scripts.map { script =>
+                @c.conditions.scripts.map(Helpers.scriptCodeToName(_)).sorted.map { script =>
                     <br />
                     @script
                 }

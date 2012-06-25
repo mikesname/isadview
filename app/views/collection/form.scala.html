@@ -2,12 +2,11 @@
 
 @import app.util.Helpers 
 
-@implicitlocale = @{new java.util.Locale("en", "UK")}
+@implicitlocale = @{Helpers.localeFromRequest(request)}
 
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
 @main("Edit Collection", body_class="collection") {
-
 <h2>@c.map(_.identity.name).getOrElse(Messages("Create Collection"))</h2>
 
 <div class="subnav">
@@ -79,8 +78,20 @@
               </div>
           </div>
 
+          <div class="control-group">
+              <label for="conditions_scripts">@Messages("Scripts")</label>
+              <div class="controls input">
+                  <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple id="conditions_scripts"
+                      name="conditions.scripts">
+                    @Helpers.scriptList.map{t =>
+                        <option value="@t._1" @(if(c.map(_.conditions.scripts).getOrElse(List()).contains(t._1))
+                        "selected" else "")>@t._2</option>
+                    }
+                  </select>
+              </div>
+          </div>
 
-          @common.descriptionTextarea(f("conditions.scripts"), "Scripts")
+
           @common.descriptionTextarea(f("conditions.physicalCharacteristics"), "Physical Characteristics") 
           @common.descriptionTextarea(f("conditions.findingAids"), "Finding Aids")
     </fieldset>
@@ -103,8 +114,34 @@
           @*common.descriptionTextarea(f("description_identifier"), "Description Identifier")   *@
           @*common.descriptionTextarea(f("institution_identifier"), "Institution Identifier")     *@
           @common.descriptionTextarea(f("control.rules"), "Rules")
-          @common.descriptionTextarea(f("control.languagesOfDescription"), "Languages of Description")
-          @common.descriptionTextarea(f("control.scriptsOfDescription"), "Scripts of Description")
+
+          <div class="control-group">
+              <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
+              <div class="controls input">
+                  <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
+                      id="control_languagesOfDescription" name="control.languagesOfDescription">
+                    @Helpers.languageList.map{t =>
+                        <option value="@t._1" @(if(c.map(_.control.languagesOfDescription).getOrElse(List()).contains(t._1))
+                        "selected" else "")>@t._2</option>
+                    }
+                  </select>
+              </div>
+          </div>
+
+          <div class="control-group">
+              <label for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
+              <div class="controls input">
+                  <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple
+                      id="control_scriptsOfDescription"
+                      name="control.scriptsOfDescription">
+                    @Helpers.scriptList.map{t =>
+                        <option value="@t._1" @(if(c.map(_.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
+                        "selected" else "")>@t._2</option>
+                    }
+                  </select>
+              </div>
+          </div>
+          
           @common.descriptionTextarea(f("control.sources"), "Sources")
     </fieldset>
 
