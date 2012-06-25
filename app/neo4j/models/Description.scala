@@ -28,5 +28,6 @@ object LevelOfDescription extends Enumeration(
 trait Description {
   val id: Long
   def toMap: Map[String,Any]
+  def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
 }
 

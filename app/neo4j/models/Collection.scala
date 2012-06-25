@@ -86,6 +86,20 @@ case class Collection(
   val control: CollectionControl,
   val admin: CollectionAdmin
 ) extends Description {
+
+  // FIXME: This is really ugly and reqires knowing way too much about the
+  // details of persistance. Ideally we'd just pass a Map of relationship
+  // to list of items, but the persister also needs to know the index name
+  // for the subordinate items, which is can only get from the companion
+  // object class
+  override def getSubordinateItems = Map(
+    "locatesInTime" -> identity.dates.filterNot(_.startDate.isEmpty).map { d =>
+      Map(
+        "index_name" -> FuzzyDate.indexName,
+        "data" -> d.toMap)
+    }
+  )          
+
   def toMap = {
     identity.toMap ++
     context.toMap ++
