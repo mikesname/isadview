@@ -1,7 +1,8 @@
 package neo4j.models
 
-object Collection extends JsonBuilder[Collection] {
-  implicit val formats = net.liftweb.json.DefaultFormats
+object Collection extends Neo4jDataSource[Collection] {
+
+  val indexName = "collection" 
 
   // JSON Constructor...
   def apply(data: net.liftweb.json.JsonAST.JValue): Collection = {

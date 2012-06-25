@@ -63,13 +63,7 @@ object Gremlin extends Controller {
 
   def repositoryDetail(slug: String) = Action { implicit request =>
     Async {
-      val params = Map(
-        "index_name" -> "repository",
-        "key" -> "slug",
-        "query_string" -> slug
-      )
-      gremlin("query_exact_index", params).map { r1 =>
-        val repo = Repository.one(getJson(r1))
+      Repository.fetchBySlug(slug).map { repo =>
         Async {
           // get contacts
           gremlin("inV", Map("_id" -> repo.id, "label" -> "addressOf")).map { r2 =>
@@ -83,13 +77,7 @@ object Gremlin extends Controller {
 
   def collectionDetail(slug: String) = Action { implicit request =>
     Async {
-      val params = Map(
-        "index_name" -> "collection",
-        "key" -> "slug",
-        "query_string" -> slug
-      )
-      gremlin("query_exact_index", params).map { r1 =>
-        val collection = Collection.one(getJson(r1))
+      Collection.fetchBySlug(slug).map { collection =>
         Async {
           // get dates
           gremlin("inV", Map("_id" -> collection.id, "label" -> "locatesInTime")).map { r2 =>
@@ -118,13 +106,7 @@ object Gremlin extends Controller {
 
   def authorityDetail(slug: String) = Action { implicit request =>
     Async {
-      val params = Map(
-        "index_name" -> "authority",
-        "key" -> "slug",
-        "query_string" -> slug
-      )
-      gremlin("query_exact_index", params).map { r1 =>
-        val auth = Authority.one(getJson(r1))
+      Authority.fetchBySlug(slug).map { auth =>
         Async {
           // get collections
           gremlin("inV", Map("_id" -> auth.id, "label" -> "createdBy")).map { r2 =>
@@ -143,13 +125,7 @@ object Gremlin extends Controller {
 
   def collectionEdit(slug: String) = Action { implicit request =>
     Async {
-      val params = Map(
-        "index_name" -> "collection",
-        "key" -> "slug",
-        "query_string" -> slug
-      )
-      gremlin("query_exact_index", params).map { r1 =>
-        val collection = Collection.one(getJson(r1))
+      Collection.fetchBySlug(slug).map { collection =>
         Async {
           // get dates
           gremlin("inV", Map("_id" -> collection.id, "label" -> "locatesInTime")).map { r2 =>
@@ -173,13 +149,7 @@ object Gremlin extends Controller {
     ))
 
     Async {
-      val params = Map(
-        "index_name" -> "collection",
-        "key" -> "slug",
-        "query_string" -> slug
-      )
-      gremlin("query_exact_index", params).map { r1 =>
-        val collection = Collection.one(getJson(r1))
+      Collection.fetchBySlug(slug).map { collection =>
         CollectionForm.form.bindFromRequest(formData).fold(
           errorForm => {
             BadRequest(

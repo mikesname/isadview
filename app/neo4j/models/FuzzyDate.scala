@@ -11,9 +11,9 @@ import org.joda.time.format.ISODateTimeFormat
   does conversions to and from the form.
 */
 
-object FuzzyDate extends JsonBuilder[FuzzyDate] {
-  implicit val formats = net.liftweb.json.DefaultFormats
-  
+object FuzzyDate extends Neo4jDataSource[FuzzyDate] {
+  val indexName = "fuzzydate"
+
   def apply(data: net.liftweb.json.JsonAST.JValue): FuzzyDate = {
     FuzzyDate(
       id = idFromUrl((data \ "self").extractOpt[String]),

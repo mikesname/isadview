@@ -2,8 +2,8 @@ package neo4j.models
 
 import java.util.Locale
 
-object Contact extends JsonBuilder[Contact] {
-  implicit val formats = net.liftweb.json.DefaultFormats
+object Contact extends Neo4jDataSource[Contact] {
+  val indexName = "contact"
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Contact = {
     Contact(
@@ -50,5 +50,20 @@ case class Contact(
         case _ => Nil
     }.mkString("\n")
   }
+
+  def toMap = Map(
+    "primary" -> primary,
+    "contact_person" -> contactPerson,
+    "street_address" -> streetAddress,
+    "city" -> city,
+    "region" -> region,
+    "postal_code" -> postalCode,
+    "country_code" -> countryCode,
+    "telephone" -> telephone,
+    "fax" -> fax,
+    "email" -> email,
+    "website" -> website,
+    "note" -> note
+  )
 }
 

@@ -1,8 +1,8 @@
 package neo4j.models
 
-object Authority extends JsonBuilder[Authority] {
-  implicit val formats = net.liftweb.json.DefaultFormats
-  
+object Authority extends Neo4jDataSource[Authority] {
+  val indexName = "authority"
+
   def apply(data: net.liftweb.json.JsonAST.JValue): Authority = {
     Authority(
       id = idFromUrl((data \ "self").extractOpt[String]),

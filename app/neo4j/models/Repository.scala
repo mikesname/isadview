@@ -1,9 +1,9 @@
 package neo4j.models
 
 
-object Repository extends JsonBuilder[Repository] {
-  implicit val formats = net.liftweb.json.DefaultFormats
-  
+object Repository extends Neo4jDataSource[Repository] {
+  val indexName = "repository"
+
   def apply(data: net.liftweb.json.JsonAST.JValue): Repository = {
     Repository(
       id = idFromUrl((data \ "self").extractOpt[String]),
