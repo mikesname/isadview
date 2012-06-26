@@ -30,6 +30,32 @@ def create_indexed_vertex(data,index_name,keys) {
   }
 }
 
+// Neo4j requires you delete all adjacent edges first. 
+// Blueprints' removeVertex() method does that; the Neo4jServer DELETE URI does not.
+def delete_vertex_with_related(_id, outRels, inRels) {
+  vertex = g.v(_id)
+  neo4j = g.getRawGraph()
+
+  g.setMaxBufferSize(0)
+  g.startTransaction()
+  try {
+    for (outrel in outRels) {
+      for (vid in vertex.outV(outrel).collect{it.id}.toList())
+        g.removeVertex(neo4.getNodeById(vid))  
+    }
+    for (inrel in inRels) {
+      for (vid in vertex.inV(inrel).collect{it.id}.toList())
+        g.removeVertex(neo4.getNodeById(vid))  
+    }
+    g.removeVertex(vertex)
+    g.stopTransaction(TransactionalGraph.Conclusion.SUCCESS)
+    return true 
+  } catch (e) {
+    g.stopTransaction(TransactionalGraph.Conclusion.FAILURE)
+    return e
+  }
+}
+
 /* Update a vertex and all it's subordinate relations.
  * These are vertices with the given outgoing relationships
  * pointing to the parent node:

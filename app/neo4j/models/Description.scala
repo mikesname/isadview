@@ -36,6 +36,8 @@ trait Description {
   val id: Long
   def toMap: Map[String,Any]
   def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
+  def getIncomingSubordinateRelations: List[String] = Nil
+  def getOutgoingSubordinateRelations: List[String] = Nil
 }
 
 trait CrudDescription extends Description {

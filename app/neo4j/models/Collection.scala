@@ -102,7 +102,9 @@ case class Collection(
         "index_name" -> FuzzyDate.indexName,
         "data" -> d.toMap)
     }
-  )          
+  )
+
+  override def getIncomingSubordinateRelations = List("locatesInTime")
 
   def toMap = {
     Map("slug" -> slug) ++

@@ -53,6 +53,17 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     }
   }
 
+  def delete(nodeId: Long, item: Description): Promise[Boolean] = {
+    val params = Map(
+      "_id" -> nodeId,
+      "inRels" -> item.getIncomingSubordinateRelations,
+      "outRels" -> item.getOutgoingSubordinateRelations
+    )
+    gremlin("delete_vertex_with_relations", params).map(response => {
+      println(getJson(response))
+      true
+    })
+  }
 
   def fetchBySlug(slug: String): Promise[T] = {
     val params = Map(

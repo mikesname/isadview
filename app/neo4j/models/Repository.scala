@@ -89,6 +89,7 @@ case class Repository(
         "data" -> c.toMap)
     }
   )          
+  override def getIncomingSubordinateRelations = List("addressOf")
 
   def toMap = {
     Map("slug" -> slug) ++
