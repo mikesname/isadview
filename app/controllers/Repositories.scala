@@ -62,10 +62,10 @@ object Repositories extends Controller with ControllerHelpers {
             action=routes.Repositories.save(slug), r=Some(repository)))
           },
           data => {
-            println("Saving: " + data)
             Async {
-              Repository.persist(repository.id, data).map { updated =>
-                Redirect(routes.Repositories.detail(slug=updated.identity.slug))
+              Repository.persist(repository.id, data.withSlug(slug)).map { updated =>
+                println("UPDATED: " + updated)
+                Redirect(routes.Repositories.detail(slug=updated.slug.get))
               }
             }
           }

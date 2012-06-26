@@ -8,14 +8,15 @@ object Repository extends Neo4jDataSource[Repository] {
   def apply(data: net.liftweb.json.JsonAST.JValue): Repository = {
     Repository(
       id = idFromUrl((data \ "self").extractOpt[String]),
+      slug = (data \ "data" \ "slug").extractOpt[String],
       identity = RepositoryIdentity(
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
-        slug = (data \ "data" \ "slug").extractOpt[String].getOrElse(""),
         parallelFormsOfName = (data \ "data" \
           "parallel_names").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty),
         otherFormsOfName = (data \ "data" \
-          "other_names").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty)
+          "other_names").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty),
+        typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int]
       ),
       contact = Nil,
       description = RepositoryDescription(
@@ -76,10 +77,13 @@ case class Repository(
   val services: RepositoryServices,
   val control: RepositoryControl,
   val admin: RepositoryAdmin,
+  val slug: Option[String] = None,
   val id: Long = -1
 ) extends Description {
 
   override def getSubordinateItems = Map(
+    // FIXME: Find a better way of determining if
+    // a contact is 'empty' and should be deleted
     "addressOf" -> contact.filterNot(c => c.streetAddress.isEmpty && c.city.isEmpty).map { c =>
       Map(
         "index_name" -> Contact.indexName,
@@ -88,6 +92,7 @@ case class Repository(
   )          
 
   def toMap = {
+    Map("slug" -> slug) ++
     identity.toMap ++
     description.toMap ++
     access.toMap ++
@@ -96,23 +101,12 @@ case class Repository(
     admin.toMap
   }
 
-  def withContacts(contacts: List[Contact]): Repository = {
-    Repository(
-      identity = identity,
-      contact = contacts,
-      description = description,
-      access = access,
-      services = services,
-      control = control,
-      admin = admin,
-      id = id
-    )
-  }
+  def withSlug(slug: String) = copy(slug=Some(slug))
+  def withContacts(contacts: List[Contact]) = copy(contact=contacts)
 }
 
 case class RepositoryIdentity(
   val identifier: String = "",
-  val slug: String = "",
   val name: String = "",
   val parallelFormsOfName: List[String] = Nil,
   val otherFormsOfName: List[String] = Nil,
@@ -121,8 +115,10 @@ case class RepositoryIdentity(
   def otherNames = Nil
   def toMap = Map(
     "identifier" -> identifier,
-    "slug" -> slug,
-    "name" -> name
+    "name" -> name,
+    "parallel_forms_of_name" -> parallelFormsOfName.mkString(",,"),
+    "other_forms_of_name" -> otherFormsOfName.mkString(",,"),
+    "type_of_entity" -> typeOfEntity
   )
 }
 

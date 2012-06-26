@@ -74,8 +74,8 @@ object Collections extends Controller with ControllerHelpers {
           },
           data => {
             Async {
-              Collection.persist(collection.id, data).map { updated =>
-                Redirect(routes.Collections.detail(slug=updated.identity.slug))
+              Collection.persist(collection.id, data.withSlug(slug)).map { updated =>
+                Redirect(routes.Collections.detail(slug=updated.slug.get))
               }
             }
           }

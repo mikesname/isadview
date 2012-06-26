@@ -9,9 +9,9 @@ object Collection extends Neo4jDataSource[Collection] {
     Collection(
       // adjust these as appropriate!
       id = idFromUrl((data \ "self").extractOpt[String]),
+      slug = (data \ "data" \ "slug").extractOpt[String],
       identity = CollectionIdentity(
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
-        slug = (data \ "data" \ "slug").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
         levelOfDescription = (data \ "data" \ "level_of_description").extractOpt[Int],
         extentAndMedium = (data \ "data" \ "extent_and_medium").extractOpt[String]
@@ -52,7 +52,7 @@ object Collection extends Neo4jDataSource[Collection] {
 
   // Alternative constructor to construct a Collection without
   // an ID.
-  def formApply(
+  def apply(
     identity: CollectionIdentity,
     context: CollectionContext,
     content: CollectionContent,
@@ -60,7 +60,7 @@ object Collection extends Neo4jDataSource[Collection] {
     materials: CollectionMaterials,
     control: CollectionControl,
     admin: CollectionAdmin): Collection = {
-    new Collection(-1, identity, context, content, conditions, materials, control, admin)
+    new Collection(-1, None, identity, context, content, conditions, materials, control, admin)
   }
 
   def formUnapply(c: Collection): Option[(
@@ -78,6 +78,7 @@ object Collection extends Neo4jDataSource[Collection] {
 
 case class Collection(
   val id: Long,
+  val slug: Option[String] = None,
   val identity: CollectionIdentity,
   val context: CollectionContext,
   val content: CollectionContent,
@@ -101,6 +102,7 @@ case class Collection(
   )          
 
   def toMap = {
+    Map("slug" -> slug) ++
     identity.toMap ++
     context.toMap ++
     content.toMap ++
@@ -110,24 +112,13 @@ case class Collection(
     admin.toMap
   }
 
-  def withDates(dates: List[FuzzyDate]): Collection = {
-    Collection(
-      id=id,
-      identity=identity.withDates(dates),
-      context=context,
-      content=content,
-      conditions=conditions,
-      materials=materials,
-      control=control,
-      admin=admin
-    )
-  }
+  def withSlug(newSlug: String) = copy(slug=Some(newSlug))
+  def withDates(dates: List[FuzzyDate]) = copy(identity=identity.withDates(dates))
 }
 
 
 case class CollectionIdentity(
   val identifier: String = "",
-  val slug: String = "",
   val name: String = "",
   val dates: List[FuzzyDate] = Nil,
   val levelOfDescription: Option[Int] = Some(0),
@@ -137,12 +128,10 @@ case class CollectionIdentity(
   def toMap = Map(
     "identifier" -> identifier,
     "name" -> name,
-    "slug" -> slug,
     "level_of_description" -> levelOfDescription,
     "extent_and_medium" -> extentAndMedium
   )
-  def withDates(newDates: List[FuzzyDate]) = CollectionIdentity(
-    identifier, slug, name, newDates, levelOfDescription, extentAndMedium)
+  def withDates(newDates: List[FuzzyDate]) = copy(dates=newDates)
 }
 
 case class CollectionContext(

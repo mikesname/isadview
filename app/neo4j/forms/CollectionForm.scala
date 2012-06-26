@@ -11,7 +11,6 @@ object CollectionForm {
     mapping(
       "identity" -> mapping(
         "identifier" -> nonEmptyText,
-        "slug" -> nonEmptyText,
         "name" -> nonEmptyText,
         "dates" -> list(mapping(
           "startDate" -> optional(date("yyyy-MM-dd")),
@@ -53,6 +52,6 @@ object CollectionForm {
       "admin" -> mapping(
         "publicationStatus" -> number
       )(CollectionAdmin.apply)(CollectionAdmin.unapply)
-    )(Collection.formApply)(Collection.formUnapply)
+    )(Collection.apply)(Collection.formUnapply)
   )
 }

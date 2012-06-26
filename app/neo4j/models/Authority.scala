@@ -6,11 +6,11 @@ object Authority extends Neo4jDataSource[Authority] {
   def apply(data: net.liftweb.json.JsonAST.JValue): Authority = {
     Authority(
       id = idFromUrl((data \ "self").extractOpt[String]),
+      slug = (data \ "data" \ "slug").extractOpt[String],
       identity = AuthorityIdentity(
         typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int].getOrElse(0),
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
-        name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
-        slug = (data \ "data" \ "slug").extractOpt[String].getOrElse("")
+        name = (data \ "data" \ "name").extractOpt[String].getOrElse("")
       ),
       description = AuthorityDescription(
         datesOfExistence = (data \ "data" \ "dates_of_existence").extractOpt[String],
@@ -28,22 +28,25 @@ case class Authority(
   val identity: AuthorityIdentity,
   val description: AuthorityDescription,
   val admin: AuthorityAdmin,
+  val slug: Option[String] = None,
   val id: Long = -1
 ) extends Description {
-  def toMap = identity.toMap ++ admin.toMap
+  def toMap = {
+    Map("slug" -> slug) ++
+    identity.toMap ++
+    admin.toMap
+  }
 }
 
 case class AuthorityIdentity(
   val typeOfEntity: Int = 0,
   val identifier: String = "",
-  val slug: String = "",
   val name: String = ""
 ) {
   def otherNames = Nil
   def toMap = Map(
     "type_of_entity" -> typeOfEntity,
     "identifier" -> identifier,
-    "slug" -> slug,
     "name" -> name
   )
 }
@@ -63,3 +66,4 @@ case class AuthorityAdmin(
 ) {
   def toMap = Map("publication_status" -> publicationStatus)
 }
+

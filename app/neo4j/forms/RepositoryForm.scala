@@ -11,7 +11,6 @@ object RepositoryForm {
     mapping(
       "identity" -> mapping(
         "identifier" -> nonEmptyText,
-        "slug" -> nonEmptyText,
         "name" -> nonEmptyText,
         "parallelFormsOfName" -> list(text),
         "otherFormsOfName" -> list(text),

@@ -7,7 +7,7 @@
     <ul class="collection-list">
     @clist.map { c =>
         <li>
-            <a href="@routes.Collections.detail(slug=c.identity.slug)">@c.identity.name</a>
+            <a href="@routes.Collections.detail(slug=c.slug.get)">@c.identity.name</a>
         </li>
     }
     </ul>
