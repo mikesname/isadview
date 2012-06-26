@@ -83,4 +83,22 @@ object Collections extends Controller with ControllerHelpers {
       }
     }
   }
+  
+  def confirmDelete(slug: String) = Action { implicit request =>
+    Async {
+      Collection.fetchBySlug(slug).map { collection =>
+        val action = routes.Collections.delete(slug)
+        Ok(views.html.basedelete(c=collection, action=action))
+      }
+    }
+  }
+
+  def delete(slug: String) = Action { implicit request =>
+    Async {
+      Collection.fetchBySlug(slug).map { collection =>
+        Collection.delete(collection.id, collection)
+        Redirect(routes.Search.list("collection"))
+      }
+    }
+  }
 }

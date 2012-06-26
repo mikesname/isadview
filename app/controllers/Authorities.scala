@@ -69,4 +69,22 @@ object Authorities extends Controller with ControllerHelpers {
       }
     }
   }
+
+  def confirmDelete(slug: String) = Action { implicit request =>
+    Async {
+      Authority.fetchBySlug(slug).map { authority =>
+        val action = routes.Authorities.delete(slug)
+        Ok(views.html.basedelete(c=authority, action=action))
+      }
+    }
+  }
+
+  def delete(slug: String) = Action { implicit request =>
+    Async {
+      Authority.fetchBySlug(slug).map { authority =>
+        Authority.delete(authority.id, authority)
+        Redirect(routes.Search.list("authority"))
+      }
+    }
+  }
 }

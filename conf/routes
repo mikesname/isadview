@@ -15,14 +15,20 @@ GET     /$rtype<(collection|repository|authority)>/facets/:facet          contro
 GET     /repository/:slug       controllers.Repositories.detail(slug:String)
 GET     /repository/edit/:slug  controllers.Repositories.edit(slug: String)
 POST    /repository/edit/:slug    controllers.Repositories.save(slug: String)
+GET     /repository/delete/:slug  controllers.Repositories.confirmDelete(slug: String)
+POST    /repository/delete/:slug    controllers.Repositories.delete(slug: String)
 
 GET     /authority/:slug        controllers.Authorities.detail(slug:String)
 GET     /authority/edit/:slug  controllers.Authorities.edit(slug: String)
 POST    /authority/edit/:slug    controllers.Authorities.save(slug: String)
+GET     /authority/delete/:slug  controllers.Authorities.confirmDelete(slug: String)
+POST    /authority/delete/:slug    controllers.Authorities.delete(slug: String)
 
 GET     /collection/:slug       controllers.Collections.detail(slug:String)
 GET     /collection/edit/:slug  controllers.Collections.edit(slug: String)
 POST    /collection/edit/:slug    controllers.Collections.save(slug: String)
+GET     /collection/delete/:slug  controllers.Collections.confirmDelete(slug: String)
+POST    /collection/delete/:slug    controllers.Collections.delete(slug: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

@@ -79,6 +79,7 @@ case class Repository(
 ) extends CrudDescription {
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
+  val deleteUrl = controllers.routes.Repositories.confirmDelete(slug=slug.getOrElse(""))
 
   override def getSubordinateItems = Map(
     // FIXME: Find a better way of determining if

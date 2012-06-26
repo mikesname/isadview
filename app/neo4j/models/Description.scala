@@ -43,5 +43,5 @@ trait Description {
 trait CrudDescription extends Description {
   def detailUrl: play.api.mvc.Call
   def editUrl: play.api.mvc.Call
-  def deleteUrl: String = ""
+  def deleteUrl: play.api.mvc.Call
 }

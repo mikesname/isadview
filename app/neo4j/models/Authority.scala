@@ -63,6 +63,7 @@ case class Authority(
 ) extends CrudDescription {
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Authorities.edit(slug=slug.getOrElse(""))
+  val deleteUrl = controllers.routes.Authorities.confirmDelete(slug=slug.getOrElse(""))
 
   def toMap = {
     Map("slug" -> slug) ++

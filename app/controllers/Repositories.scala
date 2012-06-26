@@ -73,4 +73,22 @@ object Repositories extends Controller with ControllerHelpers {
       }
     }
   }
+  
+  def confirmDelete(slug: String) = Action { implicit request =>
+    Async {
+      Repository.fetchBySlug(slug).map { repository =>
+        val action = routes.Repositories.delete(slug)
+        Ok(views.html.basedelete(c=repository, action=action))
+      }
+    }
+  }
+
+  def delete(slug: String) = Action { implicit request =>
+    Async {
+      Repository.fetchBySlug(slug).map { repository =>
+        Repository.delete(repository.id, repository)
+        Redirect(routes.Search.list("repository"))
+      }
+    }
+  }
 }

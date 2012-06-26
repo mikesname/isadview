@@ -59,7 +59,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
       "inRels" -> item.getIncomingSubordinateRelations,
       "outRels" -> item.getOutgoingSubordinateRelations
     )
-    gremlin("delete_vertex_with_relations", params).map(response => {
+    gremlin("delete_vertex_with_related", params).map(response => {
       println(getJson(response))
       true
     })
