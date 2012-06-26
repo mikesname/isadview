@@ -7,7 +7,6 @@ object Contact extends Neo4jDataSource[Contact] {
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Contact = {
     Contact(
-      id = idFromUrl((data \ "self").extractOpt[String]),
       primary = (data \ "data" \ "primary").extractOpt[Boolean].getOrElse(false),
       contactPerson = (data \ "data" \ "contact_person").extractOpt[String],
       streetAddress = (data \ "data" \ "identifier").extractOpt[String],
@@ -22,6 +21,28 @@ object Contact extends Neo4jDataSource[Contact] {
       note = (data \ "data" \ "note").extractOpt[String]
     )
   }
+
+  def apply(
+    primary: Boolean,
+    contactPerson: Option[String],
+    streetAddress: Option[String],
+    city: Option[String],
+    region: Option[String],
+    postalCode: Option[String],
+    countryCode: Option[String],
+    telephone: Option[String],
+    fax: Option[String],
+    email: Option[String],
+    website: Option[String],
+    note: Option[String]) = new Contact(
+      primary, contactPerson, streetAddress, city, region, postalCode,
+      countryCode, telephone, fax, email, website, note
+  )
+
+  def formUnapply(c: Contact) = Option((
+      c.primary, c.contactPerson, c.streetAddress, c.city, c.region,
+      c.postalCode, c.countryCode, c.telephone, c.fax, c.email,
+      c.website, c.note))
 }
 
 case class Contact(

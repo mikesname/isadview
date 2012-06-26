@@ -12,7 +12,7 @@ import net.liftweb.json
 import com.codahale.jerkson.Json._
 
 import neo4j.models.{Repository,Contact,Collection,FuzzyDate,Authority}
-import neo4j.forms.CollectionForm
+import neo4j.forms.RepositoryForm
 
 
 
@@ -27,6 +27,49 @@ object Repositories extends Controller with ControllerHelpers {
             Ok(views.html.repository.detail(repo=repo, contacts=contacts))
           }
         }
+      }
+    }
+  }
+
+  def edit(slug: String) = Action { implicit request =>
+    Async {
+      Repository.fetchBySlug(slug).map { repository =>
+        Async {
+          // get dates
+          Contact.findRelatedTo(repository, Contact.Direction.In, "addressOf").map { contacts =>
+            val form = RepositoryForm.form.fill(repository.withContacts(contacts))
+            val action = routes.Repositories.save(slug)
+            Ok(views.html.repository.form(f=form, action=action, r=Some(repository)))
+          }
+        }
+      }
+    }
+  }
+
+  def save(slug: String) = Action { implicit request =>
+    // transform input for multiselects
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "control.languagesOfDescription",
+      "control.scriptsOfDescription"
+    ))
+
+    Async {
+      Repository.fetchBySlug(slug).map { repository =>
+        RepositoryForm.form.bindFromRequest(formData).fold(
+          errorForm => {
+            BadRequest(
+            views.html.repository.form(f=errorForm,
+            action=routes.Repositories.save(slug), r=Some(repository)))
+          },
+          data => {
+            println("Saving: " + data)
+            Async {
+              Repository.persist(repository.id, data).map { updated =>
+                Redirect(routes.Repositories.detail(slug=updated.identity.slug))
+              }
+            }
+          }
+        )
       }
     }
   }

@@ -13,6 +13,9 @@ GET     /$rtype<(collection|repository|authority)>     controllers.Search.list(r
 GET     /$rtype<(collection|repository|authority)>/facets/:facet          controllers.Search.facets(facet:String, rtype:String, page:Int ?= 0, sort:String ?= "count", q ?= "", field ?= "")
 
 GET     /repository/:slug       controllers.Repositories.detail(slug:String)
+GET     /repository/edit/:slug  controllers.Repositories.edit(slug: String)
+POST    /repository/edit/:slug    controllers.Repositories.save(slug: String)
+
 GET     /authority/:slug        controllers.Authorities.detail(slug:String)
 
 GET     /collection/:slug       controllers.Collections.detail(slug:String)

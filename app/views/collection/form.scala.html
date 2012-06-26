@@ -3,6 +3,7 @@
 @import app.util.Helpers 
 
 @implicitlocale = @{Helpers.localeFromRequest(request)}
+@implicitlang = @{request.acceptLanguages.head}
 
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
@@ -34,10 +35,21 @@
         @helper.inputText(f("identity.slug"), '_label -> "Slug")
         @helper.inputText(f("identity.name"), '_label -> "Title")
 
-        @helper.repeat(f("identity.dates"), min = 2) { date =>
-            @helper.inputText(date("startDate"), '_label -> "Start Date")
-            @helper.inputText(date("endDate"), '_label -> "End Date")
-        }
+        <div class="control-group">
+            <label>@Messages("Dates")</label>
+            @helper.repeat(f("identity.dates"), min = f("identity.dates").indexes.length + 1) { date =>
+            <div class="controls stacked-multi" id="@{date.id}_field">
+                <p>
+                @defining(date("startDate")) { field =>
+                <input placeholder="@Messages("From")" class="input-small" type="date" id="@field.id" name="@field.name" value="@field.value" />
+                }
+                @defining(date("endDate")) { field =>
+                <input placeholder="@Messages("To")" class="input-small" type="date" id="@field.id" name="@field.name" value="@field.value" />
+                }
+                </p>
+            </div>
+            }
+        </div>
 
         @common.descriptionChoice(f("identity.levelOfDescription"), neo4j.models.LevelOfDescription, "Level of Description", blank=true)
         @common.descriptionTextarea(f("identity.extentAndMedium"), "Extent and Medium")

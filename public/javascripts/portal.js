@@ -3,6 +3,11 @@ jQuery(function($) {
     // Chosen selects...
     $(".chzn-select").chosen();
 
+    // Date picker...
+    $("input[type='date']").datepicker({
+        format: "yyyy-mm-dd"
+    })
+
     $(".more-facets").each(function(i, elem) {
         $(elem).modal({backdrop:true, 
             shown: function(e) { alert("show"); },
