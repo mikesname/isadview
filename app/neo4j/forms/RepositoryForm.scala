@@ -61,7 +61,7 @@ object RepositoryForm {
         "scriptsOfDescription" -> list(text),
         "mainainenceNotes" -> optional(text),
         "sources" -> optional(text)
-      )(RepositoryControl.apply)(RepositoryControl.unapply),
+      )(AuthorityControl.apply)(AuthorityControl.unapply),
       "admin" -> mapping(
         "publicationStatus" -> number
       )(RepositoryAdmin.apply)(RepositoryAdmin.unapply)

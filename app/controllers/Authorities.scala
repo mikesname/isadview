@@ -12,8 +12,7 @@ import net.liftweb.json
 import com.codahale.jerkson.Json._
 
 import neo4j.models.{Repository,Contact,Collection,FuzzyDate,Authority}
-import neo4j.forms.CollectionForm
-
+import neo4j.forms.AuthorityForm
 
 
 object Authorities extends Controller with ControllerHelpers {
@@ -30,6 +29,43 @@ object Authorities extends Controller with ControllerHelpers {
             }
           }
         }
+      }
+    }
+  }
+
+  def edit(slug: String) = Action { implicit request =>
+    Async {
+      Authority.fetchBySlug(slug).map { authority =>
+        val form = AuthorityForm.form.fill(authority)
+        val action = routes.Authorities.save(slug)
+        Ok(views.html.authority.form(f=form, action=action, r=Some(authority)))
+      }
+    }
+  }
+
+  def save(slug: String) = Action { implicit request =>
+    // transform input for multiselects
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "control.languagesOfDescription",
+      "control.scriptsOfDescription"
+    ))
+
+    Async {
+      Authority.fetchBySlug(slug).map { authority =>
+        AuthorityForm.form.bindFromRequest(formData).fold(
+          errorForm => {
+            BadRequest(
+            views.html.authority.form(f=errorForm,
+            action=routes.Authorities.save(slug), r=Some(authority)))
+          },
+          data => {
+            Async {
+              Authority.persist(authority.id, data.withSlug(slug)).map { updated =>
+                Redirect(routes.Authorities.detail(slug=updated.slug.get))
+              }
+            }
+          }
+        )
       }
     }
   }

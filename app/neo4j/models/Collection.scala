@@ -86,7 +86,10 @@ case class Collection(
   val materials: CollectionMaterials,
   val control: CollectionControl,
   val admin: CollectionAdmin
-) extends Description {
+) extends CrudDescription {
+
+  val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
+  val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))
 
   // FIXME: This is really ugly and reqires knowing way too much about the
   // details of persistance. Ideally we'd just pass a Map of relationship

@@ -25,6 +25,10 @@ Seq[neo4j.models.Collection])(implicit request: RequestHeader)
         }
         @common.descriptionValue(auth.description.datesOfExistence, "Dates of Existence")
         @common.descriptionValue(auth.description.history, "History")
+        @common.descriptionValue(auth.description.places, "Places")
+        @common.descriptionValue(auth.description.functions, "Functions")
+        @common.descriptionValue(auth.description.geneology, "Geneology")
+        @common.descriptionValue(auth.description.generalContext, "General Context")
         <hr />
         @collection.collectionList(created, "Collections as Creator")
         @collection.collectionList(mentioned, "Collections as Name Access Point")

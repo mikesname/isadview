@@ -7,133 +7,132 @@
 
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
-@main("Edit Repository", body_class="repository") {
-<h2>@r.map(_.identity.name).getOrElse(Messages("Create Repository"))</h2>
+@baseform("Edit Repository", body_class="repository") {
+    <h2>@r.map(_.identity.name).getOrElse(Messages("Create Repository"))</h2>
 
-<div class="subnav">
-    <ul class="nav nav-pills">
-        <li><a href="#identity-area">@Messages("Identity")</a></li>
-        <li><a href="#contact-area">@Messages("Contact")</a></li>
-        <li><a href="#description-area">@Messages("Description")</a></li>
-        <li><a href="#access-area">@Messages("Access")</a></li>
-        <li><a href="#services-area">@Messages("Services")</a></li>
-        <li><a href="#control-area">@Messages("Control")</a></li>
-        <li><a href="#admin-area">@Messages("Administration")</a></li>
-    </ul>
-</div>
-
-<div class="row">
-    <script src="@routes.Assets.at("javascripts/subnav.js")"></script>
-    <div class="span12 columns">
-
-        @helper.form(action = action, 'class -> "entity-form form-horizontal") {
-
-    <fieldset id="identity-area">
-        <legend>@Messages("Identity")</legend>
-        @helper.inputText(f("identity.identifier"), '_label -> "Identifier")
-        @helper.inputText(f("identity.name"), '_label -> "Title")
-
-        @common.descriptionChoice(f("identity.typeOfEntity"), neo4j.models.InstitutionType, "Institution Type", blank=true)
-    </fieldset>
-
-    <fieldset id="contact-area">
-        <legend>@Messages("Contact")</legend>
-
-        @helper.repeat(f("contact"), min=f("contact").indexes.length + 1) { contact =>
-            <div class="well">
-                @helper.checkbox(contact("primary"), '_label -> Messages("Primary contact"))
-                @helper.inputText(contact("contactPerson"), '_label -> Messages("Contact Person"))
-                @helper.inputText(contact("streetAddress"), '_label -> Messages("Street Address"))
-                @helper.inputText(contact("city"), '_label -> Messages("City"))
-                @helper.inputText(contact("region"), '_label -> Messages("Region"))
-                @helper.inputText(contact("postalCode"), '_label -> Messages("Postal Code"))
-                @helper.inputText(contact("countryCode"), '_label -> Messages("Country Code"))
-                @helper.inputText(contact("telephone"), '_label -> Messages("Telephone"))
-                @helper.inputText(contact("fax"), '_label -> Messages("Fax"))
-                @helper.inputText(contact("email"), '_label -> Messages("Email"))
-                @helper.inputText(contact("website"), '_label -> Messages("Website"))
-                @common.descriptionTextarea(contact("note"), "Notes")
-            </div>
-        }
-
-    </fieldset>
-
-    <fieldset id="description-area">
-        <legend>@Messages("Description")</legend>
-          @common.descriptionTextarea(f("description.history"), "History")
-          @common.descriptionTextarea(f("description.geoculturalContext"), "Geographical and Cultural Context")
-          @common.descriptionTextarea(f("description.mandates"), "Mandates")
-          @common.descriptionTextarea(f("description.administrativeStructure"), "Administrative Structure")
-          @common.descriptionTextarea(f("description.policies"), "Records Management and Collecting Policies")
-          @common.descriptionTextarea(f("description.buildings"), "Buildings")
-          @common.descriptionTextarea(f("description.holdings"), "Holdings")
-          @common.descriptionTextarea(f("description.findingAids"), "Finding Aids")
-    </fieldset>
-
-    <fieldset id="access-area">
-        <legend>@Messages("Access")</legend>
-          @common.descriptionTextarea(f("access.openingTimes"), "Opening Times")
-          @common.descriptionTextarea(f("access.conditions"), "Conditions for Access and Use")
-          @common.descriptionTextarea(f("access.accessibility"), "Accessibility")
-    </fieldset>
-
-    <fieldset id="services-area">
-        <legend>@Messages("Services")</legend>
-          @common.descriptionTextarea(f("services.researchServices"), "Opening Times")
-          @common.descriptionTextarea(f("services.reproductionServices"), "Conditions for Access and Use")
-          @common.descriptionTextarea(f("services.publicAreas"), "Public Areas")
-    </fieldset>
-
-    <fieldset id="control-area">
-        <legend>@Messages("Control")</legend>
-          @common.descriptionTextarea(f("control.descriptionIdentifier"), "Description Identifier")
-          @common.descriptionTextarea(f("control.institutionIdentifier"), "Institution Identifier")
-          @common.descriptionTextarea(f("control.rules"), "Rules and Conventions Used")
-          @common.descriptionTextarea(f("control.status"), "Status")
-          @common.descriptionChoice(f("control.levelOfDetail"), neo4j.models.LevelOfDetail, "Level of Detail", blank=true)
-
-          <div class="control-group">
-              <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
-              <div class="controls input">
-                  <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
-                      id="control_languagesOfDescription" name="control.languagesOfDescription">
-                    @Helpers.languageList.map{t =>
-                        <option value="@t._1" @(if(r.map(_.control.languagesOfDescription).getOrElse(List()).contains(t._1))
-                        "selected" else "")>@t._2</option>
-                    }
-                  </select>
-              </div>
-          </div>
-
-          <div class="control-group">
-              <label for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
-              <div class="controls input">
-                  <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple
-                      id="control_scriptsOfDescription"
-                      name="control.scriptsOfDescription">
-                    @Helpers.scriptList.map{t =>
-                        <option value="@t._1" @(if(r.map(_.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
-                        "selected" else "")>@t._2</option>
-                    }
-                  </select>
-              </div>
-          </div>
-          
-          @common.descriptionTextarea(f("control.sources"), "Sources")
-          @common.descriptionTextarea(f("control.maintainenceNotes"), "Maintainence Notes")
-    </fieldset>
-
-    <fieldset id="admin-area">
-        <legend>@Messages("Administration")</legend>
-        @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
-    </fieldset>
-
-          <div class="form-actions">
-              <button type="submit" class="btn btn-primary">@Messages(r.map(s => "Update Collection").getOrElse("Create Collection"))</button>
-              <a href="@routes.Search.list("collection")" class="btn">@Messages("Cancel")</a>
-          </div>
-        }
-    
+    <div class="subnav">
+        <ul class="nav nav-pills">
+            <li><a href="#identity-area">@Messages("Identity")</a></li>
+            <li><a href="#contact-area">@Messages("Contact")</a></li>
+            <li><a href="#description-area">@Messages("Description")</a></li>
+            <li><a href="#access-area">@Messages("Access")</a></li>
+            <li><a href="#services-area">@Messages("Services")</a></li>
+            <li><a href="#control-area">@Messages("Control")</a></li>
+            <li><a href="#admin-area">@Messages("Administration")</a></li>
+        </ul>
     </div>
-</div>
+
+    <div class="row">
+        <div class="span12 columns">
+
+            @helper.form(action = action, 'class -> "entity-form form-horizontal") {
+
+        <fieldset id="identity-area">
+            <legend>@Messages("Identity")</legend>
+            @helper.inputText(f("identity.identifier"), '_label -> "Identifier")
+            @helper.inputText(f("identity.name"), '_label -> "Title")
+
+            @common.descriptionChoice(f("identity.typeOfEntity"), neo4j.models.InstitutionType, "Institution Type", blank=true)
+        </fieldset>
+
+        <fieldset id="contact-area">
+            <legend>@Messages("Contact")</legend>
+
+            @helper.repeat(f("contact"), min=f("contact").indexes.length + 1) { contact =>
+                <div class="well">
+                    @helper.checkbox(contact("primary"), '_label -> Messages("Primary contact"))
+                    @helper.inputText(contact("contactPerson"), '_label -> Messages("Contact Person"))
+                    @helper.inputText(contact("streetAddress"), '_label -> Messages("Street Address"))
+                    @helper.inputText(contact("city"), '_label -> Messages("City"))
+                    @helper.inputText(contact("region"), '_label -> Messages("Region"))
+                    @helper.inputText(contact("postalCode"), '_label -> Messages("Postal Code"))
+                    @helper.inputText(contact("countryCode"), '_label -> Messages("Country Code"))
+                    @helper.inputText(contact("telephone"), '_label -> Messages("Telephone"))
+                    @helper.inputText(contact("fax"), '_label -> Messages("Fax"))
+                    @helper.inputText(contact("email"), '_label -> Messages("Email"))
+                    @helper.inputText(contact("website"), '_label -> Messages("Website"))
+                    @common.descriptionTextarea(contact("note"), "Notes")
+                </div>
+            }
+
+        </fieldset>
+
+        <fieldset id="description-area">
+            <legend>@Messages("Description")</legend>
+              @common.descriptionTextarea(f("description.history"), "History")
+              @common.descriptionTextarea(f("description.geoculturalContext"), "Geographical and Cultural Context")
+              @common.descriptionTextarea(f("description.mandates"), "Mandates")
+              @common.descriptionTextarea(f("description.administrativeStructure"), "Administrative Structure")
+              @common.descriptionTextarea(f("description.policies"), "Records Management and Collecting Policies")
+              @common.descriptionTextarea(f("description.buildings"), "Buildings")
+              @common.descriptionTextarea(f("description.holdings"), "Holdings")
+              @common.descriptionTextarea(f("description.findingAids"), "Finding Aids")
+        </fieldset>
+
+        <fieldset id="access-area">
+            <legend>@Messages("Access")</legend>
+              @common.descriptionTextarea(f("access.openingTimes"), "Opening Times")
+              @common.descriptionTextarea(f("access.conditions"), "Conditions for Access and Use")
+              @common.descriptionTextarea(f("access.accessibility"), "Accessibility")
+        </fieldset>
+
+        <fieldset id="services-area">
+            <legend>@Messages("Services")</legend>
+              @common.descriptionTextarea(f("services.researchServices"), "Opening Times")
+              @common.descriptionTextarea(f("services.reproductionServices"), "Conditions for Access and Use")
+              @common.descriptionTextarea(f("services.publicAreas"), "Public Areas")
+        </fieldset>
+
+        <fieldset id="control-area">
+            <legend>@Messages("Control")</legend>
+              @common.descriptionTextarea(f("control.descriptionIdentifier"), "Description Identifier")
+              @common.descriptionTextarea(f("control.institutionIdentifier"), "Institution Identifier")
+              @common.descriptionTextarea(f("control.rules"), "Rules and Conventions Used")
+              @common.descriptionTextarea(f("control.status"), "Status")
+              @common.descriptionChoice(f("control.levelOfDetail"), neo4j.models.LevelOfDetail, "Level of Detail", blank=true)
+
+              <div class="control-group">
+                  <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
+                  <div class="controls input">
+                      <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
+                          id="control_languagesOfDescription" name="control.languagesOfDescription">
+                        @Helpers.languageList.map{t =>
+                            <option value="@t._1" @(if(r.map(_.control.languagesOfDescription).getOrElse(List()).contains(t._1))
+                            "selected" else "")>@t._2</option>
+                        }
+                      </select>
+                  </div>
+              </div>
+
+              <div class="control-group">
+                  <label for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
+                  <div class="controls input">
+                      <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple
+                          id="control_scriptsOfDescription"
+                          name="control.scriptsOfDescription">
+                        @Helpers.scriptList.map{t =>
+                            <option value="@t._1" @(if(r.map(_.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
+                            "selected" else "")>@t._2</option>
+                        }
+                      </select>
+                  </div>
+              </div>
+              
+              @common.descriptionTextarea(f("control.sources"), "Sources")
+              @common.descriptionTextarea(f("control.maintainenceNotes"), "Maintainence Notes")
+        </fieldset>
+
+        <fieldset id="admin-area">
+            <legend>@Messages("Administration")</legend>
+            @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
+        </fieldset>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">@Messages(r.map(s => "Update Repository").getOrElse("Create Repository"))</button>
+            <a href="@r.map(_.detailUrl).getOrElse(routes.Search.list("repository"))" class="btn">@Messages("Cancel")</a>
+        </div>
+        }
+        
+        </div>
+    </div>
 }

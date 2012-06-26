@@ -7,6 +7,13 @@ object InstitutionType extends Enumeration(
   val International, National, Regional, Community = Value
 }
 
+// Enum definitions
+object AuthorityType extends Enumeration(
+    "CorporateBody", "Family", "Person") {
+  type AuthorityType = Value
+  val CorporateBody, Family, Person = Value
+}
+
 object PublicationStatus extends Enumeration(
     "Draft", "Published") {
   type PublicationStatus = Value
@@ -31,3 +38,8 @@ trait Description {
   def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
 }
 
+trait CrudDescription extends Description {
+  def detailUrl: play.api.mvc.Call
+  def editUrl: play.api.mvc.Call
+  def deleteUrl: String = ""
+}

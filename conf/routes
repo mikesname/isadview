@@ -17,6 +17,8 @@ GET     /repository/edit/:slug  controllers.Repositories.edit(slug: String)
 POST    /repository/edit/:slug    controllers.Repositories.save(slug: String)
 
 GET     /authority/:slug        controllers.Authorities.detail(slug:String)
+GET     /authority/edit/:slug  controllers.Authorities.edit(slug: String)
+POST    /authority/edit/:slug    controllers.Authorities.save(slug: String)
 
 GET     /collection/:slug       controllers.Collections.detail(slug:String)
 GET     /collection/edit/:slug  controllers.Collections.edit(slug: String)

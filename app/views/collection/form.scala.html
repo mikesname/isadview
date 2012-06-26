@@ -3,11 +3,9 @@
 @import app.util.Helpers 
 
 @implicitlocale = @{Helpers.localeFromRequest(request)}
-@implicitlang = @{request.acceptLanguages.head}
-
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
-@main("Edit Collection", body_class="collection") {
+@baseform("Edit Collection", body_class="collection scrollspy") {
 <h2>@c.map(_.identity.name).getOrElse(Messages("Create Collection"))</h2>
 
 <div class="subnav">
@@ -24,10 +22,9 @@
 </div>
 
 <div class="row">
-    <script src="@routes.Assets.at("javascripts/subnav.js")"></script>
     <div class="span12 columns">
 
-        @helper.form(action = action, 'class -> "entity-form form-horizontal") {
+    @helper.form(action = action, 'class -> "entity-form form-horizontal") {
 
     <fieldset id="identity-area">
         <legend>@Messages("Identity")</legend>
@@ -161,11 +158,11 @@
         @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
     </fieldset>
 
-          <div class="form-actions">
-              <button type="submit" class="btn btn-primary">@Messages(c.map(s => "Update Collection").getOrElse("Create Collection"))</button>
-              <a href="@routes.Search.list("collection")" class="btn">@Messages("Cancel")</a>
-          </div>
-        }
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">@Messages(c.map(s => "Update Collection").getOrElse("Create Collection"))</button>
+        <a href="@c.map(_.detailUrl).getOrElse(routes.Search.list("collections"))" class="btn">@Messages("Cancel")</a>
+    </div>
+    }
     
     </div>
 </div>

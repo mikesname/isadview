@@ -1,10 +1,11 @@
-@(entity: neo4j.models.Description)(implicit req: RequestHeader)
+@(entity: neo4j.models.CrudDescription)(implicit req: RequestHeader)
 
 <div class="admin-actions well">
     <h4>@Messages("Administration Actions")</h4>
     <ul class="unstyled">
+        <li><a class="btn" href="@entity.editUrl">@Messages("Edit Description")</a></li>
         <li><a class="btn" target="_blank"
-            href="http://localhost:7474/webadmin/#/data/search/@entity.id">@Messages("Edit Description")</a></li>
+            href="http://localhost:7474/webadmin/#/data/search/@entity.id">@Messages("Edit with Neo4j")</a></li>
         <li><a class="btn btn-danger" href="{{data.get_delete_url}}">@Messages("Delete")</a></li>
     </ul>
 </div>

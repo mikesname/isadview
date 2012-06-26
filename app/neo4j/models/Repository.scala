@@ -33,7 +33,7 @@ object Repository extends Neo4jDataSource[Repository] {
         reproductionServices = (data \ "data" \ "reproduction_services").extractOpt[String],
         publicAreas = (data \ "data" \ "public_areas").extractOpt[String]
       ),
-      control = RepositoryControl(
+      control = AuthorityControl(
         descriptionIdentifier = (data \ "data" \ "description_identifier").extractOpt[String],
         institutionIdentifier = (data \ "data" \ "institution_identifier").extractOpt[String],
         rules = (data \ "data" \ "rules_and_conventions").extractOpt[String],
@@ -57,7 +57,7 @@ object Repository extends Neo4jDataSource[Repository] {
     description: RepositoryDescription,
     access: RepositoryAccess,
     services: RepositoryServices,
-    control: RepositoryControl,
+    control: AuthorityControl,
     admin: RepositoryAdmin) = new Repository(
       identity, contact, description, access, services, control, admin
   )
@@ -66,20 +66,19 @@ object Repository extends Neo4jDataSource[Repository] {
     (repo.identity, repo.contact, repo.description, repo.access, repo.services, repo.control, repo.admin))  
 }
 
-
-
-
 case class Repository(
   val identity: RepositoryIdentity,
   val contact: List[Contact],
   val description: RepositoryDescription,
   val access: RepositoryAccess,
   val services: RepositoryServices,
-  val control: RepositoryControl,
+  val control: AuthorityControl,
   val admin: RepositoryAdmin,
   val slug: Option[String] = None,
   val id: Long = -1
-) extends Description {
+) extends CrudDescription {
+  val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
+  val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
 
   override def getSubordinateItems = Map(
     // FIXME: Find a better way of determining if
@@ -165,31 +164,6 @@ case class RepositoryServices(
     "research_services" -> researchServices,
     "reproduction_services" -> reproductionServices,
     "public_areas" -> publicAreas
-  )
-}
-
-case class RepositoryControl(
-  val descriptionIdentifier: Option[String] = None,
-  val institutionIdentifier: Option[String] = None,
-  val rules: Option[String] = None,
-  val status: Option[String] = None,
-  val levelOfDetail: Option[String] = None,
-  val datesOfCreationRevisionDeletion: Option[String] = None,
-  val languagesOfDescription: List[String] = Nil,
-  val scriptsOfDescription: List[String] = Nil,
-  val sources: Option[String] = None,
-  val maintainenceNotes: Option[String] = None
-) {
-  def toMap = Map(
-    "description_identifier" -> descriptionIdentifier,
-    "institution_identifier" -> institutionIdentifier,
-    "rules" -> rules,
-    "status" -> status,
-    "level_of_detail" -> levelOfDetail,
-    "dates" -> datesOfCreationRevisionDeletion,
-    "languages_of_description" -> languagesOfDescription.mkString(","),
-    "scripts_of_description" -> scriptsOfDescription.mkString(","),
-    "sources" -> sources
   )
 }
 
