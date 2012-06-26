@@ -36,6 +36,8 @@ case class Authority(
     identity.toMap ++
     admin.toMap
   }
+
+  def withSlug(slug: String) = copy(slug=Some(slug))
 }
 
 case class AuthorityIdentity(
