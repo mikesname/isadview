@@ -1,6 +1,7 @@
 package models
 
 import neo4j.data._
+import org.joda.time.DateTime
 
 object Collection extends Neo4jDataSource[Collection] {
 
@@ -12,6 +13,8 @@ object Collection extends Neo4jDataSource[Collection] {
       // adjust these as appropriate!
       id = idFromUrl((data \ "self").extractOpt[String]),
       slug = (data \ "data" \ "slug").extractOpt[String],
+      createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
+      updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
       identity = CollectionIdentity(
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
@@ -87,7 +90,9 @@ case class Collection(
   val conditions: CollectionConditions,
   val materials: CollectionMaterials,
   val control: CollectionControl,
-  val admin: CollectionAdmin
+  val admin: CollectionAdmin,
+  val createdOn: Option[DateTime] = None,
+  val updatedOn: Option[DateTime] = None
 ) extends Neo4jModel with CrudUrls {
   def name = identity.name
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
@@ -110,7 +115,11 @@ case class Collection(
   override def getIncomingSubordinateRelations = List("locatesInTime")
 
   def toMap = {
-    Map("slug" -> slug) ++
+    Map(
+      "slug" -> slug,
+      "created_on" -> createdOn,
+      "updated_on" -> updatedOn
+    ) ++
     identity.toMap ++
     context.toMap ++
     content.toMap ++

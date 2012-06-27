@@ -1,6 +1,7 @@
 package models
 
 import neo4j.data._
+import org.joda.time.DateTime
 import collection.JavaConversions._
 
 object Repository extends Neo4jDataSource[Repository] {
@@ -10,6 +11,8 @@ object Repository extends Neo4jDataSource[Repository] {
     Repository(
       id = idFromUrl((data \ "self").extractOpt[String]),
       slug = (data \ "data" \ "slug").extractOpt[String],
+      createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
+      updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
       identity = RepositoryIdentity(
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
@@ -76,7 +79,9 @@ case class Repository(
   val control: AuthorityControl,
   val admin: RepositoryAdmin,
   val slug: Option[String] = None,
-  val id: Long = -1
+  val id: Long = -1,
+  val createdOn: Option[DateTime] = None,
+  val updatedOn: Option[DateTime] = None
 ) extends Neo4jModel with CrudUrls {
   def name = identity.name
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
@@ -95,7 +100,11 @@ case class Repository(
   override def getIncomingSubordinateRelations = List("addressOf")
 
   def toMap = {
-    Map("slug" -> slug) ++
+    Map(
+      "slug" -> slug,
+      "created_on" -> createdOn,
+      "updated_on" -> updatedOn
+    ) ++
     identity.toMap ++
     description.toMap ++
     access.toMap ++

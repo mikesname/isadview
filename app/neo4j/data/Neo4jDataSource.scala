@@ -1,5 +1,7 @@
 package neo4j.data
 
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.concurrent.Promise
 import play.api.libs.ws.{WS,Response}
 import com.codahale.jerkson.Json._
@@ -50,7 +52,8 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     val params = Map(
       "index_name" -> "collection",
       "_id" -> nodeId,
-      "data" -> item.toMap,
+      // HACK: Add updated_on key to data items
+      "data" -> (item.toMap + ("updated_on" -> ISODateTimeFormat.dateTime.print(DateTime.now))),
       "subs" -> item.getSubordinateItems
     )
     gremlin("update_indexed_vertex_with_subordinates", params).map { resp =>
@@ -66,7 +69,6 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
       "outRels" -> item.getOutgoingSubordinateRelations
     )
     gremlin("delete_vertex_with_related", params).map(response => {
-      println(getJson(response))
       true
     })
   }

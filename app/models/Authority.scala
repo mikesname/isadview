@@ -1,5 +1,6 @@
 package models
 
+import org.joda.time.DateTime
 import neo4j.data._
 
 object Authority extends Neo4jDataSource[Authority] {
@@ -9,6 +10,8 @@ object Authority extends Neo4jDataSource[Authority] {
     Authority(
       id = idFromUrl((data \ "self").extractOpt[String]),
       slug = (data \ "data" \ "slug").extractOpt[String],
+      createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
+      updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
       identity = AuthorityIdentity(
         typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int].getOrElse(0),
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
@@ -61,7 +64,9 @@ case class Authority(
   val control: AuthorityControl,
   val admin: AuthorityAdmin,
   val slug: Option[String] = None,
-  val id: Long = -1
+  val id: Long = -1,
+  val createdOn: Option[DateTime] = None,
+  val updatedOn: Option[DateTime] = None
 ) extends Neo4jModel with CrudUrls {
   def name = identity.name
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
@@ -69,7 +74,11 @@ case class Authority(
   val deleteUrl = controllers.routes.Authorities.confirmDelete(slug=slug.getOrElse(""))
 
   def toMap = {
-    Map("slug" -> slug) ++
+    Map(
+      "slug" -> slug,
+      "created_on" -> createdOn,
+      "updated_on" -> updatedOn
+    ) ++
     identity.toMap ++
     description.toMap ++
     control.toMap ++
