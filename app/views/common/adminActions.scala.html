@@ -1,4 +1,4 @@
-@(entity: neo4j.models.CrudDescription)(implicit req: RequestHeader)
+@(entity: {def id: Long; def deleteUrl: Call; def editUrl: Call})(implicit req: RequestHeader)
 
 <div class="admin-actions well">
     <h4>@Messages("Administration Actions")</h4>

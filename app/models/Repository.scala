@@ -1,5 +1,6 @@
-package neo4j.models
+package models
 
+import neo4j.data._
 import collection.JavaConversions._
 
 object Repository extends Neo4jDataSource[Repository] {
@@ -46,7 +47,7 @@ object Repository extends Neo4jDataSource[Repository] {
         maintainenceNotes = (data \ "data" \ "maintainence_notes").extractOpt[String]
       ),
       admin = RepositoryAdmin(
-        publicationStatus = (data \ "data" \"publication_status").extractOpt[Int].getOrElse(0)
+        publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
       )
     )
   }
@@ -76,7 +77,8 @@ case class Repository(
   val admin: RepositoryAdmin,
   val slug: Option[String] = None,
   val id: Long = -1
-) extends CrudDescription {
+) extends Neo4jModel with CrudUrls {
+  def name = identity.name
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Repositories.confirmDelete(slug=slug.getOrElse(""))

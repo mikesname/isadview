@@ -1,4 +1,4 @@
-@(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate])(implicit req: RequestHeader)
+@(c: models.Collection, dates: Seq[models.FuzzyDate])(implicit req: RequestHeader)
 
 @import app.util.Helpers
 @implicitlocale = @{Helpers.localeFromRequest(req)}

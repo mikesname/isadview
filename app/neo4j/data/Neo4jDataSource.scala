@@ -1,4 +1,4 @@
-package neo4j.models
+package neo4j.data
 
 import play.api.libs.concurrent.Promise
 import play.api.libs.ws.{WS,Response}
@@ -8,6 +8,15 @@ import neo4j.json.JsonBuilder
 
 case class NoResultsFound(err: String = "") extends Exception
 case class MultipleResultsFound(err: String = "") extends Exception
+
+
+trait Neo4jModel {
+  val id: Long
+  def toMap: Map[String,Any]
+  def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
+  def getIncomingSubordinateRelations: List[String] = Nil
+  def getOutgoingSubordinateRelations: List[String] = Nil
+}
 
 
 trait Neo4jDataSource[T] extends JsonBuilder[T] {
@@ -36,11 +45,8 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
   }
 
   val indexName: String
-  //def toMap: Map[String,Any]
-  //abstract def subordinateModels: Map[String,List[Neo4jDataSource]]
 
-
-  def persist(nodeId: Long, item: Description): Promise[T] = {
+  def persist(nodeId: Long, item: Neo4jModel): Promise[T] = {
     val params = Map(
       "index_name" -> "collection",
       "_id" -> nodeId,
@@ -53,7 +59,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     }
   }
 
-  def delete(nodeId: Long, item: Description): Promise[Boolean] = {
+  def delete(nodeId: Long, item: Neo4jModel): Promise[Boolean] = {
     val params = Map(
       "_id" -> nodeId,
       "inRels" -> item.getIncomingSubordinateRelations,
@@ -74,7 +80,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     gremlin("query_exact_index", params).map(response => one(getJson(response)))
   }
 
-  def findRelatedTo(other: Description, direction: Direction.Direction, label: String): Promise[List[T]] = {
+  def findRelatedTo(other: Neo4jModel, direction: Direction.Direction, label: String): Promise[List[T]] = {
     gremlin(direction.toString, Map("_id" -> other.id, "label" -> label)).map { response =>
       list(getJson(response))
     }

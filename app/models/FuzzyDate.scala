@@ -1,5 +1,6 @@
-package neo4j.models
+package models
 
+import neo4j.data._
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -39,7 +40,7 @@ case class FuzzyDate(
   val precision: Option[String] = None,
   val circa: Boolean = false,
   val id: Long = -1
-) extends Description {
+) extends Neo4jModel {
   override def toString: String = {
     """Print a sensible representation."""
     var out = ""

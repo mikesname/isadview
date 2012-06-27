@@ -1,4 +1,4 @@
-package neo4j.models
+package models
 
 // Enum definitions
 object InstitutionType extends Enumeration(
@@ -33,14 +33,10 @@ object LevelOfDescription extends Enumeration(
 }
 
 trait Description {
-  val id: Long
-  def toMap: Map[String,Any]
-  def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
-  def getIncomingSubordinateRelations: List[String] = Nil
-  def getOutgoingSubordinateRelations: List[String] = Nil
+  def name: String
 }
 
-trait CrudDescription extends Description {
+trait CrudUrls extends Description {
   def detailUrl: play.api.mvc.Call
   def editUrl: play.api.mvc.Call
   def deleteUrl: play.api.mvc.Call

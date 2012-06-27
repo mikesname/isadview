@@ -1,4 +1,6 @@
-package neo4j.models
+package models
+
+import neo4j.data._
 
 object Authority extends Neo4jDataSource[Authority] {
   val indexName = "authority"
@@ -37,7 +39,7 @@ object Authority extends Neo4jDataSource[Authority] {
         maintainenceNotes = (data \ "data" \ "maintainence_notes").extractOpt[String]
       ),
       admin = AuthorityAdmin(
-        publicationStatus = (data \ "data" \"publication_status").extractOpt[Int].getOrElse(0)
+        publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
       )
     )
   }
@@ -60,7 +62,8 @@ case class Authority(
   val admin: AuthorityAdmin,
   val slug: Option[String] = None,
   val id: Long = -1
-) extends CrudDescription {
+) extends Neo4jModel with CrudUrls {
+  def name = identity.name
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Authorities.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Authorities.confirmDelete(slug=slug.getOrElse(""))
@@ -82,7 +85,7 @@ case class AuthorityIdentity(
   val name: String = "",
   val otherFormsOfName: List[String] = Nil
 ) {
-  def otherNames = Nil
+  def otherNames = otherFormsOfName
   def toMap = Map(
     "type_of_entity" -> typeOfEntity,
     "identifier" -> identifier,

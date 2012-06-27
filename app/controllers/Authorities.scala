@@ -11,8 +11,8 @@ import net.liftweb.json
 
 import com.codahale.jerkson.Json._
 
-import neo4j.models.{Repository,Contact,Collection,FuzzyDate,Authority}
-import neo4j.forms.AuthorityForm
+import models.{Repository,Contact,Collection,FuzzyDate,Authority}
+import forms.AuthorityForm
 
 
 object Authorities extends Controller with ControllerHelpers {

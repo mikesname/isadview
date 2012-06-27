@@ -1,4 +1,4 @@
-@(f: Form[neo4j.models.Repository], action: Call, r: Option[neo4j.models.Repository] = None)(implicit request: RequestHeader)
+@(f: Form[models.Repository], action: Call, r: Option[models.Repository] = None)(implicit request: RequestHeader)
 
 @import app.util.Helpers 
 
@@ -52,7 +52,7 @@
                 </div>
                 }
             </div>
-            @common.descriptionChoice(f("identity.typeOfEntity"), neo4j.models.InstitutionType, "Institution Type", blank=true)
+            @common.descriptionChoice(f("identity.typeOfEntity"), models.InstitutionType, "Institution Type", blank=true)
         </fieldset>
 
         <fieldset id="contact-area">
@@ -109,7 +109,7 @@
               @common.descriptionTextarea(f("control.institutionIdentifier"), "Institution Identifier")
               @common.descriptionTextarea(f("control.rules"), "Rules and Conventions Used")
               @common.descriptionTextarea(f("control.status"), "Status")
-              @common.descriptionChoice(f("control.levelOfDetail"), neo4j.models.LevelOfDetail, "Level of Detail", blank=true)
+              @common.descriptionChoice(f("control.levelOfDetail"), models.LevelOfDetail, "Level of Detail", blank=true)
 
               <div class="control-group">
                   <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
@@ -144,7 +144,7 @@
 
         <fieldset id="admin-area">
             <legend>@Messages("Administration")</legend>
-            @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
+            @common.descriptionChoice(f("admin.publicationStatus"), models.PublicationStatus, "Publication Status")
         </fieldset>
 
         <div class="form-actions">

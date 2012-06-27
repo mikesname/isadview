@@ -1,4 +1,4 @@
-@(f: Form[neo4j.models.Collection], action: Call, c: Option[neo4j.models.Collection] = None)(implicit request: RequestHeader)
+@(f: Form[models.Collection], action: Call, c: Option[models.Collection] = None)(implicit request: RequestHeader)
 
 @import app.util.Helpers 
 
@@ -47,7 +47,7 @@
             }
         </div>
 
-        @common.descriptionChoice(f("identity.levelOfDescription"), neo4j.models.LevelOfDescription, "Level of Description", blank=true)
+        @common.descriptionChoice(f("identity.levelOfDescription"), models.LevelOfDescription, "Level of Description", blank=true)
         @common.descriptionTextarea(f("identity.extentAndMedium"), "Extent and Medium")
 
     </fieldset>
@@ -155,7 +155,7 @@
 
     <fieldset id="admin-area">
         <legend>@Messages("Administration")</legend>
-        @common.descriptionChoice(f("admin.publicationStatus"), neo4j.models.PublicationStatus, "Publication Status")
+        @common.descriptionChoice(f("admin.publicationStatus"), models.PublicationStatus, "Publication Status")
     </fieldset>
 
     <div class="form-actions">

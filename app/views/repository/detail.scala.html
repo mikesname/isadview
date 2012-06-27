@@ -1,4 +1,4 @@
-@(repo: neo4j.models.Repository, contacts: Seq[neo4j.models.Contact])(implicit request: RequestHeader)
+@(repo: models.Repository, contacts: Seq[models.Contact])(implicit request: RequestHeader)
 
 @main(title=repo.identity.name + " (" + repo.id.toString + ")", body_class="repository") {
 <div class="row">

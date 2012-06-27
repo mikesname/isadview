@@ -1,5 +1,6 @@
-package neo4j.models
+package models
 
+import neo4j.data._
 import java.util.Locale
 
 object Contact extends Neo4jDataSource[Contact] {
@@ -59,7 +60,7 @@ case class Contact(
   val website: Option[String] = None,
   val note: Option[String] = None,
   val id: Long = -1
-) extends Description {
+) extends Neo4jModel {
   def countryName(loc: Locale): Option[String] = countryCode match {
     case Some(code) => Some(new Locale("", code).getDisplayCountry(loc))
     case _ => None

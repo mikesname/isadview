@@ -1,4 +1,4 @@
-@(clist: Seq[neo4j.models.Collection], title: String = "")(implicit req: RequestHeader)
+@(clist: Seq[models.Collection], title: String = "")(implicit req: RequestHeader)
 
 @if(!clist.isEmpty) {
     @if(!title.isEmpty) {

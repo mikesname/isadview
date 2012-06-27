@@ -1,5 +1,5 @@
-@(c: neo4j.models.Collection, dates: Seq[neo4j.models.FuzzyDate], repo:
-neo4j.models.Repository, creator: Option[neo4j.models.Authority])(implicit request: RequestHeader)
+@(c: models.Collection, dates: Seq[models.FuzzyDate], repo:
+models.Repository, creator: Option[models.Authority])(implicit request: RequestHeader)
 
 
 @main(c.identity.name + " (" + c.id.toString + ")", body_class="collection") {

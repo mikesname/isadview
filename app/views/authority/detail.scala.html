@@ -1,5 +1,5 @@
-@(auth: neo4j.models.Authority, created: Seq[neo4j.models.Collection], mentioned:
-Seq[neo4j.models.Collection])(implicit request: RequestHeader)
+@(auth: models.Authority, created: Seq[models.Collection], mentioned:
+Seq[models.Collection])(implicit request: RequestHeader)
 
 @main(auth.identity.name + " (" + auth.id.toString + ")", body_class="authority") {
 <div class="row">

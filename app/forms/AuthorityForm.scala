@@ -1,9 +1,9 @@
-package neo4j.forms
+package forms
 
 import play.api.data._
 import play.api.data.Forms._
 
-import neo4j.models._
+import models._
 
 object AuthorityForm {
 

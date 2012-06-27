@@ -1,4 +1,6 @@
-package neo4j.models
+package models
+
+import neo4j.data._
 
 object Collection extends Neo4jDataSource[Collection] {
 
@@ -45,7 +47,7 @@ object Collection extends Neo4jDataSource[Collection] {
         (data \ "data" \ "sources").extractOpt[String]
       ),
       admin = CollectionAdmin(
-        publicationStatus = (data \ "data" \"publication_status").extractOpt[Int].getOrElse(0)
+        publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
       )
     )
   }
@@ -86,8 +88,8 @@ case class Collection(
   val materials: CollectionMaterials,
   val control: CollectionControl,
   val admin: CollectionAdmin
-) extends CrudDescription {
-
+) extends Neo4jModel with CrudUrls {
+  def name = identity.name
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Collections.confirmDelete(slug=slug.getOrElse(""))
