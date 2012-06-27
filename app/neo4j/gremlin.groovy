@@ -39,14 +39,10 @@ def delete_vertex_with_related(_id, outRels, inRels) {
   g.setMaxBufferSize(0)
   g.startTransaction()
   try {
-    for (outrel in outRels) {
-      for (vid in vertex.outV(outrel).collect{it.id}.toList())
-        g.removeVertex(neo4.getNodeById(vid))  
-    }
-    for (inrel in inRels) {
-      for (vid in vertex.inV(inrel).collect{it.id}.toList())
-        g.removeVertex(neo4.getNodeById(vid))  
-    }
+    for (outrel in outRels)
+      vertex.out(outrel).collect{g.removeVertex(it)}
+    for (inrel in inRels)
+      vertex.in(inrel).collect{g.removeVertex(it)}
     g.removeVertex(vertex)
     g.stopTransaction(TransactionalGraph.Conclusion.SUCCESS)
     return true 
