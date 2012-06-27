@@ -12,7 +12,7 @@ object Authority extends Neo4jDataSource[Authority] {
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
         otherFormsOfName = (data \ "data" \
-          "other_names").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty)
+          "other_forms_of_name").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty)
       ),
       description = AuthorityDescription(
         datesOfExistence = (data \ "data" \ "dates_of_existence").extractOpt[String],
@@ -87,7 +87,7 @@ case class AuthorityIdentity(
     "type_of_entity" -> typeOfEntity,
     "identifier" -> identifier,
     "name" -> name,
-    "other_forms_of_name" -> otherFormsOfName.mkString(",,")
+    "other_forms_of_name" -> otherFormsOfName.filterNot(_.isEmpty).mkString(",,")
   )
 }
 

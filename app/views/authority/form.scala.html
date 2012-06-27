@@ -29,6 +29,17 @@
             @common.descriptionChoice(f("identity.typeOfEntity"), neo4j.models.AuthorityType, "Type of Entity", blank=true)
             @helper.inputText(f("identity.identifier"), '_label -> "Identifier")
             @helper.inputText(f("identity.name"), '_label -> "Authorised form of Name")
+
+            <div class="control-group form-inline">
+                <label>@Messages("Other Forms of Name")</label>
+                @helper.repeat(f("identity.otherFormsOfName"), min = f("identity.otherFormsOfName").indexes.length + 1) { on =>
+                <div class="controls inlinemulti" id="@{f("identity.otherFormsOfName").id}_field">
+                    <p>
+                        <input type="text" id="@on.id" name="@on.name" value="@on.value" />
+                    </p>
+                </div>
+                }
+            </div>
         </fieldset>
 
         <fieldset id="description-area">

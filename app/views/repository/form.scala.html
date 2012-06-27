@@ -32,6 +32,26 @@
             @helper.inputText(f("identity.identifier"), '_label -> "Identifier")
             @helper.inputText(f("identity.name"), '_label -> "Title")
 
+            <div class="control-group form-inline">
+                <label>@Messages("Parallel Form(s) of Name")</label>
+                @helper.repeat(f("identity.parallelFormsOfName"), min = f("identity.parallelFormsOfName").indexes.length + 1) { on =>
+                <div class="controls inlinemulti" id="@{f("identity.parallelFormsOfName").id}_field">
+                    <p>
+                        <input type="text" id="@on.id" name="@on.name" value="@on.value" />
+                    </p>
+                </div>
+                }
+            </div>
+            <div class="control-group form-inline">
+                <label>@Messages("Other Form(s) of Name")</label>
+                @helper.repeat(f("identity.otherFormsOfName"), min = f("identity.otherFormsOfName").indexes.length + 1) { on =>
+                <div class="controls inlinemulti" id="@{f("identity.otherFormsOfName").id}_field">
+                    <p>
+                        <input type="text" id="@on.id" name="@on.name" value="@on.value" />
+                    </p>
+                </div>
+                }
+            </div>
             @common.descriptionChoice(f("identity.typeOfEntity"), neo4j.models.InstitutionType, "Institution Type", blank=true)
         </fieldset>
 

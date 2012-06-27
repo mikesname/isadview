@@ -13,9 +13,9 @@ object Repository extends Neo4jDataSource[Repository] {
         identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
         name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
         parallelFormsOfName = (data \ "data" \
-          "parallel_names").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty),
+          "parallel_forms_of_name").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty),
         otherFormsOfName = (data \ "data" \
-          "other_names").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty),
+          "other_forms_of_name").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty),
         typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int]
       ),
       contact = Nil,
@@ -117,8 +117,8 @@ case class RepositoryIdentity(
   def toMap = Map(
     "identifier" -> identifier,
     "name" -> name,
-    "parallel_forms_of_name" -> parallelFormsOfName.mkString(",,"),
-    "other_forms_of_name" -> otherFormsOfName.mkString(",,"),
+    "parallel_forms_of_name" -> parallelFormsOfName.filterNot(_.isEmpty).mkString(",,"),
+    "other_forms_of_name" -> otherFormsOfName.filterNot(_.isEmpty).mkString(",,"),
     "type_of_entity" -> typeOfEntity
   )
 }
