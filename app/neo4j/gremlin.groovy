@@ -8,6 +8,63 @@
 
 // Model - Vertex
 
+// TODO: Fix code duplication with the update equivilent...
+def create_indexed_vertex_with_subordinates(data, index_name, subs) {
+  import org.neo4j.graphdb.DynamicRelationshipType;
+  def neo4j = g.getRawGraph()
+  manager = neo4j.index()
+  g.setMaxBufferSize(0)
+  g.startTransaction()
+
+  def update_vertex(idx, v, data) {
+    index = manager.forNodes(idx)
+    index.remove(v)
+    for (String key in v.getPropertyKeys()) {
+      v.removeProperty(key)
+    }
+    for (entry in data.entrySet()) {
+      if (entry.value == null) continue;
+      v.setProperty(entry.key,entry.value)
+      index.add(v,entry.key,String.valueOf(entry.value))
+    }
+    return v
+  }
+
+  try {
+    def vertex = neo4j.createNode
+    update_vertex(index_name, vertex, data)
+    for (sub in subs.entrySet()) {
+      def label = sub.key
+      def relationshipType = DynamicRelationshipType.withName(label)
+      def ridx = manager.forRelationships(label)
+      def current = g.v(_id).in(label).collect{neo4j.getNodeById(it.id)}
+      def sublist = sub.value
+
+      // update the existing ones...
+      [current, sublist].transpose().collect {
+        def (existing, subdata) = it
+        update_vertex(subdata.getAt("index_name"), existing, subdata.getAt("data"))
+      }
+      // remove any that've been deleted...
+      for (i = sublist.size; i < current.size; i++)
+        g.removeVertex(g.v(current[i].id))
+      // add any that are new...
+      for (i = current.size; i < sublist.size; i++) {
+        n = neo4j.createNode()
+        update_vertex(sublist[i].getAt("index_name"), n, sublist[i].getAt("data"))
+        n.createRelationshipTo(vertex, relationshipType)
+      }
+    }
+
+    g.stopTransaction(TransactionalGraph.Conclusion.SUCCESS)
+    return vertex 
+  } catch (e) {
+    g.stopTransaction(TransactionalGraph.Conclusion.FAILURE)
+    return e
+  }
+}
+
+
 def create_indexed_vertex(data,index_name,keys) {
   neo4j = g.getRawGraph()
   manager = neo4j.index()

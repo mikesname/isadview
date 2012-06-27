@@ -35,6 +35,8 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     "Content-Type" -> "application/json; charset=utf8"
   )
 
+  def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
+
   implicit val formats = net.liftweb.json.DefaultFormats
   def getJson(r: Response) = net.liftweb.json.parse(new String(
       r.body.getBytes("ISO-8859-1"), "UTF-8"))
@@ -48,12 +50,23 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
 
   val indexName: String
 
+  def create(item: Neo4jModel): Promise[T] = {
+    val params = Map(
+      "index_name" -> indexName,
+      "data" -> (item.toMap + ("created_on" -> nowDateTime)),
+      "subs" -> item.getSubordinateItems
+    )
+    gremlin("create_indexed_vertex_with_subordinates", params).map { resp =>
+      apply(getJson(resp))
+    }
+  }
+
   def persist(nodeId: Long, item: Neo4jModel): Promise[T] = {
     val params = Map(
-      "index_name" -> "collection",
+      "index_name" -> indexName,
       "_id" -> nodeId,
       // HACK: Add updated_on key to data items
-      "data" -> (item.toMap + ("updated_on" -> ISODateTimeFormat.dateTime.print(DateTime.now))),
+      "data" -> (item.toMap + ("updated_on" -> nowDateTime)),
       "subs" -> item.getSubordinateItems
     )
     gremlin("update_indexed_vertex_with_subordinates", params).map { resp =>
