@@ -249,6 +249,12 @@ object FacetData {
           case "portal.collection" => "Collection"
           case _ => "Unknown"
         }
+      ),
+      FieldFacetClass(
+        key="country_exact",
+        name="Location of Materials",
+        param="loc",
+        render=Helpers.countryCodeToName
       )
     )
   )
