@@ -1,0 +1,23 @@
+@(action: Call)(implicit request: RequestHeader)
+
+@main(Messages("Login"), body_class="profile") {
+    <h2>@Messages("Please Login")</h2>
+
+    <div class="row">
+        <div class="span12 columns">
+
+            @helper.form(action = action, 'class -> "login-form form-horizontal") {
+            <div class="control-group">
+                <div class="control">
+                    <label for="openid">@Messages("Openid")</label>
+                    <input name="openid" id="openid" value="" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@Messages("Submit"))</button>
+            </div>
+            }
+        </div>
+    </div>
+}
+

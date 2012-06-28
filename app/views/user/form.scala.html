@@ -1,0 +1,41 @@
+@(f: Form[models.UserProfile], action: Call, r: Option[models.User] = None)(implicit request: RequestHeader)
+
+@import app.util.Helpers 
+
+@implicitlocale = @{Helpers.localeFromRequest(request)}
+@implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
+
+@baseform("Edit Profile", body_class="profile") {
+    <h2>@r.map(_.name).getOrElse(Messages("Edit Profile"))</h2>
+
+    <div class="row">
+        <div class="span12 columns">
+
+        @helper.form(action = action, 'class -> "entity-form form-horizontal") {
+
+        <fieldset id="profile-area">
+            <legend>@Messages("Profile")</legend>
+              @helper.inputText(f("name"), '_label -> "Name")
+
+              <div class="control-group">
+                  <label for="languages">@Messages("Languages")</label>
+                  <div class="controls input">
+                      <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
+                          id="languages" name="languages">
+                        @Helpers.languageList.map{t =>
+                            <option value="@t._1" @(if(r.map(_.profile.languages).getOrElse(List()).contains(t._1))
+                            "selected" else "")>@t._2</option>
+                        }
+                      </select>
+                  </div>
+              </div>
+        </fieldset>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">@Messages(r.map(s => "Update Authority").getOrElse("Create Authority"))</button>
+            <a href="" class="btn">@Messages("Cancel")</a>
+        </div>
+        }
+        </div>
+    </div>
+}

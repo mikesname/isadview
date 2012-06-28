@@ -128,13 +128,20 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     })
   }
 
-  def fetchBySlug(slug: String): Promise[T] = {
+  def fetchByField(field: String, value: String): Promise[T] = {
     val params = Map(
       "index_name" -> indexName,
-      "key" -> "slug",
-      "query_string" -> slug
+      "key" -> field,
+      "query_string" -> value
     )
     gremlin("query_exact_index", params).map(response => one(getJson(response)))
+  }
+
+  /*
+   * Shortcut for finding items by slug
+   */
+  def fetchBySlug(slug: String): Promise[T] = {
+    fetchByField(field="slug", value=slug)
   }
 
   def findRelatedTo(other: Neo4jModel, direction: Direction.Direction, label: String): Promise[List[T]] = {

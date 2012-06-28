@@ -1,0 +1,17 @@
+@(user: models.User, d: models.UserProfile)(implicit request: RequestHeader)
+
+@main(user.name, body_class="profile") {
+<div class="row">
+    <div class="span3 columns">
+
+        <div class="sidebar">
+        </div>
+    </div>
+    <div class="span9 columns">
+        <h2>
+            @user.name
+        </h2>
+        <hr />
+    </div>
+</div>
+}
