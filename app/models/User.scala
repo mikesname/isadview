@@ -15,9 +15,7 @@ object User extends Neo4jDataSource[User] {
       auth = UserAuth(
         username        = (data \ "data" \ "username").extractOpt[String].getOrElse(""),
         email           = (data \ "data" \ "email").extractOpt[String].getOrElse(""),
-        verified        = (data \ "data" \ "verified").extractOpt[Boolean].getOrElse(false),
-        salt            = (data \ "data" \ "salt").extractOpt[String].getOrElse(""),
-        hashedPassword  = (data \ "data" \ "hashed_password").extractOpt[String].getOrElse("")
+        verified        = (data \ "data" \ "verified").extractOpt[Boolean].getOrElse(false)
       ),
       profile = UserProfile(
         name = (data \ "data" \ "name").extractOpt[String],
@@ -64,16 +62,12 @@ case class User(
 case class UserAuth(
   val username: String,
   val email: String,
-  val verified: Boolean,
-  val salt: String,
-  val hashedPassword: String
+  val verified: Boolean
 ) {
   def toMap = Map(
     "username" -> username,
     "email" -> email,
-    "verified" -> verified,
-    "salt" -> salt,
-    "hashed_password" -> hashedPassword
+    "verified" -> verified
   )
 }
 
