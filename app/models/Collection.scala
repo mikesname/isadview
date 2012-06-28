@@ -93,7 +93,7 @@ case class Collection(
   val admin: CollectionAdmin,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None
-) extends Neo4jModel with CrudUrls {
+) extends Neo4jSlugModel with CrudUrls {
   def name = identity.name
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))

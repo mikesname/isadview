@@ -55,5 +55,10 @@ object Helpers {
     Locale.getISOCountries.map(code => (
       code, new Locale(locale.getLanguage, code).getDisplayCountry(locale))).toList
   }
+
+  def slugify(str: String): String = {
+    import java.text.Normalizer
+    Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", "-").toLowerCase
+  }
 }
 

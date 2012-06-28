@@ -33,6 +33,32 @@ object Authorities extends Controller with ControllerHelpers {
     }
   }
 
+  def new_ = Action { implicit request => 
+    Ok(views.html.authority.form(f=AuthorityForm.form, action=routes.Authorities.create))
+  }
+
+  def create = Action { implicit request =>
+    // transform input for multiselects
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "control.languagesOfDescription",
+      "control.scriptsOfDescription"
+    ))
+
+    AuthorityForm.form.bindFromRequest(formData).fold(
+      errorForm => {
+        BadRequest(
+          views.html.authority.form(f=errorForm, action=routes.Authorities.create))
+      },
+      data => {
+        Async {
+          Authority.create(data).map { created =>
+            Redirect(routes.Authorities.detail(slug=created.slug.get))
+          }
+        }
+      }
+    )
+  }
+
   def edit(slug: String) = Action { implicit request =>
     Async {
       Authority.fetchBySlug(slug).map { authority =>

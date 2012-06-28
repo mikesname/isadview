@@ -31,7 +31,7 @@ def create_indexed_vertex_with_subordinates(data, index_name, subs) {
   }
 
   try {
-    def vertex = neo4j.createNode
+    def vertex = neo4j.createNode()
     update_vertex(index_name, vertex, data)
     for (sub in subs.entrySet()) {
       def label = sub.key
@@ -260,6 +260,17 @@ def update_indexed_edge(_id, data, index_name, keys) {
     g.stopTransaction(TransactionalGraph.Conclusion.FAILURE)
     return e
   }
+}
+
+// Uniqueness
+def ensure_unique_for_index(index_name, key, initial) {
+  // Neo4jTokens.QUERY_HEADER = "%query%"
+  def idx = g.idx(index_name)
+  def trys = 1
+  def attempt = initial
+  while(idx.get(key, Neo4jTokens.QUERY_HEADER + attempt).hasNext())
+    attempt = String.sprintf("%s-%d", initial, trys++)
+  return attempt
 }
 
 // Indices

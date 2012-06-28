@@ -67,7 +67,7 @@ case class Authority(
   val id: Long = -1,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None
-) extends Neo4jModel with CrudUrls {
+) extends Neo4jSlugModel with CrudUrls {
   def name = identity.name
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Authorities.edit(slug=slug.getOrElse(""))

@@ -82,7 +82,7 @@ case class Repository(
   val id: Long = -1,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None
-) extends Neo4jModel with CrudUrls {
+) extends Neo4jSlugModel with CrudUrls {
   def name = identity.name
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
