@@ -10,7 +10,7 @@ object Contact extends Neo4jDataSource[Contact] {
     Contact(
       primary = (data \ "data" \ "primary").extractOpt[Boolean].getOrElse(false),
       contactPerson = (data \ "data" \ "contact_person").extractOpt[String],
-      streetAddress = (data \ "data" \ "identifier").extractOpt[String],
+      streetAddress = (data \ "data" \ "street_address").extractOpt[String],
       city = (data \ "data" \ "city").extractOpt[String],
       region = (data \ "data" \ "region").extractOpt[String],
       countryCode = (data \ "data" \ "country_code").extractOpt[String],

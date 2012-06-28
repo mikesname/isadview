@@ -60,7 +60,7 @@ object Collection extends Neo4jDataSource[Collection] {
 }
 
 case class Collection(
-  val id: Long,
+  val id: Long = -1,
   val slug: Option[String] = None,
   val description: CollectionDescription,
   val createdOn: Option[DateTime] = None,

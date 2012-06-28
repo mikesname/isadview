@@ -17,7 +17,6 @@ import forms.RepositoryForm
 
 
 object Repositories extends Controller with ControllerHelpers {
-
   def detail(slug: String) = Action { implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repo =>
@@ -29,6 +28,32 @@ object Repositories extends Controller with ControllerHelpers {
         }
       }
     }
+  }
+
+  def new_ = Action { implicit request => 
+    Ok(views.html.repository.form(f=RepositoryForm.form, action=routes.Repositories.create))
+  }
+
+  def create = Action { implicit request =>
+    // transform input for multiselects
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "control.languagesOfDescription",
+      "control.scriptsOfDescription"
+    ))
+
+    RepositoryForm.form.bindFromRequest(formData).fold(
+      errorForm => {
+        BadRequest(
+          views.html.repository.form(f=errorForm, action=routes.Repositories.create))
+      },
+      data => {
+        Async {
+          Repository.create(new Repository(description=data)).map { created =>
+            Redirect(routes.Repositories.detail(slug=created.slug.get))
+          }
+        }
+      }
+    )
   }
 
   def edit(slug: String) = Action { implicit request =>

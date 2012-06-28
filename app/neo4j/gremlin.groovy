@@ -37,7 +37,7 @@ def create_indexed_vertex_with_subordinates(data, index_name, subs) {
       def label = sub.key
       def relationshipType = DynamicRelationshipType.withName(label)
       def ridx = manager.forRelationships(label)
-      def current = g.v(_id).in(label).collect{neo4j.getNodeById(it.id)}
+      def current = g.v(vertex.id).in(label).collect{neo4j.getNodeById(it.id)}
       def sublist = sub.value
 
       // update the existing ones...

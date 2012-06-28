@@ -42,6 +42,32 @@ object Collections extends Controller with ControllerHelpers {
     }
   }
 
+  def new_ = Action { implicit request => 
+    Ok(views.html.collection.form(f=CollectionForm.form, action=routes.Collections.create))
+  }
+
+  def create = Action { implicit request =>
+    // transform input for multiselects
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "control.languagesOfDescription",
+      "control.scriptsOfDescription"
+    ))
+
+    CollectionForm.form.bindFromRequest(formData).fold(
+      errorForm => {
+        BadRequest(
+          views.html.collection.form(f=errorForm, action=routes.Collections.create))
+      },
+      data => {
+        Async {
+          Collection.create(new Collection(description=data)).map { created =>
+            Redirect(routes.Collections.detail(slug=created.slug.get))
+          }
+        }
+      }
+    )
+  }
+
   def edit(slug: String) = Action { implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
