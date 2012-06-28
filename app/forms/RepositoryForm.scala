@@ -28,7 +28,7 @@ object RepositoryForm {
         "email" -> optional(email),
         "website" -> optional(text),
         "note" -> optional(text)
-      )(Contact.apply)(Contact.formUnapply)),
+      )(ContactDescription.apply)(ContactDescription.unapply)),
       "description" -> mapping(
         "history" -> optional(text),
         "geographicalContext" -> optional(text),

@@ -269,7 +269,7 @@ def ensure_unique_for_index(index_name, key, initial) {
   def trys = 1
   def attempt = initial
   while(idx.get(key, Neo4jTokens.QUERY_HEADER + attempt).hasNext())
-    attempt = String.sprintf("%s-%d", initial, trys++)
+    attempt = String.sprintf("%s-%d", initial, ++trys)
   return attempt
 }
 

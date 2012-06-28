@@ -18,46 +18,45 @@ object FuzzyDate extends Neo4jDataSource[FuzzyDate] {
   def apply(data: net.liftweb.json.JsonAST.JValue): FuzzyDate = {
     FuzzyDate(
       id = idFromUrl((data \ "self").extractOpt[String]),
-      startDate = (data \ "data" \ "start_date").extractOpt[String].map(new DateTime(_)),
-      endDate = (data \ "data" \ "end_date").extractOpt[String].map(new DateTime(_)),
-      precision = (data \ "data" \ "precision").extractOpt[String],
-      circa = (data \ "circa" \ "circa").extractOpt[Boolean].getOrElse(false)
+      description = FuzzyDateDescription(
+        startDate = (data \ "data" \ "start_date").extractOpt[String].map(new DateTime(_)),
+        endDate = (data \ "data" \ "end_date").extractOpt[String].map(new DateTime(_)),
+        precision = (data \ "data" \ "precision").extractOpt[String],
+        circa = (data \ "circa" \ "circa").extractOpt[Boolean]
+      )
     )
-  }
-
-  def formApply(start: Option[Date], end: Option[Date]): FuzzyDate = {
-    FuzzyDate(startDate = start.map(new DateTime(_)), endDate = end.map(new DateTime(_)))
-  }
-
-  def formUnapply(d: FuzzyDate): Option[(Option[Date], Option[Date])] = {
-    Some((d.startDate.map(_.toDate), d.endDate.map(_.toDate)))
   }
 }
 
 case class FuzzyDate(
+  val id: Long = -1,
+  val description: FuzzyDateDescription
+) extends Neo4jModel {
+  def toMap = description.toMap
+}
+
+case class FuzzyDateDescription(
   val startDate: Option[DateTime],
   val endDate: Option[DateTime] = None,
   val precision: Option[String] = None,
-  val circa: Boolean = false,
-  val id: Long = -1
-) extends Neo4jModel {
-  override def toString: String = {
-    """Print a sensible representation."""
-    var out = ""
-    if (circa) out = "c" + out
-    out + List(startDate, endDate).flatMap {
-        case Some(d) => List(d.year.getAsString)
-        case None => Nil
-    }.mkString("-")
-  }
+  val circa: Option[Boolean] = Some(false)
+) {
   def toMap = Map(
     "start_date" -> startDate.map(ISODateTimeFormat.dateTime.print(_)),
     "end_date" -> endDate.map(ISODateTimeFormat.dateTime.print(_)),
     "circa" -> circa,
     "precision" -> precision
   )
+
+  override def toString: String = {
+    """Print a sensible representation."""
+    var out = ""
+    if (circa.getOrElse(false)) out = "c" + out
+    out + List(startDate, endDate).flatMap {
+        case Some(d) => List(d.year.getAsString)
+        case None => Nil
+    }.mkString("-")
+  }
 }
-
-
 
 

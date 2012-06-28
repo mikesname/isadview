@@ -95,14 +95,14 @@ case class Repository(
 
 case class RepositoryDescription(
   val identity: RepositoryIdentity,
-  val contacts: List[Contact],
+  val contacts: List[ContactDescription],
   val description: RepositoryDetail,
   val access: RepositoryAccess,
   val services: RepositoryServices,
   val control: AuthorityControl,
   val admin: RepositoryAdmin
 ) {
-  def withContacts(contacts: List[Contact]) = copy(contacts=contacts)
+  def withContacts(contacts: List[Contact]) = copy(contacts=contacts.map(_.description))
   def toMap = {
     identity.toMap ++
     description.toMap ++

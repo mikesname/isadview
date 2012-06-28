@@ -122,7 +122,7 @@ case class CollectionDescription(
 case class CollectionIdentity(
   val identifier: String = "",
   val name: String = "",
-  val dates: List[FuzzyDate] = Nil,
+  val dates: List[FuzzyDateDescription] = Nil,
   val levelOfDescription: Option[Int] = Some(0),
   val extentAndMedium: Option[String] = None
 ) {
@@ -133,7 +133,7 @@ case class CollectionIdentity(
     "level_of_description" -> levelOfDescription,
     "extent_and_medium" -> extentAndMedium
   )
-  def withDates(newDates: List[FuzzyDate]) = copy(dates=newDates)
+  def withDates(newDates: List[FuzzyDate]) = copy(dates=newDates.map(_.description))
 }
 
 case class CollectionContext(

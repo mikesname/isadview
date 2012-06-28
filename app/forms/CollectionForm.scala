@@ -12,9 +12,11 @@ object CollectionForm {
         "identifier" -> nonEmptyText,
         "name" -> nonEmptyText,
         "dates" -> list(mapping(
-          "startDate" -> optional(date("yyyy-MM-dd")),
-          "endDate" -> optional(date("yyyy-MM-dd"))
-          )(FuzzyDate.formApply)(FuzzyDate.formUnapply)
+          "startDate" -> optional(jodaDate("yyyy-MM-dd")),
+          "endDate" -> optional(jodaDate("yyyy-MM-dd")),
+          "precison" -> optional(text),
+          "circa" -> optional(boolean)
+          )(FuzzyDateDescription.apply)(FuzzyDateDescription.unapply)
         ),
         "levelOfDescription" -> optional(number),
         "extentAndMedium" -> optional(text)

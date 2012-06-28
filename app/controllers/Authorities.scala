@@ -19,7 +19,6 @@ object Authorities extends Controller with ControllerHelpers {
   def detail(slug: String) = Action { implicit request =>
     Async {
       Authority.fetchBySlug(slug).map { auth =>
-        println("Auth: " + auth.toMap)
         Async {
           // get collections
           Collection.findRelatedTo(auth, Collection.Direction.In, "createdBy").map { createdCollections =>
@@ -88,7 +87,6 @@ object Authorities extends Controller with ControllerHelpers {
           data => {
             Async {
               val newdata = authority.copy(description=data)
-              println("UPDATING: " + newdata.toMap)
               Authority.persist(authority.id, newdata).map { updated =>
                 Redirect(routes.Authorities.detail(slug=updated.slug.get))
               }
