@@ -24,7 +24,7 @@ object Repositories extends Controller with ControllerHelpers {
         Async {
           // get contacts
           Contact.findRelatedTo(repo, Contact.Direction.In, "addressOf").map { contacts =>
-            Ok(views.html.repository.detail(repo=repo, contacts=contacts))
+            Ok(views.html.repository.detail(repo=repo, repo.description.withContacts(contacts)))
           }
         }
       }
@@ -37,7 +37,7 @@ object Repositories extends Controller with ControllerHelpers {
         Async {
           // get dates
           Contact.findRelatedTo(repository, Contact.Direction.In, "addressOf").map { contacts =>
-            val form = RepositoryForm.form.fill(repository.withContacts(contacts))
+            val form = RepositoryForm.form.fill(repository.description.withContacts(contacts))
             val action = routes.Repositories.save(slug)
             Ok(views.html.repository.form(f=form, action=action, r=Some(repository)))
           }
@@ -63,8 +63,7 @@ object Repositories extends Controller with ControllerHelpers {
           },
           data => {
             Async {
-              Repository.persist(repository.id, data.withSlug(slug)).map { updated =>
-                println("UPDATED: " + updated)
+              Repository.persist(repository.id, repository.copy(description=data)).map { updated =>
                 Redirect(routes.Repositories.detail(slug=updated.slug.get))
               }
             }

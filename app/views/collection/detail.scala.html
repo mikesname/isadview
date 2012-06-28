@@ -1,15 +1,13 @@
-@(c: models.Collection, dates: Seq[models.FuzzyDate], repo:
-models.Repository, creator: Option[models.Authority])(implicit request: RequestHeader)
+@(cl: models.Collection, c: models.CollectionDescription, repo: models.Repository, creator: Option[models.Authority])(implicit request: RequestHeader)
 
-
-@main(c.identity.name + " (" + c.id.toString + ")", body_class="collection") {
+@main(c.identity.name, body_class="collection") {
 <div class="row">
     <div class="span3 columns">
 
         <div class="sidebar">
-            @collection.sidebarDetails(c, dates)
-            @common.exportActions(c)
-            @common.adminActions(c)
+            @collection.sidebarDetails(c)
+            @common.exportActions(cl)
+            @common.adminActions(cl)
         </div>
     </div>
     <div class="span9 columns">
@@ -29,7 +27,7 @@ models.Repository, creator: Option[models.Authority])(implicit request: RequestH
             <h4>@Messages("Created By")</h4>
             <p>
                 @creator.map { auth =>
-                    <a href="@routes.Authorities.detail(slug=auth.slug.get)">@auth.identity.name</a>
+                    <a href="@routes.Authorities.detail(slug=auth.slug.get)">@auth.name</a>
                 }
             </p>
         }

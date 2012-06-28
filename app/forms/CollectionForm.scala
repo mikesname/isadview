@@ -6,7 +6,6 @@ import play.api.data.Forms._
 import models._
 
 object CollectionForm {
-
   val form = Form(
     mapping(
       "identity" -> mapping(
@@ -52,6 +51,6 @@ object CollectionForm {
       "admin" -> mapping(
         "publicationStatus" -> number
       )(CollectionAdmin.apply)(CollectionAdmin.unapply)
-    )(Collection.apply)(Collection.formUnapply)
+    )(CollectionDescription.apply)(CollectionDescription.unapply)
   )
 }

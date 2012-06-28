@@ -1,6 +1,7 @@
 package models
 
 import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
 
 object Authority extends Neo4jDataSource[Authority] {
@@ -12,63 +13,53 @@ object Authority extends Neo4jDataSource[Authority] {
       slug = (data \ "data" \ "slug").extractOpt[String],
       createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
       updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
-      identity = AuthorityIdentity(
-        typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int].getOrElse(0),
-        identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
-        name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
-        otherFormsOfName = (data \ "data" \
-          "other_forms_of_name").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty)
-      ),
       description = AuthorityDescription(
-        datesOfExistence = (data \ "data" \ "dates_of_existence").extractOpt[String],
-        history = (data \ "data" \ "history").extractOpt[String],
-        places = (data \ "data" \ "places").extractOpt[String],
-        functions = (data \ "data" \ "functions").extractOpt[String],
-        geneology = (data \ "data" \ "geneology").extractOpt[String],
-        generalContext = (data \ "data" \ "general_context").extractOpt[String]
-      ),
-      // TODO: Remove this code dup: also in the Repository class
-      // Probably make the sub-sections responsible for initialising themselves
-      control = AuthorityControl(
-        descriptionIdentifier = (data \ "data" \ "description_identifier").extractOpt[String],
-        institutionIdentifier = (data \ "data" \ "institution_identifier").extractOpt[String],
-        rules = (data \ "data" \ "rules_and_conventions").extractOpt[String],
-        status = (data \ "data" \ "status").extractOpt[String],
-        levelOfDetail = (data \ "data" \ "level_of_detail").extractOpt[String],
-        datesOfCreationRevisionDeletion = (data \ "data" \ "dates").extractOpt[String],
-        languagesOfDescription = (data \ "data" \ "languages_of_description").extractOpt[String].getOrElse("").split(",").toList,
-        scriptsOfDescription = (data \ "data" \ "scripts_of_description").extractOpt[String].getOrElse("").split(",").toList,
-        sources = (data \ "data" \ "sources").extractOpt[String],
-        maintainenceNotes = (data \ "data" \ "maintainence_notes").extractOpt[String]
-      ),
-      admin = AuthorityAdmin(
-        publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
+        identity = AuthorityIdentity(
+          typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int].getOrElse(0),
+          identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
+          name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
+          otherFormsOfName = (data \ "data" \
+            "other_forms_of_name").extractOpt[String].getOrElse("").split(",,").toList.filterNot(_.isEmpty)
+        ),
+        description = AuthorityDetails(
+          datesOfExistence = (data \ "data" \ "dates_of_existence").extractOpt[String],
+          history = (data \ "data" \ "history").extractOpt[String],
+          places = (data \ "data" \ "places").extractOpt[String],
+          functions = (data \ "data" \ "functions").extractOpt[String],
+          geneology = (data \ "data" \ "geneology").extractOpt[String],
+          generalContext = (data \ "data" \ "general_context").extractOpt[String]
+        ),
+        // TODO: Remove this code dup: also in the Repository class
+        // Probably make the sub-sections responsible for initialising themselves
+        control = AuthorityControl(
+          descriptionIdentifier = (data \ "data" \ "description_identifier").extractOpt[String],
+          institutionIdentifier = (data \ "data" \ "institution_identifier").extractOpt[String],
+          rules = (data \ "data" \ "rules_and_conventions").extractOpt[String],
+          status = (data \ "data" \ "status").extractOpt[String],
+          levelOfDetail = (data \ "data" \ "level_of_detail").extractOpt[String],
+          datesOfCreationRevisionDeletion = (data \ "data" \ "dates").extractOpt[String],
+          languagesOfDescription = (data \ "data" \ "languages_of_description").extractOpt[String].getOrElse("").split(",").toList,
+          scriptsOfDescription = (data \ "data" \ "scripts_of_description").extractOpt[String].getOrElse("").split(",").toList,
+          sources = (data \ "data" \ "sources").extractOpt[String],
+          maintainenceNotes = (data \ "data" \ "maintainence_notes").extractOpt[String]
+        ),
+        admin = AuthorityAdmin(
+          publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
+        )
       )
     )
   }
-
-  def apply(
-    identity: AuthorityIdentity,
-    description: AuthorityDescription,
-    control: AuthorityControl,
-    admin: AuthorityAdmin) = new Authority(identity, description, control, admin)
-
-  def formUnapply(auth: Authority) = Some((
-    auth.identity, auth.description, auth.control, auth.admin))
 }
 
 
 case class Authority(
-  val identity: AuthorityIdentity,
-  val description: AuthorityDescription,
-  val control: AuthorityControl,
-  val admin: AuthorityAdmin,
-  val slug: Option[String] = None,
   val id: Long = -1,
+  val slug: Option[String] = None,
   val createdOn: Option[DateTime] = None,
-  val updatedOn: Option[DateTime] = None
+  val updatedOn: Option[DateTime] = None,
+  val description: AuthorityDescription
 ) extends Neo4jSlugModel with CrudUrls {
-  def name = identity.name
+  def name = description.identity.name
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Authorities.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Authorities.confirmDelete(slug=slug.getOrElse(""))
@@ -76,16 +67,26 @@ case class Authority(
   def toMap = {
     Map(
       "slug" -> slug,
-      "created_on" -> createdOn,
-      "updated_on" -> updatedOn
-    ) ++
+      "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
+      "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
+    ) ++ description.toMap
+  }
+
+  def withSlug(slug: String) = copy(slug=Some(slug))
+}
+
+case class AuthorityDescription(
+  val identity: AuthorityIdentity,
+  val description: AuthorityDetails,
+  val control: AuthorityControl,
+  val admin: AuthorityAdmin
+) {
+  def toMap = {
     identity.toMap ++
     description.toMap ++
     control.toMap ++
     admin.toMap
   }
-
-  def withSlug(slug: String) = copy(slug=Some(slug))
 }
 
 case class AuthorityIdentity(
@@ -103,7 +104,7 @@ case class AuthorityIdentity(
   )
 }
 
-case class AuthorityDescription(
+case class AuthorityDetails(
   val datesOfExistence: Option[String] = None,
   val history: Option[String] = None,
   val places: Option[String] = None,

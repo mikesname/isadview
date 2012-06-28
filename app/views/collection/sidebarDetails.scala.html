@@ -1,4 +1,4 @@
-@(c: models.Collection, dates: Seq[models.FuzzyDate])(implicit req: RequestHeader)
+@(c: models.CollectionDescription)(implicit req: RequestHeader)
 
 @import app.util.Helpers
 @implicitlocale = @{Helpers.localeFromRequest(req)}
@@ -14,13 +14,13 @@
             </td>
         </tr>
     }
-    @if(dates.length > 0) {    
+    @if(c.identity.dates.length > 0) {    
         <tr>
             <td>
                 <h5>@Messages("Dates")</h5>
             </td>
             <td>
-                @dates.map(_.toString).mkString(", ")
+                @c.identity.dates.map(_.toString).mkString(", ")
             </td>
         </tr>
     }

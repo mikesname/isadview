@@ -22,7 +22,7 @@ object AuthorityForm {
         "functions" -> optional(text),
         "geneology" -> optional(text),
         "generalContext" -> optional(text)
-      )(AuthorityDescription.apply)(AuthorityDescription.unapply),
+      )(AuthorityDetails.apply)(AuthorityDetails.unapply),
       "control" -> mapping(
         "descriptionIdentifier" -> optional(text),
         "institutionIdentifier" -> optional(text),
@@ -38,6 +38,6 @@ object AuthorityForm {
       "admin" -> mapping(
         "publicationStatus" -> number
       )(AuthorityAdmin.apply)(AuthorityAdmin.unapply)
-    )(Authority.apply)(Authority.formUnapply)
+    )(AuthorityDescription.apply)(AuthorityDescription.unapply)
   )
 }

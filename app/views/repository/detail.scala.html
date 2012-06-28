@@ -1,35 +1,35 @@
-@(repo: models.Repository, contacts: Seq[models.Contact])(implicit request: RequestHeader)
+@(repo: models.Repository, d: models.RepositoryDescription)(implicit request: RequestHeader)
 
-@main(title=repo.identity.name + " (" + repo.id.toString + ")", body_class="repository") {
+@main(title=repo.name + " (" + repo.id.toString + ")", body_class="repository") {
 <div class="row">
     <div class="span3 columns">
         <div class="sidebar">
-            @repository.sidebarDetails(repo, contacts)
+            @repository.sidebarDetails(d)
             @common.exportActions(repo)
             @common.adminActions(repo)
         </div>
     </div>
     <div class="span9 columns">
         <h2>
-            @repo.identity.name
-            @if(repo.admin.publicationStatus == 0) {
+            @d.identity.name
+            @if(d.admin.publicationStatus == 0) {
                 <span class="label">@Messages("Draft Description")</span>
             }
         </h2>
-        @if(repo.identity.otherNames.size > 0) {
+        @if(d.identity.otherNames.size > 0) {
             <h3 class="alternate-name">
-                @repo.identity.otherNames.mkString(",")
+                @d.identity.otherNames.mkString(",")
             </h3>
         }
 
-        @common.descriptionValue(repo.description.history, "History")
-        @common.descriptionValue(repo.description.geoculturalContext, "Geographical and Cultural Context")
-        @common.descriptionValue(repo.description.mandates, "Mandates")
-        @common.descriptionValue(repo.description.administrativeStructure, "Administrative Structure")
-        @common.descriptionValue(repo.description.policies, "Records Management and Collecting Policies")
-        @common.descriptionValue(repo.description.buildings, "Buildings")
-        @common.descriptionValue(repo.description.holdings, "Holdings")
-        @common.descriptionValue(repo.description.findingAids, "Finding Aids")
+        @common.descriptionValue(d.description.history, "History")
+        @common.descriptionValue(d.description.geoculturalContext, "Geographical and Cultural Context")
+        @common.descriptionValue(d.description.mandates, "Mandates")
+        @common.descriptionValue(d.description.administrativeStructure, "Administrative Structure")
+        @common.descriptionValue(d.description.policies, "Records Management and Collecting Policies")
+        @common.descriptionValue(d.description.buildings, "Buildings")
+        @common.descriptionValue(d.description.holdings, "Holdings")
+        @common.descriptionValue(d.description.findingAids, "Finding Aids")
         <hr />
     </div>
 </div>

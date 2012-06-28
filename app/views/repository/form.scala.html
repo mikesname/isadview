@@ -1,4 +1,4 @@
-@(f: Form[models.Repository], action: Call, r: Option[models.Repository] = None)(implicit request: RequestHeader)
+@(f: Form[models.RepositoryDescription], action: Call, r: Option[models.Repository] = None)(implicit request: RequestHeader)
 
 @import app.util.Helpers 
 
@@ -8,7 +8,7 @@
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
 @baseform("Edit Repository", body_class="repository") {
-    <h2>@r.map(_.identity.name).getOrElse(Messages("Create Repository"))</h2>
+    <h2>@r.map(_.name).getOrElse(Messages("Create Repository"))</h2>
 
     <div class="subnav">
         <ul class="nav nav-pills">
@@ -117,7 +117,7 @@
                       <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                           id="control_languagesOfDescription" name="control.languagesOfDescription">
                         @Helpers.languageList.map{t =>
-                            <option value="@t._1" @(if(r.map(_.control.languagesOfDescription).getOrElse(List()).contains(t._1))
+                            <option value="@t._1" @(if(r.map(_.description.control.languagesOfDescription).getOrElse(List()).contains(t._1))
                             "selected" else "")>@t._2</option>
                         }
                       </select>
@@ -131,7 +131,7 @@
                           id="control_scriptsOfDescription"
                           name="control.scriptsOfDescription">
                         @Helpers.scriptList.map{t =>
-                            <option value="@t._1" @(if(r.map(_.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
+                            <option value="@t._1" @(if(r.map(_.description.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
                             "selected" else "")>@t._2</option>
                         }
                       </select>

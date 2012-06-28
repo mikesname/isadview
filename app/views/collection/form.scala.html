@@ -1,4 +1,4 @@
-@(f: Form[models.Collection], action: Call, c: Option[models.Collection] = None)(implicit request: RequestHeader)
+@(f: Form[models.CollectionDescription], action: Call, c: Option[models.Collection] = None)(implicit request: RequestHeader)
 
 @import app.util.Helpers 
 
@@ -6,7 +6,7 @@
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
 @baseform("Edit Collection", body_class="collection scrollspy") {
-<h2>@c.map(_.identity.name).getOrElse(Messages("Create Collection"))</h2>
+<h2>@c.map(_.name).getOrElse(Messages("Create Collection"))</h2>
 
 <div class="subnav">
     <ul class="nav nav-pills">
@@ -79,7 +79,7 @@
               <div class="controls input">
                   <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple id="conditions_languages" name="conditions.languages">
                     @Helpers.languageList.map{t =>
-                        <option value="@t._1" @(if(c.map(_.conditions.languages).getOrElse(List()).contains(t._1))
+                        <option value="@t._1" @(if(c.map(_.description.conditions.languages).getOrElse(List()).contains(t._1))
                         "selected" else "")>@t._2</option>
                     }
                   </select>
@@ -92,7 +92,7 @@
                   <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple id="conditions_scripts"
                       name="conditions.scripts">
                     @Helpers.scriptList.map{t =>
-                        <option value="@t._1" @(if(c.map(_.conditions.scripts).getOrElse(List()).contains(t._1))
+                        <option value="@t._1" @(if(c.map(_.description.conditions.scripts).getOrElse(List()).contains(t._1))
                         "selected" else "")>@t._2</option>
                     }
                   </select>
@@ -129,7 +129,7 @@
                   <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                       id="control_languagesOfDescription" name="control.languagesOfDescription">
                     @Helpers.languageList.map{t =>
-                        <option value="@t._1" @(if(c.map(_.control.languagesOfDescription).getOrElse(List()).contains(t._1))
+                        <option value="@t._1" @(if(c.map(_.description.control.languagesOfDescription).getOrElse(List()).contains(t._1))
                         "selected" else "")>@t._2</option>
                     }
                   </select>
@@ -143,7 +143,7 @@
                       id="control_scriptsOfDescription"
                       name="control.scriptsOfDescription">
                     @Helpers.scriptList.map{t =>
-                        <option value="@t._1" @(if(c.map(_.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
+                        <option value="@t._1" @(if(c.map(_.description.control.scriptsOfDescription).getOrElse(List()).contains(t._1))
                         "selected" else "")>@t._2</option>
                     }
                   </select>

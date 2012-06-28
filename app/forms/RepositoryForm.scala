@@ -6,7 +6,6 @@ import play.api.data.Forms._
 import models._
 
 object RepositoryForm {
-
   val form = Form(
     mapping(
       "identity" -> mapping(
@@ -39,7 +38,7 @@ object RepositoryForm {
         "buildings" -> optional(text),
         "holdings" -> optional(text),
         "findingAids" -> optional(text)
-      )(RepositoryDescription.apply)(RepositoryDescription.unapply),
+      )(RepositoryDetail.apply)(RepositoryDetail.unapply),
       "access" -> mapping(
         "openingTimes" -> optional(text),
         "conditions" -> optional(text),
@@ -65,6 +64,6 @@ object RepositoryForm {
       "admin" -> mapping(
         "publicationStatus" -> number
       )(RepositoryAdmin.apply)(RepositoryAdmin.unapply)
-    )(Repository.apply)(Repository.formUnapply)
+    )(RepositoryDescription.apply)(RepositoryDescription.unapply)
   )
 }

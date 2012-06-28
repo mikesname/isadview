@@ -19,12 +19,13 @@ object Authorities extends Controller with ControllerHelpers {
   def detail(slug: String) = Action { implicit request =>
     Async {
       Authority.fetchBySlug(slug).map { auth =>
+        println("Auth: " + auth.toMap)
         Async {
           // get collections
           Collection.findRelatedTo(auth, Collection.Direction.In, "createdBy").map { createdCollections =>
             Async {
               Collection.findRelatedTo(auth, Collection.Direction.In, "mentionedIn").map { mentionedCollections =>
-                Ok(views.html.authority.detail(auth, createdCollections, mentionedCollections))
+                Ok(views.html.authority.detail(auth, auth.description, createdCollections, mentionedCollections))
               }
             }
           }
@@ -51,7 +52,7 @@ object Authorities extends Controller with ControllerHelpers {
       },
       data => {
         Async {
-          Authority.create(data).map { created =>
+          Authority.create(new Authority(description=data)).map { created =>
             Redirect(routes.Authorities.detail(slug=created.slug.get))
           }
         }
@@ -62,7 +63,7 @@ object Authorities extends Controller with ControllerHelpers {
   def edit(slug: String) = Action { implicit request =>
     Async {
       Authority.fetchBySlug(slug).map { authority =>
-        val form = AuthorityForm.form.fill(authority)
+        val form = AuthorityForm.form.fill(authority.description)
         val action = routes.Authorities.save(slug)
         Ok(views.html.authority.form(f=form, action=action, r=Some(authority)))
       }
@@ -86,7 +87,9 @@ object Authorities extends Controller with ControllerHelpers {
           },
           data => {
             Async {
-              Authority.persist(authority.id, data.withSlug(slug)).map { updated =>
+              val newdata = authority.copy(description=data)
+              println("UPDATING: " + newdata.toMap)
+              Authority.persist(authority.id, newdata).map { updated =>
                 Redirect(routes.Authorities.detail(slug=updated.slug.get))
               }
             }

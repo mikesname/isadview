@@ -76,6 +76,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     scripts.loadScript("app/neo4j/gremlin.groovy")
     val scriptBody = scripts.get(scriptName)
     val data = Map("script" -> scriptBody, "params" -> params)
+    println("Updating with data: " + generate(data))
     WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))
   }
 

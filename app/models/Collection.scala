@@ -2,6 +2,7 @@ package models
 
 import neo4j.data._
 import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
 
 object Collection extends Neo4jDataSource[Collection] {
 
@@ -15,86 +16,57 @@ object Collection extends Neo4jDataSource[Collection] {
       slug = (data \ "data" \ "slug").extractOpt[String],
       createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
       updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
-      identity = CollectionIdentity(
-        identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
-        name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
-        levelOfDescription = (data \ "data" \ "level_of_description").extractOpt[Int],
-        extentAndMedium = (data \ "data" \ "extent_and_medium").extractOpt[String]
-      ),
-      context = CollectionContext(
-        archivalHistory = (data \ "data" \ "archival_history").extractOpt[String],
-        acquisition = (data \ "data" \ "acquisition").extractOpt[String]
-      ),
-      content = CollectionContent(
-        scopeAndContent = (data \ "data" \ "scope_and_content").extractOpt[String],
-        appraisal = (data \ "data" \ "appraisal").extractOpt[String],
-        accrurals = (data \ "data" \ "accrurals").extractOpt[String]
-      ),
-      conditions = CollectionConditions(
-        conditionsOfAccess = (data \ "data" \ "conditions_of_access").extractOpt[String],
-        conditionsOfReproduction = (data \ "data" \ "conditions_of_reproduction").extractOpt[String],
-        languages = (data \ "data" \ "languages").extractOpt[String].getOrElse("").split(",").toList,
-        scripts = (data \ "data" \ "scripts").extractOpt[String].getOrElse("").split(",").toList,
-        physicalCharacteristics = (data \ "data" \ "physical_characteristics").extractOpt[String],
-        findingAids = (data \ "data" \ "finding_aids").extractOpt[String]
-      ),
-      materials = CollectionMaterials(
-        (data \ "data" \ "location_of_materials").extractOpt[String],
-        (data \ "data" \ "location_of_copies").extractOpt[String],
-        (data \ "data" \ "related_units_of_description").extractOpt[String]
-      ),
-      control = CollectionControl(
-        (data \ "data" \ "rules").extractOpt[String],
-        (data \ "data" \ "languages_of_description").extractOpt[String].getOrElse("").split(",").toList,
-        (data \ "data" \ "scripts_of_description").extractOpt[String].getOrElse("").split(",").toList,
-        (data \ "data" \ "sources").extractOpt[String]
-      ),
-      admin = CollectionAdmin(
-        publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
+      description = CollectionDescription(
+        identity = CollectionIdentity(
+          identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
+          name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
+          levelOfDescription = (data \ "data" \ "level_of_description").extractOpt[Int],
+          extentAndMedium = (data \ "data" \ "extent_and_medium").extractOpt[String]
+        ),
+        context = CollectionContext(
+          archivalHistory = (data \ "data" \ "archival_history").extractOpt[String],
+          acquisition = (data \ "data" \ "acquisition").extractOpt[String]
+        ),
+        content = CollectionContent(
+          scopeAndContent = (data \ "data" \ "scope_and_content").extractOpt[String],
+          appraisal = (data \ "data" \ "appraisal").extractOpt[String],
+          accrurals = (data \ "data" \ "accrurals").extractOpt[String]
+        ),
+        conditions = CollectionConditions(
+          conditionsOfAccess = (data \ "data" \ "conditions_of_access").extractOpt[String],
+          conditionsOfReproduction = (data \ "data" \ "conditions_of_reproduction").extractOpt[String],
+          languages = (data \ "data" \ "languages").extractOpt[String].getOrElse("").split(",").toList,
+          scripts = (data \ "data" \ "scripts").extractOpt[String].getOrElse("").split(",").toList,
+          physicalCharacteristics = (data \ "data" \ "physical_characteristics").extractOpt[String],
+          findingAids = (data \ "data" \ "finding_aids").extractOpt[String]
+        ),
+        materials = CollectionMaterials(
+          (data \ "data" \ "location_of_materials").extractOpt[String],
+          (data \ "data" \ "location_of_copies").extractOpt[String],
+          (data \ "data" \ "related_units_of_description").extractOpt[String]
+        ),
+        control = CollectionControl(
+          (data \ "data" \ "rules").extractOpt[String],
+          (data \ "data" \ "languages_of_description").extractOpt[String].getOrElse("").split(",").toList,
+          (data \ "data" \ "scripts_of_description").extractOpt[String].getOrElse("").split(",").toList,
+          (data \ "data" \ "sources").extractOpt[String]
+        ),
+        admin = CollectionAdmin(
+          publicationStatus = (data \ "data" \ "publication_status").extractOpt[Int].getOrElse(0)
+        )
       )
     )
   }
-
-  // Alternative constructor to construct a Collection without
-  // an ID.
-  def apply(
-    identity: CollectionIdentity,
-    context: CollectionContext,
-    content: CollectionContent,
-    conditions: CollectionConditions,
-    materials: CollectionMaterials,
-    control: CollectionControl,
-    admin: CollectionAdmin): Collection = {
-    new Collection(-1, None, identity, context, content, conditions, materials, control, admin)
-  }
-
-  def formUnapply(c: Collection): Option[(
-    CollectionIdentity,
-    CollectionContext,
-    CollectionContent,
-    CollectionConditions,
-    CollectionMaterials,
-    CollectionControl,
-    CollectionAdmin
-   )] = Some((
-    c.identity, c.context, c.content, c.conditions, c.materials, c.control, c.admin)
-  )
 }
 
 case class Collection(
   val id: Long,
   val slug: Option[String] = None,
-  val identity: CollectionIdentity,
-  val context: CollectionContext,
-  val content: CollectionContent,
-  val conditions: CollectionConditions,
-  val materials: CollectionMaterials,
-  val control: CollectionControl,
-  val admin: CollectionAdmin,
+  val description: CollectionDescription,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None
 ) extends Neo4jSlugModel with CrudUrls {
-  def name = identity.name
+  def name = description.identity.name
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Collections.confirmDelete(slug=slug.getOrElse(""))
@@ -105,7 +77,7 @@ case class Collection(
   // for the subordinate items, which is can only get from the companion
   // object class
   override def getSubordinateItems = Map(
-    "locatesInTime" -> identity.dates.filterNot(_.startDate.isEmpty).map { d =>
+    "locatesInTime" -> description.identity.dates.filterNot(_.startDate.isEmpty).map { d =>
       Map(
         "index_name" -> FuzzyDate.indexName,
         "data" -> d.toMap)
@@ -117,9 +89,25 @@ case class Collection(
   def toMap = {
     Map(
       "slug" -> slug,
-      "created_on" -> createdOn,
-      "updated_on" -> updatedOn
-    ) ++
+      "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
+      "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
+    ) ++ description.toMap
+  }
+
+  def withSlug(newSlug: String) = copy(slug=Some(newSlug))
+}
+
+case class CollectionDescription(
+  val identity: CollectionIdentity,
+  val context: CollectionContext,
+  val content: CollectionContent,
+  val conditions: CollectionConditions,
+  val materials: CollectionMaterials,
+  val control: CollectionControl,
+  val admin: CollectionAdmin
+) {
+  def withDates(dates: List[FuzzyDate]) = copy(identity=identity.withDates(dates))
+  def toMap = {
     identity.toMap ++
     context.toMap ++
     content.toMap ++
@@ -128,9 +116,6 @@ case class Collection(
     control.toMap ++
     admin.toMap
   }
-
-  def withSlug(newSlug: String) = copy(slug=Some(newSlug))
-  def withDates(dates: List[FuzzyDate]) = copy(identity=identity.withDates(dates))
 }
 
 

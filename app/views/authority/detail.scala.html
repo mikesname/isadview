@@ -1,34 +1,34 @@
-@(auth: models.Authority, created: Seq[models.Collection], mentioned:
+@(auth: models.Authority, d: models.AuthorityDescription, created: Seq[models.Collection], mentioned:
 Seq[models.Collection])(implicit request: RequestHeader)
 
-@main(auth.identity.name + " (" + auth.id.toString + ")", body_class="authority") {
+@main(auth.name + " (" + auth.id.toString + ")", body_class="authority") {
 <div class="row">
     <div class="span3 columns">
 
         <div class="sidebar">
-            @authority.sidebarDetails(auth)
+            @authority.sidebarDetails(d)
             @common.exportActions(auth)
             @common.adminActions(auth)
         </div>
     </div>
     <div class="span9 columns">
         <h2>
-            @auth.identity.name
-            @if(auth.admin.publicationStatus == 0) {
+            @d.identity.name
+            @if(d.admin.publicationStatus == 0) {
                 <span class="label">@Messages("Draft Description")</span>
             }
         </h2>
-        @if(auth.identity.otherNames.size > 0) {
+        @if(d.identity.otherNames.size > 0) {
             <h3 class="alternate-name">
-                @auth.identity.otherNames.mkString(",")
+                @d.identity.otherNames.mkString(",")
             </h3>
         }
-        @common.descriptionValue(auth.description.datesOfExistence, "Dates of Existence")
-        @common.descriptionValue(auth.description.history, "History")
-        @common.descriptionValue(auth.description.places, "Places")
-        @common.descriptionValue(auth.description.functions, "Functions")
-        @common.descriptionValue(auth.description.geneology, "Geneology")
-        @common.descriptionValue(auth.description.generalContext, "General Context")
+        @common.descriptionValue(d.description.datesOfExistence, "Dates of Existence")
+        @common.descriptionValue(d.description.history, "History")
+        @common.descriptionValue(d.description.places, "Places")
+        @common.descriptionValue(d.description.functions, "Functions")
+        @common.descriptionValue(d.description.geneology, "Geneology")
+        @common.descriptionValue(d.description.generalContext, "General Context")
         <hr />
         @collection.collectionList(created, "Collections as Creator")
         @collection.collectionList(mentioned, "Collections as Name Access Point")
