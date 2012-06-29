@@ -10,7 +10,7 @@ object UserForm {
   val openid = Form(single(
     "openid_identifier" -> nonEmptyText
   )) 
-  
+
   val signupForm = Form(
     tuple(
       "username" -> nonEmptyText,
@@ -18,7 +18,7 @@ object UserForm {
     ) verifying ("Username has already been taken", result => result match {
       case (username, email) => User.checkUniqueUsername(username)
     })
-  )
+    )
 
   val profile = Form(
     mapping(
