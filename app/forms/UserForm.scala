@@ -6,6 +6,11 @@ import play.api.data.Forms._
 import models._
 
 object UserForm {
+
+  val openid = Form(single(
+    "openid_identifier" -> nonEmptyText
+  )) 
+  
   val signupForm = Form(
     tuple(
       "username" -> nonEmptyText,

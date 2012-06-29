@@ -1,5 +1,8 @@
 jQuery(function($) {
 
+    // Openid
+    $("form.openid").openid();
+
     // Chosen selects...
     $(".chzn-select").chosen();
 
