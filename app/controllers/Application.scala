@@ -57,13 +57,10 @@ object Application extends Controller {
   }
 
   def dbtest = Action { implicit request =>
-    import play.api.db.DB
-    import anorm.SQL
-    import play.api.Play.current
-    val result = DB.withConnection { implicit c =>
-      var query = SQL("SELECT DISTINCT email FROM auth_user WHERE username = {user}").on("user" -> "mike")
-      query.apply().head[String]("auth_user.email")
-    }
+    import models.sql.User
+
+    val result = User.findByEmail("mikesname@gmail.com")
+
     Ok("Result: %s".format(result))
   }
 }
