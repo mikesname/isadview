@@ -26,7 +26,7 @@ CREATE TABLE openid_user_associations (
     id                  INTEGER NOT NULL DEFAULT nextval('openid_user_associations_id_seq') PRIMARY KEY,
     user_id             INTEGER NOT NULL,
     openid              INTEGER NOT NULL,
-    created             TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT current_timestamp()
+    created             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 ); 
 
 # --- !Downs
