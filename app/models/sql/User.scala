@@ -29,12 +29,12 @@ case class User(id: Long, name: String, email: String) {
   }
 
   def addAssociation(assoc: String): User = DB.withConnection { implicit connection => 
-    SQL(
+    val res = SQL(
       """
-        INSERT INTO openid_association (user_id, openid_url) VALUES ({user_id},{url})
-        ON DUPLICATE KEY UPDATE openid_url = {url}
+        INSERT INTO openid_association (id, user_id, openid_url) VALUES (DEFAULT, {user_id},{url})
       """
-    ).on('user_id -> id, 'url -> assoc)
+    ).on('user_id -> id, 'url -> assoc).executeInsert()
+    println("Added association! " + res)
     this
   }
 }
@@ -43,8 +43,8 @@ object User {
 
   val simple = {
      get[Long]("openid_user.id") ~
-     get[String]("openid_user.email") ~
-     get[String]("openid_user.name") map {
+     get[String]("openid_user.name") ~
+     get[String]("openid_user.email") map {
        case id ~ name ~ email => User(id, name, email)
      }
   }
@@ -139,13 +139,18 @@ object Association {
   }
 
   def findByUrl(url: String): Option[Association] = DB.withConnection { implicit connection =>
-    SQL(
+    println("Searching for OpenID '%s'".format(url))
+    val res = SQL(
       """
         select * from openid_association
           join openid_user on openid_association.user_id =  openid_user.id where
-        openid_association.openid_url = {url}
+        openid_association.openid_url = {url} LIMIT 1
       """
-    ).on('url -> url).as(Association.withUser.singleOpt)
+    ).on('url -> url)
+    println("RES: " + res)
+    val out = res.as(Association.simple.singleOpt)
+    println("OUT: " + out)
+    out
   }
 }
 

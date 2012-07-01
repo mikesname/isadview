@@ -1,5 +1,5 @@
 @(auth: models.Authority, d: models.AuthorityDescription, created: Seq[models.Collection], mentioned:
-Seq[models.Collection])(implicit request: RequestHeader)
+Seq[models.Collection])(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main(auth.name + " (" + auth.id.toString + ")", body_class="authority") {
 <div class="row">

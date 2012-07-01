@@ -1,4 +1,4 @@
-@(user: models.User, d: models.UserProfile)(implicit request: RequestHeader)
+@(user: models.User, d: models.UserProfile)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main(user.name, body_class="profile") {
 <div class="row">

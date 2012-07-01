@@ -1,4 +1,4 @@
-@(c: CrudUrls, action: Call)(implicit request: RequestHeader)
+@(c: CrudUrls, action: Call)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main("Delete Item") {
 

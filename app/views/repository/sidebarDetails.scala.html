@@ -1,4 +1,4 @@
-@(d: models.RepositoryDescription)(implicit req: RequestHeader)
+@(d: models.RepositoryDescription)(implicit maybeUser: Option[models.sql.User], req: RequestHeader)
 
 <div class="repo-logo">
     <a href="{{object.get_absolute_url}}">

@@ -1,4 +1,4 @@
-@(title: String)(content: Html = Html(""))(implicit request: RequestHeader)
+@(title: String)(content: Html = Html(""))(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main(title) {
 <div class="row" data-spy="scroll" data-offset="40">

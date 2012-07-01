@@ -18,15 +18,15 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
   val openidError = """
     |There was an error connecting to your OpenID provider.""".stripMargin
 
-  def index = Action { implicit request =>
+  def index = optionalUserAction { implicit maybeUser => implicit request =>
     Ok(views.html.index("Your new application is ready."))
   }
 
-  def login = Action { implicit request =>
+  def login = optionalUserAction { implicit maybeUser => implicit request =>
     Ok(views.html.login(form=UserForm.openid, action=routes.Application.loginPost))
   }
 
-  def loginPost = Action { implicit request =>
+  def loginPost = optionalUserAction { implicit maybeUser => implicit request =>
     UserForm.openid.bindFromRequest.fold(
       error => {
         Logger.info("bad request " + error.toString)
@@ -75,11 +75,11 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     )
   }
 
-  def signup = Action { implicit request =>
+  def signup = optionalUserAction { implicit maybeUser => implicit request =>
     Ok(views.html.login(form=UserForm.openid, action=routes.Application.signupPost))
   }
 
-  def signupPost = Action { implicit request =>
+  def signupPost = optionalUserAction { implicit maybeUser => implicit request =>
     UserForm.openid.bindFromRequest.fold(
       error => {
         Logger.info("bad request " + error.toString)
@@ -101,7 +101,7 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     )
   }
 
-  def openIDSignupCallback = Action { implicit request =>
+  def openIDSignupCallback = optionalUserAction { implicit maybeUser => implicit request =>
     import models.sql.Association
     AsyncResult(
       OpenID.verifiedId.extend( _.value match {
@@ -118,11 +118,11 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     )
   }
 
-  def signupComplete = Action { implicit request =>
+  def signupComplete = optionalUserAction { implicit maybeUser => implicit request =>
     Ok(views.html.signupInfo(form=UserForm.signupForm, action=routes.Application.signupCompletePost))
   }
 
-  def signupCompletePost = Action { implicit request =>
+  def signupCompletePost = optionalUserAction { implicit maybeUser => implicit request =>
     session.get("openid").map { openid =>
       UserForm.signupForm.bindFromRequest.fold(
         errorForm => {
@@ -146,7 +146,7 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     }
   }
 
-  def dbtest = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+  def dbtest = optionalUserAction { implicit maybeUser => request =>
     import models.sql.User
     Ok("Result: " + User.findAll)
   }

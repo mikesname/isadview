@@ -1,4 +1,4 @@
-@(cl: models.Collection, c: models.CollectionDescription, repo: models.Repository, creator: Option[models.Authority])(implicit request: RequestHeader)
+@(cl: models.Collection, c: models.CollectionDescription, repo: models.Repository, creator: Option[models.Authority])(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main(c.identity.name, body_class="collection") {
 <div class="row">

@@ -1,4 +1,4 @@
-@(message: String)(implicit request: RequestHeader)
+@(message: String)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main("Welcome to Play 2.0") {
     

@@ -1,6 +1,6 @@
 @(rtype: String, currentPage: solr.models.Page[solr.models.Description],
 currentOrderBy: Int, currentFilter: String
-)(implicit request: RequestHeader)
+)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main("Descriptions", body_class=rtype) {
     

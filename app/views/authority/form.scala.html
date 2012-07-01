@@ -1,4 +1,4 @@
-@(f: Form[models.AuthorityDescription], action: Call, r: Option[models.Authority] = None)(implicit request: RequestHeader)
+@(f: Form[models.AuthorityDescription], action: Call, r: Option[models.Authority] = None)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @import app.util.Helpers 
 

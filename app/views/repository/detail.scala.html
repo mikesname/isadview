@@ -1,4 +1,4 @@
-@(repo: models.Repository, d: models.RepositoryDescription)(implicit request: RequestHeader)
+@(repo: models.Repository, d: models.RepositoryDescription)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main(title=repo.name + " (" + repo.id.toString + ")", body_class="repository") {
 <div class="row">

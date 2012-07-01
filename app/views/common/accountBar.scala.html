@@ -1,9 +1,9 @@
-
+@(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 <ul class="nav pull-right">
-    @if(false) { @{ /* user is authenticated */ }
+    @maybeUser.map { user =>
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                {{ user }}
+                @user.name
                 <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
@@ -15,7 +15,7 @@
                 <li><a href="@routes.Application.logout"><i class="icon-off"></i>Log out</a></li>
             </ul>
         </li>
-    } else {
+    }.getOrElse {
         <li><a href="@routes.Application.login">Log in</a></li>
         <li class="navbar-text">or</li>
         <li><a href="@routes.Application.signup">Sign up</a></li>

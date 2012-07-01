@@ -3,7 +3,7 @@ title: String = "Welcome to EHRI", body_class: String = "")(
 content: => Html = Html(""),
 extra_body: => Html = Html(""),
 footer: => Html = Html("")
-)(implicit request: RequestHeader)
+)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @import app.util.Helpers 
 

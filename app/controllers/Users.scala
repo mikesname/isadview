@@ -8,6 +8,7 @@ import play.api.libs.ws.{WS,Response}
 import play.api.libs.concurrent.Promise
 
 import net.liftweb.json
+import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
 import com.codahale.jerkson.Json._
 
@@ -15,7 +16,7 @@ import models.User
 import forms.UserForm
 
 
-object Users extends Controller with ControllerHelpers {
+object Users extends Controller with Auth with Authorizer with ControllerHelpers {
   //def detail(username: String) = Action { implicit request =>
   //  Async {
   //    User.fetchByField("username", username).map { user =>

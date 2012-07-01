@@ -8,6 +8,7 @@ import play.api.libs.ws.{WS,Response}
 import play.api.libs.concurrent.Promise
 
 import net.liftweb.json
+import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
 import com.codahale.jerkson.Json._
 
@@ -16,8 +17,8 @@ import forms.RepositoryForm
 
 
 
-object Repositories extends Controller with ControllerHelpers {
-  def detail(slug: String) = Action { implicit request =>
+object Repositories extends Controller with Auth with Authorizer with ControllerHelpers {
+  def detail(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repo =>
         Async {
@@ -30,11 +31,11 @@ object Repositories extends Controller with ControllerHelpers {
     }
   }
 
-  def new_ = Action { implicit request => 
+  def new_ = optionalUserAction { implicit maybeUser => implicit request =>
     Ok(views.html.repository.form(f=RepositoryForm.form, action=routes.Repositories.create))
   }
 
-  def create = Action { implicit request =>
+  def create = optionalUserAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -56,7 +57,7 @@ object Repositories extends Controller with ControllerHelpers {
     )
   }
 
-  def edit(slug: String) = Action { implicit request =>
+  def edit(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
         Async {
@@ -71,7 +72,7 @@ object Repositories extends Controller with ControllerHelpers {
     }
   }
 
-  def save(slug: String) = Action { implicit request =>
+  def save(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -98,7 +99,7 @@ object Repositories extends Controller with ControllerHelpers {
     }
   }
   
-  def confirmDelete(slug: String) = Action { implicit request =>
+  def confirmDelete(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
         val action = routes.Repositories.delete(slug)
@@ -107,7 +108,7 @@ object Repositories extends Controller with ControllerHelpers {
     }
   }
 
-  def delete(slug: String) = Action { implicit request =>
+  def delete(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
         Repository.delete(repository.id, repository)

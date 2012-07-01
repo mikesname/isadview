@@ -4,7 +4,7 @@ title: String = "Welcome to EHRI", body_class: String = "")(
 content: => Html = Html(""),
 extra_body: => Html = Html(""),
 footer: => Html = Html("")
-)(implicit request: RequestHeader)
+)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
@@ -69,13 +69,14 @@ footer: => Html = Html("")
                                 </li>
                             }
                         </ul>
-                        @common.accountBar()
+                        @common.accountBar(maybeUser, request)
                     </div>
                 </div>
             </div>
         </div>
         <div class="container">
             @common.messages()
+    <h1>@maybeUser.map(_.name).getOrElse("FUCCCCKKKKK!")</h1>
             @content
         </div>
         <div id="footer">

@@ -1,4 +1,4 @@
-@(clist: Seq[models.Collection], title: String = "")(implicit req: RequestHeader)
+@(clist: Seq[models.Collection], title: String = "")(implicit maybeUser: Option[models.sql.User], req: RequestHeader)
 
 @if(!clist.isEmpty) {
     @if(!title.isEmpty) {
