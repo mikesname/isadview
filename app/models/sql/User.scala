@@ -37,6 +37,8 @@ case class User(id: Long, name: String, email: String) {
     println("Added association! " + res)
     this
   }
+
+  def isStaff = false // STUB
 }
 
 object User {
@@ -139,18 +141,13 @@ object Association {
   }
 
   def findByUrl(url: String): Option[Association] = DB.withConnection { implicit connection =>
-    println("Searching for OpenID '%s'".format(url))
-    val res = SQL(
+    SQL(
       """
         select * from openid_association
           join openid_user on openid_association.user_id =  openid_user.id where
         openid_association.openid_url = {url} LIMIT 1
       """
-    ).on('url -> url)
-    println("RES: " + res)
-    val out = res.as(Association.simple.singleOpt)
-    println("OUT: " + out)
-    out
+    ).on('url -> url).as(Association.withUser.singleOpt)
   }
 }
 

@@ -8,9 +8,9 @@
             </a>
             <ul class="dropdown-menu">
                 <li><a href="{% url acct_email %}"><i class="icon-user"></i> Account</a></li>
-                {% if user.is_staff %}
+                @if(user.isStaff) {
                     <li><a href="{% url admin:index %}"><i class="icon-cog"></i> Admin</a></li>
-                {% endif %}
+                }
                 <li class="divider"></li>
                 <li><a href="@routes.Application.logout"><i class="icon-off"></i>Log out</a></li>
             </ul>

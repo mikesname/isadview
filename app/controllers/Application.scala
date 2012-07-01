@@ -36,7 +36,7 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
         case (openid) => AsyncResult(
           OpenID.redirectURL(
             openid,
-            routes.Application.openIDLoginCallback.absoluteURL(),
+            routes.Application.openIDCallback.absoluteURL(),
             //Seq("email" -> "http://schema.openid.net/contact/email")
             Seq()
           )
@@ -53,18 +53,17 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     gotoLogoutSucceeded
   }
 
-  def openIDLoginCallback = Action { implicit request =>
+  def openIDCallback = Action { implicit request =>
     import models.sql.Association
     AsyncResult(
       OpenID.verifiedId.extend( _.value match {
         case Redeemed(info) => {
           // check if there's a user with the right id
           Association.findByUrl(info.id) match {
-            case Some(assoc) => {
+            case Some(assoc) =>
               gotoLoginSucceeded(assoc.user.get.id)
-            }
-            case None => Redirect(routes.Application.login).flashing(
-                "error" -> Messages("No account matches that OpenID. Please sign-up to join."))
+            case None => 
+              Redirect(routes.Application.signupComplete).withSession("openid" -> info.id)
           }
         }
         case Thrown(t) => {
@@ -89,7 +88,7 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
         case (openid) => AsyncResult(
           OpenID.redirectURL(
             openid,
-            routes.Application.openIDSignupCallback.absoluteURL(),
+            routes.Application.openIDCallback.absoluteURL(),
             //Seq("email" -> "http://schema.openid.net/contact/email")
             Seq()
           )
@@ -98,23 +97,6 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
                 case Thrown(t) => Redirect(routes.Application.signup).flashing("error" -> openidError)
             }))
       }
-    )
-  }
-
-  def openIDSignupCallback = optionalUserAction { implicit maybeUser => implicit request =>
-    import models.sql.Association
-    AsyncResult(
-      OpenID.verifiedId.extend( _.value match {
-        case Redeemed(info) => {
-          // Redirect to a form to complete the signup, with the openid association
-          // in the session. FIXME: This is probably all kinds of insecure!!!
-          Redirect(routes.Application.signupComplete).withSession("openid" -> info.id)
-        }
-        case Thrown(t) => {
-          // Here you should look at the error, and give feedback to the user
-          Redirect(routes.Application.login).flashing("error" -> openidError)
-        }
-      })
     )
   }
 
