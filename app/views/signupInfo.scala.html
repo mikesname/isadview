@@ -1,0 +1,27 @@
+@(form: Form[(String,String)], action: Call)(implicit request: RequestHeader, flash: Flash)
+
+@implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
+
+@main(Messages("Continue Signup"), body_class="profile") {
+<h2>@Messages("Continue Signup")</h2>
+
+<div class="row">
+    <div class="span12 columns">
+
+        @flash.get("error").map { message =>
+        <p class="alert alert-error">@Messages(message)</p>
+        }
+
+        @helper.form(action = action, 'class -> "form-horizontal") {
+            <fieldset>
+                @helper.inputText(form("username"))
+                @helper.inputText(form("email"))
+            </fieldset>
+            <div class="form-actions">
+                <input type="submit" class="btn btn-primary" value="Login" />
+            </div> 
+        }
+    </div>
+</div>
+}
+

@@ -12,14 +12,12 @@
                     <li><a href="{% url admin:index %}"><i class="icon-cog"></i> Admin</a></li>
                 {% endif %}
                 <li class="divider"></li>
-                <li><a href="{% url acct_logout %}"><i class="icon-off"></i> Log out</a></li>
+                <li><a href="@routes.Application.logout"><i class="icon-off"></i>Log out</a></li>
             </ul>
         </li>
     } else {
-        <li><a href="{% url acct_login %}">Log in</a></li>
-        @if(false) { @{ /* ACCOUNT_OPEN_SIGNUP  */ }
-            <li class="navbar-text">or</li>
-            <li><a href="{% url acct_signup %}">Sign up</a></li>
-        }
+        <li><a href="@routes.Application.login">Log in</a></li>
+        <li class="navbar-text">or</li>
+        <li><a href="@routes.Application.signup">Sign up</a></li>
     }
 </ul>

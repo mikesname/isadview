@@ -16,7 +16,7 @@ object UserForm {
       "username" -> nonEmptyText,
       "email" -> email
     ) verifying ("Username has already been taken", result => result match {
-      case (username, email) => User.checkUniqueUsername(username)
+      case (username, email) => models.sql.User.checkUniqueUsername(username)
     })
     )
 

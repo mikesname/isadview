@@ -7,8 +7,13 @@ GET     /                               controllers.Application.index
 GET     /home                           controllers.Application.index
 GET     /login                          controllers.Application.login
 POST    /login                          controllers.Application.loginPost
-GET     /logout                          controllers.Application.logout
-GET     /openidok                       controllers.Application.openIDCallback
+GET     /logout                         controllers.Application.logout
+GET     /openidlogin                    controllers.Application.openIDLoginCallback
+GET     /signup                         controllers.Application.signup
+POST    /signup                         controllers.Application.signupPost
+GET     /openidsignup                   controllers.Application.openIDSignupCallback
+GET     /signup_complete                controllers.Application.signupComplete
+POST    /signup_complete                controllers.Application.signupCompletePost
 
 GET     /dbtest                         controllers.Application.dbtest()
 

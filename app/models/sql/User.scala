@@ -49,6 +49,12 @@ object User {
      }
   }
 
+  def findAll: Seq[User] = DB.withConnection { implicit connection =>
+    SQL(
+      """select * from openid_user"""
+    ).as(User.simple *)
+  }
+
   def authenticate(id: Long, email: String, name: String): User = DB.withConnection { implicit connection =>
     SQL(
       """
@@ -75,6 +81,21 @@ object User {
         select * from openid_user where id = {id}
       """
     ).on('id -> id).as(User.simple.singleOpt)
+  }
+
+  def checkUniqueUsername(username: String): Boolean = DB.withConnection { implicit connection =>
+    SQL(
+      """SELECT COUNT(name) FROM openid_user WHERE name = {name}"""
+    ).on('name -> username).as(scalar[Long].single) == 0L
+  }
+
+  def create(name: String, email: String): Option[User] = DB.withConnection { implicit connection =>
+    SQL(
+      """INSERT INTO openid_user (id, name, email) VALUES (DEFAULT, {name},{email})"""
+    ).on('name -> name, 'email -> email).executeUpdate
+    SQL(
+      """SELECT * FROM openid_user WHERE id = currval('openid_user_id_seq')"""
+    ).as(User.simple.singleOpt)
   }
 }
 
