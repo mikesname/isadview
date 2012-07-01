@@ -11,26 +11,40 @@ import java.util.Date
 
 // -- Users
 
+sealed trait Permission
+case object Administrator extends Permission
+case object NormalUser extends Permission
+
+
 case class User(id: Long, name: String, email: String) {
   
   lazy val associations: Seq[Association] = DB.withConnection { implicit connection =>
     SQL(
       """
-        select * from openid_associations 
-        join users on openid_associations.user_id = users.id 
-        join subscribers on subscribers.event_id = events.id
-        where users.id = {id} 
+        select * from openid_association 
+        join openid_user on openid_association.user_id = openid_user.id 
+        where openid_user.id = {id} 
       """
     ).on('id -> id).as(Association.withUser *)
+  }
+
+  def addAssociation(assoc: String): User = DB.withConnection { implicit connection => 
+    SQL(
+      """
+        INSERT INTO openid_association (user_id, openid_url) VALUES ({user_id},{url})
+        ON DUPLICATE KEY UPDATE openid_url = {url}
+      """
+    ).on('user_id -> id, 'url -> assoc)
+    this
   }
 }
 
 object User {
 
   val simple = {
-     get[Long]("users.id") ~
-     get[String]("users.email") ~
-     get[String]("users.name") map {
+     get[Long]("openid_user.id") ~
+     get[String]("openid_user.email") ~
+     get[String]("openid_user.name") map {
        case id ~ name ~ email => User(id, name, email)
      }
   }
@@ -38,35 +52,42 @@ object User {
   def authenticate(id: Long, email: String, name: String): User = DB.withConnection { implicit connection =>
     SQL(
       """
-        INSERT INTO users (id,name,email) VALUES ({id},{name},{email})
+        INSERT INTO openid_user (id,name,email) VALUES ({id},{name},{email})
         ON DUPLICATE KEY UPDATE id = {id}
       """
     ).on('id -> id, 'email -> email, 'name -> name).executeUpdate()
     User(id, name, email)
   }
 
-  def findByEmail(email: String): Option[User] = DB.withConnection { implicit connection =>
+  def authenticate(url: String): Option[User] = DB.withConnection { implicit connection =>
     SQL(
       """
-        select * from users where email = {email}
+        SELECT * FROM openid_user 
+          JOIN openid_association ON openid_association.user_id = openid_user.id
+          WHERE openid_association.openid_url = {url}
       """
-    ).on(
-      'email -> email
-    ).as(User.simple.singleOpt)
+    ).on('url -> url).as(User.simple.singleOpt)
+  }
+
+  def findById(id: Long): Option[User] = DB.withConnection { implicit connection =>
+    SQL(
+      """
+        select * from openid_user where id = {id}
+      """
+    ).on('id -> id).as(User.simple.singleOpt)
   }
 }
 
 // -- Associations
 
-case class Association(id: Long, url: String, handle: String, secret: String,
-    issued: Long, lifetime: Long, assoc: String, user: Option[User] = None) {
+case class Association(id: Long, userid: Long, url: String, user: Option[User] = None) {
    
   lazy val users: Seq[User] = DB.withConnection { implicit connection =>
     SQL(
       """
-        select * from users 
-        join openid_associations on openid_associations.user_id = users.id
-        where openid_associations.id = {id}
+        select * from openid_user 
+        join openid_association on openid_association.user_id = openid_user.id
+        where openid_association.id = {id}
       """
     ).on('id -> id).as(User.simple *)
   }
@@ -75,15 +96,10 @@ case class Association(id: Long, url: String, handle: String, secret: String,
 object Association {
 
   val simple = {
-    get[Long]("openid_associations.id") ~
-    get[String]("openid_associations.server_url") ~
-    get[String]("openid_associations.handle") ~
-    get[String]("openid_associations.secret") ~
-    get[Long]("openid_associations.issued") ~
-    get[Long]("openid_associations.lifetime") ~
-    get[String]("openid_associations.assoc_type") map {
-      case id~url~handle~secret~issued~lifetime~assoc => Association(
-            id, url, handle, secret, issued, lifetime, assoc, None)
+    get[Long]("openid_association.id") ~
+    get[Long]("openid_association.user_id") ~
+    get[String]("openid_association.openid_url") map {
+      case id~userid~url => Association(id, userid, url, None)
     }
   }
 
@@ -96,18 +112,19 @@ object Association {
   def findAll: Seq[Association] = DB.withConnection { implicit connection =>
     SQL(
       """
-        select * from openid_associations join users on openid_associations.user_id =  users.id
+        select * from openid_association join openid_user on openid_association.user_id =  openid_user.id
       """
     ).as(Association.withUser *)
   }
 
-  def findById(id: Long): Option[Association] = DB.withConnection { implicit connection =>
+  def findByUrl(url: String): Option[Association] = DB.withConnection { implicit connection =>
     SQL(
       """
-        select * from openid_associations join users on openid_associations.user_id =  users.id where
-        openid_associations.id = {id}
+        select * from openid_association
+          join openid_user on openid_association.user_id =  openid_user.id where
+        openid_association.openid_url = {url}
       """
-    ).on('id -> id).as(Association.withUser.singleOpt)
+    ).on('url -> url).as(Association.withUser.singleOpt)
   }
 }
 
