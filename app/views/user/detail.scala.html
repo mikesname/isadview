@@ -1,4 +1,4 @@
-@(user: models.User, d: models.UserProfile)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
+@(user: models.sql.User, data: models.ProfileData)(implicit request: RequestHeader)
 
 @main(user.name, body_class="profile") {
 <div class="row">
@@ -8,10 +8,8 @@
         </div>
     </div>
     <div class="span9 columns">
-        <h2>
-            @user.name
-        </h2>
+        <h2>@data.name</h2>
         <hr />
     </div>
 </div>
-}
+}(Some(user), request)

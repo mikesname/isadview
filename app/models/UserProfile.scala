@@ -4,79 +4,63 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
 
-object User extends Neo4jDataSource[User] {
-  val indexName = "user"
+object UserProfile extends Neo4jDataSource[UserProfile] {
+  val indexName = "userprofile"
 
-  def apply(data: net.liftweb.json.JsonAST.JValue): User = {
-    new User(
+  def apply(data: net.liftweb.json.JsonAST.JValue): UserProfile = {
+    new UserProfile(
       id = idFromUrl((data \ "self").extractOpt[String]),
+      userId = (data \ "data" \ "user_id").extractOpt[Long].getOrElse(-1L),
       createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
       updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
-      auth = UserAuth(
-        username        = (data \ "data" \ "username").extractOpt[String].getOrElse(""),
-        email           = (data \ "data" \ "email").extractOpt[String].getOrElse(""),
-        verified        = (data \ "data" \ "verified").extractOpt[Boolean].getOrElse(false)
-      ),
-      profile = UserProfile(
+      data = ProfileData(
         name = (data \ "data" \ "name").extractOpt[String],
+        about = (data \ "data" \ "about").extractOpt[String],
+        location = (data \ "data" \ "location").extractOpt[String],
+        website = (data \ "data" \ "website").extractOpt[String],
         languages = (data \ "data" \ "languages").extractOpt[String].getOrElse("").split(",").toList.filterNot(_.isEmpty)
       )
     )
   }
 
-  def apply(auth: UserAuth): User = {
-    new User(auth=auth, profile=new UserProfile())
-  }
-
-  def authenticate(email: String, password: String): Option[User] = {
-    None
-  }
-
-  def checkUniqueUsername(username: String): Boolean = {
-    true
-  }
+  def apply(userId: Long) = new UserProfile(
+      -1, userId, None, None, new ProfileData(None, None, None, None, Nil))
 }
 
 
-case class User(
+case class UserProfile(
   val id: Long = -1,
+  val userId: Long = -1,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
-  val auth: UserAuth,
-  val profile: UserProfile
+  val data: ProfileData
 ) extends Neo4jModel {
-  def slug = auth.username
-  def name = profile.name.getOrElse(auth.username)
+  def name = data.name.getOrElse("")
   //val detailUrl = controllers.routes.Users.detail(slug=auth.username.getOrElse(""))
   //val editUrl =  controllers.routes.Users.edit(slug=auth.username.getOrElse(""))
   //val deleteUrl = controllers.routes.Users.confirmDelete(slug=auth.username.getOrElse(""))
 
   def toMap = {
     Map(
+      "user_id" -> userId,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
-    ) ++ profile.toMap
+    ) ++ data.toMap
   }
 }
 
-case class UserAuth(
-  val username: String,
-  val email: String,
-  val verified: Boolean
-) {
-  def toMap = Map(
-    "username" -> username,
-    "email" -> email,
-    "verified" -> verified
-  )
-}
-
-case class UserProfile(
+case class ProfileData(
     val name: Option[String] = None,
+    val about: Option[String] = None,
+    val location: Option[String] = None,
+    val website: Option[String] = None,
     val languages: List[String] = Nil
 ) {
   def toMap = Map(
     "name" -> name,
+    "about" -> about,
+    "location" -> location,
+    "website" -> website,
     "languages" -> languages.filterNot(_.isEmpty).mkString(",")
   )
 }

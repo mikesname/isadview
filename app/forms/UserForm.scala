@@ -20,10 +20,13 @@ object UserForm {
     })
     )
 
-  val profile = Form(
+  val profileForm = Form(
     mapping(
       "name" -> optional(text),
+      "about" -> optional(text),
+      "location" -> optional(text),
+      "website" -> optional(text),
       "languages" -> list(text)
-    )(UserProfile.apply)(UserProfile.unapply)
+    )(ProfileData.apply)(ProfileData.unapply)
   )
 }

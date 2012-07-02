@@ -1,4 +1,4 @@
-@(f: Form[models.UserProfile], action: Call, r: Option[models.User] = None)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
+@(user: models.sql.User, f: Form[models.UserProfile], action: Call, r: Option[models.UserProfile] = None)(implicit request: RequestHeader)
 
 @import app.util.Helpers 
 
@@ -23,7 +23,7 @@
                       <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                           id="languages" name="languages">
                         @Helpers.languageList.map{t =>
-                            <option value="@t._1" @(if(r.map(_.profile.languages).getOrElse(List()).contains(t._1))
+                            <option value="@t._1" @(if(r.map(_.data.languages).getOrElse(List()).contains(t._1))
                             "selected" else "")>@t._2</option>
                         }
                       </select>
@@ -32,10 +32,10 @@
         </fieldset>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">@Messages(r.map(s => "Update Authority").getOrElse("Create Authority"))</button>
+            <button type="submit" class="btn btn-primary">@Messages("Save Profile"))</button>
             <a href="" class="btn">@Messages("Cancel")</a>
         </div>
         }
         </div>
     </div>
-}
+}(Some(user), request)

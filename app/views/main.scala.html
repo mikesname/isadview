@@ -60,12 +60,9 @@ footer: => Html = Html("")
                             <li id="tab_authority">
                                 <a href="@routes.Search.list(rtype="authority")">@Messages("Authorities")</a>
                             </li>
-                            <li id="tab_map">
-                                <a href="{% url map_search %}">@Messages("Map")</a>
-                            </li>
-                            @if(true) { @* user is authenticated *@
+                            @maybeUser.map { user =>
                                 <li id="tab_profile">
-                                    <a href="{% url profile_detail user.username %}">@Messages("Profile")</a>
+                                    <a href="@routes.Users.profile">@Messages("Profile")</a>
                                 </li>
                             }
                         </ul>

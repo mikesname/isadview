@@ -12,18 +12,20 @@ import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
 import com.codahale.jerkson.Json._
 
-import models.User
+import models.{UserProfile, ProfileData}
 import forms.UserForm
 
 
 object Users extends Controller with Auth with Authorizer with ControllerHelpers {
-  //def detail(username: String) = Action { implicit request =>
-  //  Async {
-  //    User.fetchByField("username", username).map { user =>
-  //      Ok(views.html.user.detail(user, user.profile))
-  //    }
-  //  }
-  //}
+  def profile = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+    Async {
+      UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
+        val profile = profileopt.map(_.data).getOrElse(new ProfileData())
+        val form = UserForm.profileForm.fill(profile)
+        Ok(views.html.user.detail(user, profile))
+      }
+    }
+  }
 
   //def new_ = Action { implicit request => 
   //  Ok(views.html.user.form(f=UserForm.signupForm, action=routes.Users.create))
