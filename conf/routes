@@ -14,6 +14,8 @@ POST    /signup                         controllers.Application.signupPost
 GET     /signup_complete                controllers.Application.signupComplete
 POST    /signup_complete                controllers.Application.signupCompletePost
 
+GET     /profile                        controllers.Users.profile
+
 GET     /dbtest                         controllers.Application.dbtest()
 
 # Searching
