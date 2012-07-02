@@ -12,7 +12,7 @@ import net.liftweb.json
 import com.codahale.jerkson.Json._
 import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
-import models.{Repository,Contact,Collection,FuzzyDate,Authority => AuthFile}
+import models.{Repository,Contact,Collection,FuzzyDate,Authority => AuthFile}  // clashes with 'Authority' in Auth trait
 import forms.AuthorityForm
 
 
