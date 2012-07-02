@@ -129,12 +129,24 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
   }
 
   def fetchByField(field: String, value: String): Promise[T] = {
+    fetchByFieldOption(field, value).map {
+      case Some(itemOpt) => itemOpt
+      case None => throw NoResultsFound("for field: '%s' and query '%s'".format(field, value))
+    }
+  }
+
+  def fetchByFieldOption(field: String, value: String): Promise[Option[T]] = {
     val params = Map(
       "index_name" -> indexName,
       "key" -> field,
       "query_string" -> value
     )
-    gremlin("query_exact_index", params).map(response => one(getJson(response)))
+    gremlin("query_exact_index", params).map(response => {
+      val item = list(getJson(response))
+      if (item.length > 1)
+        throw new MultipleResultsFound("for field: '%s' and query '%s'".format(field, value))
+      item.headOption
+    })
   }
 
   /*
