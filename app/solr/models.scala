@@ -74,9 +74,12 @@ object SolrHelper {
   def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: Int,
         field: String, query: String, facets: Map[String, Seq[String]]): Tuple2[QueryResponse, List[FacetClass]] = {
 
-    val queryString = "%s:%s".format(
-      if (field.trim == "") "*" else field,
-      if (query.trim == "") "*" else query)
+    // Solr 3.6 seems to break querying with *:<query> style
+    // http://bit.ly/MBKghG
+    //val queryString = "%s:%s".format(
+    //  if (field.trim == "") "*" else field,
+    //  if (query.trim == "") "*" else query)
+    val queryString = if (query.trim == "") "*" else query.trim
 
     val client = Solr.httpServer(new java.net.URL(play.Play.application.configuration.getString("solr.path"))).newClient
     val req = new QueryRequest(query=Query(queryString))
