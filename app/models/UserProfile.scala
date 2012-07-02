@@ -47,7 +47,7 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
       val items = getJson(response).children
       items.headOption.map(apply(_)).map { prof =>
         items.tail.foldLeft(prof) { (p: UserProfile, json: net.liftweb.json.JsonAST.JValue) =>
-          (json \ "data" \ "element_type").extractOpt[String].map { eletype =>
+          (json \ "data" \ TypeKey).extractOpt[String].map { eletype =>
             eletype match {
               case VirtualCollection.indexName => p.withCollection(VirtualCollection(json))
               case _ => p
@@ -76,7 +76,7 @@ case class UserProfile(
   def toMap = {
     Map(
       "user_id" -> userId,
-      "element_type" -> UserProfile.indexName,
+      UserProfile.TypeKey -> UserProfile.indexName,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ data.toMap

@@ -85,7 +85,7 @@ case class Repository(
   def toMap = {
     Map(
       "slug" -> slug,
-      "element_type" -> Repository.indexName,
+      Repository.TypeKey -> Repository.indexName,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ description.toMap

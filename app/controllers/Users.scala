@@ -21,6 +21,7 @@ object Users extends Controller with Auth with Authorizer with ControllerHelpers
     Async {
       UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
         val profile = profileopt.getOrElse(UserProfile(user.id))
+        println(profile.virtualCollections)
         Ok(views.html.user.detail(user, profile))
       }
     }
@@ -74,36 +75,6 @@ object Users extends Controller with Auth with Authorizer with ControllerHelpers
   private def updateProfile(user: models.sql.User, profile: UserProfile) = {
     Async {
       UserProfile.persist(profile.id, profile).map { updated =>
-        Redirect(routes.Users.profile)
-      }
-    }
-  }
-
-  def newVC = authorizedAction(models.sql.NormalUser) { user => implicit request =>
-    Ok(views.html.user.vcform(
-        user, UserForm.virtualCollection, routes.Users.newVCPost))
-  }
-
-  def newVCPost = authorizedAction(models.sql.NormalUser) { user => implicit request => 
-    Async {
-      UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
-        UserForm.virtualCollection.bindFromRequest.fold(
-          errorForm => BadRequest(views.html.user.vcform(
-              user, errorForm, routes.Users.newVCPost)),
-          newvc => {
-            // TODO: if we don't already have a profile, create one
-            val profile = profileopt.getOrElse(
-                throw play.api.PlayException("Missing profile", "No profile found for user."))
-            createNewVC(profile, newvc)
-          }
-        )
-      }
-    }
-  }
-
-  private def createNewVC(profile: UserProfile, vcdesc: VirtualCollectionDescription) = {
-    Async {
-      UserProfile.createVirtualCollection(profile, vcdesc).map { created =>
         Redirect(routes.Users.profile)
       }
     }

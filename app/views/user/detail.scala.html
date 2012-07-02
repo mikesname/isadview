@@ -15,13 +15,13 @@
         @if(!profile.virtualCollections.isEmpty) {
             <ul>
                 @profile.virtualCollections.map { vc =>
-                    <li>@vc.name</li>
+                <li><a href="@routes.VirtualCollections.detail(vc.slug.getOrElse("arse"))">@vc.name</a></li>
                 }
             </ul>
         } else {
             @Messages("No virtual collections.")
         }
-        <a href="@routes.Users.newVC">@Messages("New Virtual Collection")</a>
+        <a href="@routes.VirtualCollections.new_">@Messages("New Virtual Collection")</a>
     </div>
 </div>
 }(Some(user), request)

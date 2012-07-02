@@ -1,0 +1,26 @@
+@(user: models.sql.User, vc: models.VirtualCollection)(implicit request: RequestHeader)
+
+@main(user.name, body_class="profile") {
+<div class="row">
+    <div class="span3 columns">
+
+        <div class="sidebar">
+        </div>
+    </div>
+    <div class="span9 columns">
+        <h2>@vc.name</h2>
+        <hr />
+
+        <h4>@Messages("Items")</h4>
+        @if(!vc.items.isEmpty) {
+            <ul>
+                @vc.items.map { c =>
+                    <li>@c.name</li>
+                }
+            </ul>
+        } else {
+            @Messages("This collection is currently empty.")
+        }
+    </div>
+</div>
+}(Some(user), request)

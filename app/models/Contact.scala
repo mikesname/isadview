@@ -31,7 +31,9 @@ case class Contact(
   val id: Long = -1,
   val description: ContactDescription
 ) extends Neo4jModel {
-  def toMap = description.toMap
+  def toMap = Map(
+    Contact.TypeKey -> Contact.indexName
+  ) ++ description.toMap
 }
 
 case class ContactDescription(
@@ -49,7 +51,6 @@ case class ContactDescription(
   val note: Option[String] = None
 ) {
   def toMap = Map(
-    "element_name" -> Contact.indexName,
     "primary" -> primary,
     "contact_person" -> contactPerson,
     "street_address" -> streetAddress,

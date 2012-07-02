@@ -32,7 +32,9 @@ case class FuzzyDate(
   val id: Long = -1,
   val description: FuzzyDateDescription
 ) extends Neo4jModel {
-  def toMap = description.toMap
+  def toMap = Map(
+    FuzzyDate.TypeKey -> FuzzyDate.indexName
+  ) ++ description.toMap
 }
 
 case class FuzzyDateDescription(
@@ -42,7 +44,6 @@ case class FuzzyDateDescription(
   val circa: Option[Boolean] = Some(false)
 ) {
   def toMap = Map(
-    "element_type" -> FuzzyDate.indexName,
     "start_date" -> startDate.map(ISODateTimeFormat.dateTime.print(_)),
     "end_date" -> endDate.map(ISODateTimeFormat.dateTime.print(_)),
     "circa" -> circa,

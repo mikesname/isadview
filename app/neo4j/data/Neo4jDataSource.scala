@@ -8,6 +8,7 @@ import com.codahale.jerkson.Json._
 
 import neo4j.json.{JsonBuilder,GremlinError}
 import play.api.PlayException
+import play.api.Play.current
 
 case class NoResultsFound(err: String = "") extends PlayException("NoResultsFound", err)
 case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
@@ -28,10 +29,25 @@ trait Neo4jSlugModel extends Neo4jModel {
 
 
 trait Neo4jDataSource[T] extends JsonBuilder[T] {
-  val indexName: String
   val scripts = new neo4j.ScriptSource()
-  val gremlinPath = "http://localhost:7474/db/data/ext/GremlinPlugin/graphdb/execute_script"
+  val gremlinPath = play.api.Play.configuration.getString("gremlin").getOrElse(
+      sys.error("The path to the Neo4j Gremlin plugin is not specified in application.conf"))
 
+  /*
+   * The name of the (mandatory) neo4j property that marks
+   * denotes the type of a node.
+   */
+  val TypeKey = "element_type"
+
+  /*
+   * Implementing objects must specify this as the TypeKey
+   * and the name of vertex indexes.
+   */
+  val indexName: String
+
+  /*
+   * Enum for declaring direction of relationships.
+   */
   object Direction extends Enumeration("inV", "outV") {
     type Direction = Value
     val In, Out = Value
@@ -41,12 +57,12 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
    *  The headers that get sent to the Neo4j Gremlin plugin for a
    *  JSON request/response.
    */
-  val headers = Map(
+  private val headers = Map(
     "Accept" -> "application/json",
     "Content-Type" -> "application/json; charset=utf8"
   )
 
-  def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
+  private def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
 
   /**
    *  For as-yet-undetermined reasons that data coming back from Neo4j seems

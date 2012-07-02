@@ -17,8 +17,11 @@ POST    /signup_complete                controllers.Application.signupCompletePo
 GET     /profile                        controllers.Users.profile
 GET     /profile/edit                   controllers.Users.edit
 POST     /profile/edit                  controllers.Users.editPost
-GET     /profile/collections/create     controllers.Users.newVC
-POST    /profile/collections/create     controllers.Users.newVCPost
+
+# Virtual Collections
+GET     /profile/collection/create      controllers.VirtualCollections.new_
+POST    /profile/collection/create      controllers.VirtualCollections.create
+GET     /profile/collection/:slug       controllers.VirtualCollections.detail(slug:String)
 
 GET     /dbtest                         controllers.Application.dbtest()
 

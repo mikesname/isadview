@@ -71,7 +71,7 @@ object Collection extends Neo4jDataSource[Collection] {
       val items = getJson(response).children
       items.headOption.map(apply(_)).map { collection =>
         items.tail.foldLeft(collection) { (c: Collection, json: net.liftweb.json.JsonAST.JValue) =>
-          (json \ "data" \ "element_type").extractOpt[String].map { eletype =>
+          (json \ "data" \ TypeKey).extractOpt[String].map { eletype =>
             eletype match {
               case FuzzyDate.indexName => c.withDate(FuzzyDate(json))
               case Repository.indexName => c.copy(repository=Some(Repository(json)))
@@ -117,7 +117,7 @@ case class Collection(
   def toMap = {
     Map(
       "slug" -> slug,
-      "element_type" -> Collection.indexName,
+      Collection.TypeKey -> Collection.indexName,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ description.toMap
