@@ -31,9 +31,9 @@ object UserForm {
   )
 
   val virtualCollection = Form(
-    tuple(
+    mapping(
       "name" -> text,
       "description" -> optional(text)
-    )
+    )(VirtualCollectionDescription.apply)(VirtualCollectionDescription.unapply)
   )
 }

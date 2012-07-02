@@ -6,7 +6,7 @@ import play.api.libs.concurrent.Promise
 import play.api.libs.ws.{WS,Response}
 import com.codahale.jerkson.Json._
 
-import neo4j.json.JsonBuilder
+import neo4j.json.{JsonBuilder,GremlinError}
 import play.api.PlayException
 
 case class NoResultsFound(err: String = "") extends PlayException("NoResultsFound", err)
@@ -63,7 +63,8 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
   implicit val formats = net.liftweb.json.DefaultFormats
   def getJson(r: Response) = {
     try {
-      net.liftweb.json.parse(fixEncoding(r.body))
+      val data = net.liftweb.json.parse(fixEncoding(r.body))
+      data.extractOpt[GremlinError].map(throw _).getOrElse(data)
     } catch {
       // FIXME: Make this more sensible... unfortunately the response status
       // doesn't help us when it's a Gremlin script error causing an unexpected
@@ -98,6 +99,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     val slugparams = Map("index_name" -> indexName, "key" -> "slug", "initial" -> initial)
     // NB: Note the use of flatMap here, because create0 returns another
     // Promise and we want to compose them together.
+    // TODO: Sanity check slug response...
     gremlin("ensure_unique_for_index", slugparams).flatMap { slugresp =>
       var slug: String = parse(slugresp.body)
       create0(item.withSlug(slug))
@@ -127,6 +129,22 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     gremlin("delete_vertex_with_related", params).map(response => {
       true
     })
+  }
+
+  def createRelationship(from: Neo4jModel, to: Neo4jModel, label: String) = {
+    val params = Map(
+      "outV" -> from.id,
+      "label" -> label,
+      "inV" -> to.id,
+      "data" -> Map(),
+      "index_name" -> label,
+      "keys" -> null,
+      "label_var" -> "label"
+    )
+    gremlin("create_indexed_edge", params).map { resp =>
+      // TODO: Return some kind of Edge model
+      getJson(resp)
+    }
   }
 
   def fetchByField(field: String, value: String): Promise[T] = {

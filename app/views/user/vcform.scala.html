@@ -1,0 +1,29 @@
+@(user: models.sql.User, f: Form[models.VirtualCollectionDescription], action: Call)(implicit request: RequestHeader)
+
+@import app.util.Helpers 
+
+@implicitlocale = @{Helpers.localeFromRequest(request)}
+@implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
+
+@baseform("Create Virtual Collection", body_class="profile") {
+    <h2>@Messages("Create Virtual Collection")</h2>
+
+    <div class="row">
+        <div class="span12 columns">
+
+        @helper.form(action = action, 'class -> "entity-form form-horizontal") {
+
+        <fieldset id="profile-area">
+            <legend>@Messages("Profile")</legend>
+              @helper.inputText(f("name"), '_label -> Messages("Name"))
+              @common.descriptionTextarea(f("description"), Messages("Description"))
+        </fieldset>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">@Messages("Submit")</button>
+            <a href="" class="btn">@Messages("Cancel")</a>
+        </div>
+        }
+        </div>
+    </div>
+}(Some(user), request)

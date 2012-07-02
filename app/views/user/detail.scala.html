@@ -1,4 +1,4 @@
-@(user: models.sql.User, data: models.ProfileData)(implicit request: RequestHeader)
+@(user: models.sql.User, profile: models.UserProfile)(implicit request: RequestHeader)
 
 @main(user.name, body_class="profile") {
 <div class="row">
@@ -8,8 +8,20 @@
         </div>
     </div>
     <div class="span9 columns">
-        <h2>@data.name</h2>
+        <h2>@profile.data.name</h2>
         <hr />
+
+        <h4>@Messages("Virtual Collections")</h4>
+        @if(!profile.virtualCollections.isEmpty) {
+            <ul>
+                @profile.virtualCollections.map { vc =>
+                    <li>@vc.name</li>
+                }
+            </ul>
+        } else {
+            @Messages("No virtual collections.")
+        }
+        <a href="@routes.Users.newVC">@Messages("New Virtual Collection")</a>
     </div>
 </div>
 }(Some(user), request)

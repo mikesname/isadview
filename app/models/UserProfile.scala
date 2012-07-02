@@ -1,6 +1,7 @@
 package models
 
 import org.joda.time.DateTime
+import play.api.libs.concurrent.Promise
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
 
@@ -24,7 +25,38 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
   }
 
   def apply(userId: Long) = new UserProfile(
-      -1, userId, None, None, new ProfileData(None, None, None, None, Nil))
+      -1, userId, None, None, Nil, new ProfileData(None, None, None, None, Nil))
+
+  def createVirtualCollection(profile: UserProfile, vcdesc: VirtualCollectionDescription) = {
+    VirtualCollection.create(new VirtualCollection(description=vcdesc)).flatMap { created =>
+      createRelationship(profile, created, "hasCollection").map { edge =>
+        profile.withCollection(created)
+      }
+    }
+  }
+  
+  override def fetchByFieldOption(field: String, value: String): Promise[Option[UserProfile]] = {
+    val params = Map(
+      "index_name" -> indexName,
+      "key" -> field,
+      "query_string" -> value,
+      "inRels" -> List(),
+      "outRels" -> List("hasCollection")
+    )
+    gremlin("query_exact_index_with_related", params).map(response => {
+      val items = getJson(response).children
+      items.headOption.map(apply(_)).map { prof =>
+        items.tail.foldLeft(prof) { (p: UserProfile, json: net.liftweb.json.JsonAST.JValue) =>
+          (json \ "data" \ "element_type").extractOpt[String].map { eletype =>
+            eletype match {
+              case VirtualCollection.indexName => p.withCollection(VirtualCollection(json))
+              case _ => p
+            }
+          }.getOrElse(p)
+        }
+      }
+    })
+  }
 }
 
 
@@ -33,6 +65,7 @@ case class UserProfile(
   val userId: Long = -1,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
+  val virtualCollections: List[VirtualCollection] = Nil,
   val data: ProfileData
 ) extends Neo4jModel {
   def name = data.name.getOrElse("")
@@ -48,6 +81,9 @@ case class UserProfile(
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ data.toMap
   }
+
+  def withCollection(vc: VirtualCollection) = 
+      copy(virtualCollections=virtualCollections ++ List(vc))
 }
 
 case class ProfileData(
