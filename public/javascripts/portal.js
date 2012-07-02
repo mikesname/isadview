@@ -17,6 +17,43 @@ jQuery(function($) {
         });
     });
 
+    function initPopovers(vclist) {
+        function getLinks(itemSlug) {
+            var s = "<ul>";
+            $.each(vclist, function(i, item) {
+                s += "<li><a class='store-item' href='/profile/stash/" + itemSlug + "/" + item[1] + "'>" + item[0] + "</a></li>"
+            });
+            return s + "</ul>"
+        }
+        $("a.save-item").each(function(i, elem) {
+            var slug = $(this).data("slug");
+
+            $(elem).popover({
+                title: "Save Item?",
+                placement: "top",
+                content: getLinks(slug),
+                delay: {
+                    show: 500,
+                    hide: 2000,
+                }
+            });
+        });
+    }
+
+    $(document).on("click", "a.store-item", function(event) {
+        event.preventDefault();
+        $.post($(this).attr("href"), function(data) {
+            alert(data);
+        });
+    });
+
+    // show a popup to save items to one of the users's virtual collection
+    if ($("a.save-item").length > 0) {
+        $.getJSON($("a.save-item").first().attr("href"), function(data) {
+            initPopovers(data);
+        });
+    }
+
     //add Ajax behaviour on pagination links
     $(document).on("click", ".ajax, #facet-popup > .pagination ul li a", function(event) {
         // MASSIVE HACK - extract the facet class from the fclass data attribute

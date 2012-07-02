@@ -21,7 +21,6 @@ object Users extends Controller with Auth with Authorizer with ControllerHelpers
     Async {
       UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
         val profile = profileopt.getOrElse(UserProfile(user.id))
-        println(profile.virtualCollections)
         Ok(views.html.user.detail(user, profile))
       }
     }
@@ -62,7 +61,20 @@ object Users extends Controller with Auth with Authorizer with ControllerHelpers
         )
       }
     }
-  }  
+  }
+
+  def listVirtualCollections = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+    Async {
+      UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
+        val profile = profileopt.getOrElse(UserProfile(user.id))
+        Ok(generate(profile.virtualCollections.map(c => List(c.name, c.slug, c.id))))
+      }
+    }
+  }
+
+  def saveItem(item: String, vc: String) = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+    Ok("saved: %s -> %s".format(item, vc))
+  }
 
   private def createProfile(user: models.sql.User, data: ProfileData) = {
     Async {

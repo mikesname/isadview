@@ -27,7 +27,7 @@ currentOrderBy: Int, currentFilter: String
                 @if(currentPage.items) {
                     <div class="result-list">
                         @currentPage.items.map{result =>
-                            @common.searchResult(result)
+                            @common.searchResult(result, maybeUser)
                         }
                     @common.paginate(rtype, currentPage.items, currentPage, currentOrderBy, currentFilter)
                     </div>

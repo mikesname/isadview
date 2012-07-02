@@ -1,6 +1,6 @@
-@(result: solr.models.Description)
+@(result: solr.models.Description, maybeUser: Option[models.sql.User])
 
-<div class="search-result@if(result.publication_status == 0) { draft }">
+<div class="search-result@if(result.publication_status == 0) { draft }" data-slug="@result.slug">
     @if(result.django_ct == "portal.repository") {
         <h4><a href="@routes.Repositories.detail(slug=result.slug)">@result.name</a></h4>
     } else {
@@ -26,5 +26,8 @@
             result.asInstanceOf[solr.models.Collection].description.slice(0, 200)
         }}
     </p>
+    @maybeUser.map { user =>
+        <a class="save-item ajax" data-user="@user.id" data-slug="@result.slug" href="@routes.Users.listVirtualCollections">Save item</a>
+    }
 </div>
 
