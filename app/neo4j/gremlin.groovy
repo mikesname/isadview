@@ -285,12 +285,10 @@ def query_exact_index_with_related(index_name, key, query_string, outRels, inRel
   pipe = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)
   if (outRels.size == 0 && inRels.size == 0)
     return pipe
-  pipe = pipe._()
-  for (outr in outRels)
-    pipe = pipe.copySplit(_(), _().out(outr))
-  for (inr in inRels)
-    pipe = pipe.copySplit(_(), _().in(inr))
-  return pipe.exhaustMerge()
+  return pipe._().copySplit(*(
+      [_()] + outRels.collect{_().out(it)} + inRels.collect{_().in(it)}
+    )
+  ).exhaustMerge() 
 }
 
 // Metadata
