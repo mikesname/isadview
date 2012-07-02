@@ -39,7 +39,7 @@ trait Authorizer extends Results with AuthConfig {
   /**
    * A duration of the session timeout in seconds
    */
-  val sessionTimeoutInSeconds: Int = 3600
+  val sessionTimeoutInSeconds: Int = 604800 // 1 week
 
   /**
    * A function that returns a `User` object from an `Id`.
