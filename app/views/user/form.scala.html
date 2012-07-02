@@ -1,4 +1,4 @@
-@(user: models.sql.User, f: Form[models.UserProfile], action: Call, r: Option[models.UserProfile] = None)(implicit request: RequestHeader)
+@(user: models.sql.User, f: Form[models.ProfileData], action: Call, r: models.ProfileData)(implicit request: RequestHeader)
 
 @import app.util.Helpers 
 
@@ -6,7 +6,7 @@
 @implicitField = @{ views.html.helper.FieldConstructor(common.fieldTemplate.f) }
 
 @baseform("Edit Profile", body_class="profile") {
-    <h2>@r.map(_.name).getOrElse(Messages("Edit Profile"))</h2>
+    <h2>@Messages("Edit Profile")</h2>
 
     <div class="row">
         <div class="span12 columns">
@@ -15,7 +15,10 @@
 
         <fieldset id="profile-area">
             <legend>@Messages("Profile")</legend>
-              @helper.inputText(f("name"), '_label -> "Name")
+              @helper.inputText(f("name"), '_label -> Messages("Name"))
+              @common.descriptionTextarea(f("about"), Messages("About"))
+              @helper.inputText(f("location"), '_label -> Messages("Location"))
+              @helper.inputText(f("website"), '_label -> Messages("Website"))
 
               <div class="control-group">
                   <label for="languages">@Messages("Languages")</label>
@@ -23,7 +26,7 @@
                       <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                           id="languages" name="languages">
                         @Helpers.languageList.map{t =>
-                            <option value="@t._1" @(if(r.map(_.data.languages).getOrElse(List()).contains(t._1))
+                            <option value="@t._1" @(if(r.languages.contains(t._1))
                             "selected" else "")>@t._2</option>
                         }
                       </select>
@@ -32,7 +35,7 @@
         </fieldset>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">@Messages("Save Profile"))</button>
+            <button type="submit" class="btn btn-primary">@Messages("Save Profile")</button>
             <a href="" class="btn">@Messages("Cancel")</a>
         </div>
         }

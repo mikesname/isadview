@@ -21,35 +21,61 @@ object Users extends Controller with Auth with Authorizer with ControllerHelpers
     Async {
       UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
         val profile = profileopt.map(_.data).getOrElse(new ProfileData())
-        val form = UserForm.profileForm.fill(profile)
         Ok(views.html.user.detail(user, profile))
       }
     }
   }
 
-  //def new_ = Action { implicit request => 
-  //  Ok(views.html.user.form(f=UserForm.signupForm, action=routes.Users.create))
-  //}
+  def edit = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+    Async {
+      UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
+        val profile = profileopt.map(_.data).getOrElse(new ProfileData())
+        val form = UserForm.profileForm.fill(profile)
+        val action = routes.Users.editPost
+        Ok(views.html.user.form(user, form, action, profile))
+      }
+    }
+  }
 
-  //def create = Action { implicit request =>
-  //  // transform input for multiselects
-  //  val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
-  //    "profile.languages"
-  //  ))
+  def editPost = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+    // transform input for multiselects
+    val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
+      "languages"
+    ))
 
-  //  UserForm.signupForm.bindFromRequest().fold(
-  //    errorForm => {
-  //      BadRequest(
-  //        views.html.user.form(f=errorForm, action=routes.Users.create))
-  //    },
-  //    data => {
-  //      Async {
-  //        auth = new UserAuth(username,  
-  //        User.create(new User(profile=data)).map { created =>
-  //          Redirect(routes.Authorities.detail(slug=created.slug.get))
-  //        }
-  //      }
-  //    }
-  //  )
-  //}
+    Async {
+      UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
+        val profile = profileopt.map(_.data).getOrElse(new ProfileData())
+        UserForm.profileForm.bindFromRequest(formData).fold(
+          errorForm => BadRequest(views.html.user.form(user, errorForm, routes.Users.editPost, profile)),
+          profiledata => {
+            profileopt match {
+              case Some(profile) => {
+                updateProfile(user, profile.copy(data=profiledata))
+              }
+              case None => {
+                createProfile(user, profiledata)
+              }
+            }
+          }
+        )
+      }
+    }
+  }  
+
+  private def createProfile(user: models.sql.User, data: ProfileData) = {
+    Async {
+      UserProfile.create0(new UserProfile(userId=user.id, data=data)).map { created =>
+        Redirect(routes.Users.profile)
+      }
+    }
+  }
+
+  private def updateProfile(user: models.sql.User, profile: UserProfile) = {
+    Async {
+      UserProfile.persist(profile.id, profile).map { updated =>
+        Redirect(routes.Users.profile)
+      }
+    }
+  }
 }
