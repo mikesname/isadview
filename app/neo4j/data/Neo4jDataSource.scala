@@ -7,9 +7,10 @@ import play.api.libs.ws.{WS,Response}
 import com.codahale.jerkson.Json._
 
 import neo4j.json.JsonBuilder
+import play.api.PlayException
 
-case class NoResultsFound(err: String = "") extends Exception
-case class MultipleResultsFound(err: String = "") extends Exception
+case class NoResultsFound(err: String = "") extends PlayException("NoResultsFound", err)
+case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
 
 
 trait Neo4jModel {
