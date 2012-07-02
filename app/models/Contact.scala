@@ -49,6 +49,7 @@ case class ContactDescription(
   val note: Option[String] = None
 ) {
   def toMap = Map(
+    "element_name" -> Contact.indexName,
     "primary" -> primary,
     "contact_person" -> contactPerson,
     "street_address" -> streetAddress,

@@ -1,6 +1,7 @@
 package models
 
 import neo4j.data._
+import play.api.libs.concurrent.Promise
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
@@ -57,6 +58,29 @@ object Collection extends Neo4jDataSource[Collection] {
       )
     )
   }
+
+  override def fetchByFieldOption(field: String, value: String): Promise[Option[Collection]] = {
+    val params = Map(
+      "index_name" -> indexName,
+      "key" -> field,
+      "query_string" -> value,
+      "inRels" -> List("locatesInTime"),
+      "outRels" -> List("heldBy", "createdBy")
+    )
+    gremlin("query_exact_index_with_related", params).map(response => {
+      val items = getJson(response).children
+      items.headOption.map(apply(_)).map { collection =>
+        items.tail.foldLeft(collection) { (c: Collection, json: net.liftweb.json.JsonAST.JValue) =>
+          (json \ "data" \ "element_type").extractOpt[String].map { eletype =>
+            eletype match {
+              case "fuzzydate" => c.withDate(FuzzyDate(json))
+              case _ => c
+            }
+          }.getOrElse(c)
+        }
+      }
+    })
+  }
 }
 
 case class Collection(
@@ -89,12 +113,14 @@ case class Collection(
   def toMap = {
     Map(
       "slug" -> slug,
+      "element_type" -> Collection.indexName,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ description.toMap
   }
 
   def withSlug(newSlug: String) = copy(slug=Some(newSlug))
+  def withDate(date: FuzzyDate) = copy(description=description.withDate(date))
 }
 
 case class CollectionDescription(
@@ -106,7 +132,8 @@ case class CollectionDescription(
   val control: CollectionControl,
   val admin: CollectionAdmin
 ) {
-  def withDates(dates: List[FuzzyDate]) = copy(identity=identity.withDates(dates))
+  def withDate(date: FuzzyDate) = copy(identity=identity.withDate(date))
+  def withDates(dates: List[FuzzyDate]) = dates.foldLeft(this)((c, d) => c.withDate(d))
   def toMap = {
     identity.toMap ++
     context.toMap ++
@@ -133,7 +160,7 @@ case class CollectionIdentity(
     "level_of_description" -> levelOfDescription,
     "extent_and_medium" -> extentAndMedium
   )
-  def withDates(newDates: List[FuzzyDate]) = copy(dates=newDates.map(_.description))
+  def withDate(date: FuzzyDate) = copy(dates=dates ++ List(date.description))
 }
 
 case class CollectionContext(

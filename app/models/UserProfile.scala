@@ -43,6 +43,7 @@ case class UserProfile(
   def toMap = {
     Map(
       "user_id" -> userId,
+      "element_type" -> UserProfile.indexName,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ data.toMap

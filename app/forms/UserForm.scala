@@ -29,4 +29,11 @@ object UserForm {
       "languages" -> list(text)
     )(ProfileData.apply)(ProfileData.unapply)
   )
+
+  val virtualCollection = Form(
+    tuple(
+      "name" -> text,
+      "description" -> optional(text)
+    )
+  )
 }

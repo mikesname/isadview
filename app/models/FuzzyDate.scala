@@ -42,6 +42,7 @@ case class FuzzyDateDescription(
   val circa: Option[Boolean] = Some(false)
 ) {
   def toMap = Map(
+    "element_type" -> FuzzyDate.indexName,
     "start_date" -> startDate.map(ISODateTimeFormat.dateTime.print(_)),
     "end_date" -> endDate.map(ISODateTimeFormat.dateTime.print(_)),
     "circa" -> circa,

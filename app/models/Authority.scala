@@ -66,6 +66,7 @@ case class Authority(
 
   def toMap = {
     Map(
+      "element_name" -> Authority.indexName,
       "slug" -> slug,
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))

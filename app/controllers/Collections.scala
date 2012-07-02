@@ -22,19 +22,14 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         Async {
-          // get dates
-          FuzzyDate.findRelatedTo(collection, FuzzyDate.Direction.In, "locatesInTime").map { dates =>
+          Repository.findRelatedTo(collection, Repository.Direction.Out, "heldBy").map { repos =>
+            // there should ALWAYS be a repository.
+            val repo = repos.head
             Async {
-              Repository.findRelatedTo(collection, Repository.Direction.Out, "heldBy").map { repos =>
-                // there should ALWAYS be a repository.
-                val repo = repos.head
-                Async {
-                  Authority.findRelatedTo(collection, Authority.Direction.Out, "createdBy").map { auths =>
-                    val creator = auths.headOption
-                    Ok(views.html.collection.detail(
-                        collection, collection.description.withDates(dates), repo, creator))
-                  }
-                }
+              Authority.findRelatedTo(collection, Authority.Direction.Out, "createdBy").map { auths =>
+                val creator = auths.headOption
+                Ok(views.html.collection.detail(
+                    collection, collection.description, repo, creator))
               }
             }
           }
@@ -72,14 +67,9 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
   def edit(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
-        Async {
-          // get dates
-          FuzzyDate.findRelatedTo(collection, FuzzyDate.Direction.In, "locatesInTime").map { dates =>
-            val form = CollectionForm.form.fill(collection.description.withDates(dates))
-            val action = routes.Collections.save(slug)
-            Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
-          }
-        }
+        val form = CollectionForm.form.fill(collection.description)
+        val action = routes.Collections.save(slug)
+        Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
       }
     }
   }

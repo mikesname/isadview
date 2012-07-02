@@ -279,6 +279,20 @@ def query_exact_index(index_name, key, query_string) {
   return g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)
 }
 
+// Fetch relations as well as queried objects
+def query_exact_index_with_related(index_name, key, query_string, outRels, inRels) {
+  // Neo4jTokens.QUERY_HEADER = "%query%"
+  pipe = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)
+  if (outRels.size == 0 && inRels.size == 0)
+    return pipe
+  pipe = pipe._()
+  for (outr in outRels)
+    pipe = pipe.copySplit(_(), _().out(outr))
+  for (inr in inRels)
+    pipe = pipe.copySplit(_(), _().in(inr))
+  return pipe.exhaustMerge()
+}
+
 // Metadata
 
 def get_metadata(key, default_value) {
