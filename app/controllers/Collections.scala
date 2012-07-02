@@ -21,19 +21,7 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
   def detail(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
-        Async {
-          Repository.findRelatedTo(collection, Repository.Direction.Out, "heldBy").map { repos =>
-            // there should ALWAYS be a repository.
-            val repo = repos.head
-            Async {
-              Authority.findRelatedTo(collection, Authority.Direction.Out, "createdBy").map { auths =>
-                val creator = auths.headOption
-                Ok(views.html.collection.detail(
-                    collection, collection.description, repo, creator))
-              }
-            }
-          }
-        }
+        Ok(views.html.collection.detail(collection, collection.description))
       }
     }
   }

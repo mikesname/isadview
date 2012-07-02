@@ -73,7 +73,9 @@ object Collection extends Neo4jDataSource[Collection] {
         items.tail.foldLeft(collection) { (c: Collection, json: net.liftweb.json.JsonAST.JValue) =>
           (json \ "data" \ "element_type").extractOpt[String].map { eletype =>
             eletype match {
-              case "fuzzydate" => c.withDate(FuzzyDate(json))
+              case FuzzyDate.indexName => c.withDate(FuzzyDate(json))
+              case Repository.indexName => c.copy(repository=Some(Repository(json)))
+              case Authority.indexName => c.copy(creator=Some(Authority(json)))
               case _ => c
             }
           }.getOrElse(c)
@@ -88,7 +90,9 @@ case class Collection(
   val slug: Option[String] = None,
   val description: CollectionDescription,
   val createdOn: Option[DateTime] = None,
-  val updatedOn: Option[DateTime] = None
+  val updatedOn: Option[DateTime] = None,
+  val repository: Option[Repository] = None,
+  val creator: Option[Authority] = None
 ) extends Neo4jSlugModel with CrudUrls {
   def name = description.identity.name
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))

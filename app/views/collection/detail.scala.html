@@ -1,9 +1,8 @@
-@(cl: models.Collection, c: models.CollectionDescription, repo: models.Repository, creator: Option[models.Authority])(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
+@(cl: models.Collection, c: models.CollectionDescription)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main(c.identity.name, body_class="collection") {
 <div class="row">
     <div class="span3 columns">
-
         <div class="sidebar">
             @collection.sidebarDetails(c)
             @common.exportActions(cl)
@@ -17,18 +16,17 @@
                 <span class="label">@Messages("Draft Description")</span>
             }
         </h2>
+        <h3>@cl.repository.map(_.name)</h3>
         @if(c.identity.otherNames.size > 0) {
             <h3 class="alternate-name">
                 @c.identity.otherNames.mkString(",")
             </h3>
         }
 
-        @if(!creator.isEmpty) {
+        @cl.creator.map { auth =>
             <h4>@Messages("Created By")</h4>
             <p>
-                @creator.map { auth =>
-                    <a href="@routes.Authorities.detail(slug=auth.slug.get)">@auth.name</a>
-                }
+                <a href="@routes.Authorities.detail(slug=auth.slug.get)">@auth.name</a>
             </p>
         }
         
