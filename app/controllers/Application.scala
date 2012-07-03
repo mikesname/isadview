@@ -131,9 +131,9 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
   def testq = Action {
     import neo4j.query.Query
 
-    val q = Query()
-    println(q)
-    Ok("look at shell")
+    val q = Query(models.Repository.apply _, models.Repository.indexName)
+    println("Done query...")
+    Ok(q.filter("name__contains" -> "iener Lib").toString)
   }
 
   def dbtest = optionalUserAction { implicit maybeUser => request =>

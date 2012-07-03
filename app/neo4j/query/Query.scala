@@ -9,48 +9,66 @@ package neo4j.query
 import neo4j.data._
 
 import models.Repository
+import net.liftweb.json.JsonAST.JValue
 
 object Query {
-    val LOOKUP_SEP = "__"
-    val ORDER_PATTERN = "\\?|[-+]/[.\\w]+$".r
-    val ORDER_DIR = Map(
-      "ASC" -> ("ASC", "DESC"),
-      "DESC" -> ("DESC", "ASC")
-    )
+  val LOOKUP_SEP = "__"
+  val ORDER_PATTERN = "\\?|[-+]/[.\\w]+$".r
+  val ORDER_DIR = Map(
+    "ASC" -> ("ASC", "DESC"),
+    "DESC" -> ("DESC", "ASC")
+  )
+  val DEFAULT_OP = "exact"
 }
 
 
-case class Query[A <: Neo4jDataSource[A]](
-    val low: Int = 0,
-    val high: Option[Int] = None,
-    val order: List[String] = Nil,
-    val filters: Map[String,String] = Map(),
-    private val inrels: List[String] = Nil,
-    private val outrels: List[String] = Nil
-) extends collection.Iterable[A] {
-    type Model = A
-    private def runQuery = {
-      val params = Map(
-        "index_name" -> Repository.indexName,
-        "inrels" -> Nil,
-        "outrels" -> Nil,
-        "filters" -> List(List("name", "startswith", "Wiener")),
-        "low" -> 0,
-        "high" -> 20,
-        "order_by" -> List(),
-        "docount" -> false,
-        "dodelete" -> false
-      )
+case class Query[A](
+  val builder: JValue => A,
+  val indexName: String,
+  val low: Int = 0,
+  val high: Option[Int] = None,
+  val order: List[String] = Nil,
+  private val filters: Map[String,String] = Map(),
+  private val inrels: List[String] = Nil,
+  private val outrels: List[String] = Nil
+) extends collection.Iterable[A] with GremlinHelper {
+  def filter(kv: (String, String)*) = copy(filters = kv.foldLeft(filters)((f, k) => f + k))
 
-      Repository.gremlin("query", params).map { resp => 
-        println(resp.body)
-        //list(getJson(resp))
-        Nil
-      }.await.get
-    }
+  def compiledFilters = {
+    val f = filters.map { case(key, value) =>
+      val keyparts = key.split(Query.LOOKUP_SEP)
+      // TODO: Check validity of specifier
+      if (keyparts.length > 1)
+        List(keyparts(0), keyparts(1), value)
+      else
+        List(key, Query.DEFAULT_OP, value)
+    }.toList
+    println("Compiled filters: " + f)
+    f
+  }
 
-    private lazy val data: List[A] = runQuery
+  def apply(json: JValue) = builder(json)
+  private def runQuery = {
+    val params = Map(
+      "index_name" -> indexName,
+      "inrels" -> Nil,
+      "outrels" -> Nil,
+      "filters" -> compiledFilters,
+      "low" -> 0,
+      "high" -> 20,
+      "order_by" -> List(),
+      "docount" -> false,
+      "dodelete" -> false
+    )
+    println("Calculating response..." + params)
+    gremlin("query", params).map { resp => 
+      println(resp.body)
+      getJson(resp).children.map(apply(_))
+    }.await.get
+  }
 
-    override def iterator = data.iterator
+  private lazy val data: List[A] = runQuery
+
+  override def iterator = data.iterator
 }
 
