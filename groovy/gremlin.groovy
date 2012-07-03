@@ -283,7 +283,7 @@ def query_exact_index(index_name, key, query_string) {
 def query_exact_index_with_related(index_name, key, query_string, outRels, inRels) {
   // Neo4jTokens.QUERY_HEADER = "%query%"
   pipe = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)
-  if (outRels.size == 0 && inRels.size == 0)
+  if (!pipe.hasNext() || (outRels.size == 0 && inRels.size == 0))
     return pipe
   return pipe._().copySplit(*(
       [_()] + outRels.collect{_().out(it)} + inRels.collect{_().in(it)}
