@@ -2,6 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+GET     /dbtest                         controllers.Application.dbtest()
+GET     /testq                          controllers.Application.testq()
+
 # Home page
 GET     /                               controllers.Application.index
 GET     /home                           controllers.Application.index
@@ -25,7 +28,6 @@ GET     /profile/collection/create      controllers.VirtualCollections.new_
 POST    /profile/collection/create      controllers.VirtualCollections.create
 GET     /profile/collection/:slug       controllers.VirtualCollections.detail(slug:String)
 
-GET     /dbtest                         controllers.Application.dbtest()
 
 # Searching
 GET     /$rtype<(collection|repository|authority)>     controllers.Search.list(rtype:String, page:Int ?= 0, s:Int ?= 2, q ?= "", field ?= "")

@@ -128,6 +128,14 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     }
   }
 
+  def testq = Action {
+    import neo4j.query.Query
+
+    val q = Query()
+    println(q)
+    Ok("look at shell")
+  }
+
   def dbtest = optionalUserAction { implicit maybeUser => request =>
     import models.sql.User
     Ok("Result: " + User.findAll)
