@@ -119,6 +119,7 @@ def query(index_name, inrels, outrels, filters, high, low, order_by, docount, do
       "exact":   {it, a, v -> it."$a" == v},
       "iexact":  {it, a, v -> it."$a".toLowerCase() == v.toLowerCase()},
       "contains":{it, a, v -> it."$a".matches(".+$v.+")},
+      "icontains":{it, a, v -> it."$a".toLowerCase().matches(".+" + v.toLowerCase() + ".+")},
       "startswith":{it, a, v -> it."$a".matches("^$v.+")},
       "endswith":{it, a, v -> it."$a".matches(".+$v\$")},
       "isnull":  {it, a, v -> it."$a" == null},
