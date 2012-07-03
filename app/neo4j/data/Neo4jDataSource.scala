@@ -27,23 +27,17 @@ trait Neo4jSlugModel extends Neo4jModel {
   def withSlug(slug: String): Neo4jModel
 }
 
-
-trait Neo4jDataSource[T] extends JsonBuilder[T] {
+trait GremlinHelper {
   val scripts = new neo4j.ScriptSource()
   val gremlinPath = play.api.Play.configuration.getString("gremlin").getOrElse(
       sys.error("The path to the Neo4j Gremlin plugin is not specified in application.conf"))
 
-  /*
-   * The name of the (mandatory) neo4j property that marks
-   * denotes the type of a node.
+  /**
+   *  For as-yet-undetermined reasons that data coming back from Neo4j seems
+   *  to be encoded as ISO-8859-1, so we need to convert it to UTF-8. Obvs.
+   *  this problem should eventually be fixed at the source, rather than here.
    */
-  val TypeKey = "element_type"
-
-  /*
-   * Implementing objects must specify this as the TypeKey
-   * and the name of vertex indexes.
-   */
-  val indexName: String
+  def fixEncoding(s: String) = new String(s.getBytes("ISO-8859-1"), "UTF-8")
 
   /*
    * Enum for declaring direction of relationships.
@@ -53,23 +47,10 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     val In, Out = Value
   }
   
-  /**
-   *  The headers that get sent to the Neo4j Gremlin plugin for a
-   *  JSON request/response.
-   */
   private val headers = Map(
     "Accept" -> "application/json",
     "Content-Type" -> "application/json; charset=utf8"
   )
-
-  private def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
-
-  /**
-   *  For as-yet-undetermined reasons that data coming back from Neo4j seems
-   *  to be encoded as ISO-8859-1, so we need to convert it to UTF-8. Obvs.
-   *  this problem should eventually be fixed at the source, rather than here.
-   */
-  def fixEncoding(s: String) = new String(s.getBytes("ISO-8859-1"), "UTF-8")
 
   /**
    *  Only Lift's JSON decoder seems able to parse JSON without
@@ -77,7 +58,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
    * error raise an exception and try and report it sensibly.
    */
   implicit val formats = net.liftweb.json.DefaultFormats
-  def getJson(r: Response) = {
+  def getJson(r: Response): net.liftweb.json.JsonAST.JValue = {
     try {
       val data = net.liftweb.json.parse(fixEncoding(r.body))
       data.extractOpt[GremlinError].map { error =>
@@ -99,6 +80,28 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
     val data = Map("script" -> scriptBody, "params" -> params)
     WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))
   }
+}
+
+
+
+trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
+  /*
+   * The name of the (mandatory) neo4j property that marks
+   * denotes the type of a node.
+   */
+  val TypeKey = "element_type"
+
+  /*
+   * Implementing objects must specify this as the TypeKey
+   * and the name of vertex indexes.
+   */
+  val indexName: String
+
+  /**
+   *  The headers that get sent to the Neo4j Gremlin plugin for a
+   *  JSON request/response.
+   */
+  private def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
 
   def create0(item: Neo4jModel): Promise[T] = {
     val params = Map(
