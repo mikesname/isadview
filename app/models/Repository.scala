@@ -71,6 +71,8 @@ case class Repository(
   val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Repositories.confirmDelete(slug=slug.getOrElse(""))
 
+  override def toString = "<Repository: %s (%d)>".format(name, id)
+
   override def getSubordinateItems = Map(
     // FIXME: Find a better way of determining if
     // a contact is 'empty' and should be deleted
