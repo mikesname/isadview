@@ -80,7 +80,10 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
   def getJson(r: Response) = {
     try {
       val data = net.liftweb.json.parse(fixEncoding(r.body))
-      data.extractOpt[GremlinError].map(throw _).getOrElse(data)
+      data.extractOpt[GremlinError].map { error =>
+        println(r.body)
+        throw error
+      }.getOrElse(data)
     } catch {
       // FIXME: Make this more sensible... unfortunately the response status
       // doesn't help us when it's a Gremlin script error causing an unexpected
@@ -91,7 +94,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] {
   }
 
   def gremlin(scriptName: String, params: AnyRef): Promise[Response] = {
-    scripts.loadScript("app/neo4j/gremlin.groovy")
+    scripts.loadScript("groovy/gremlin.groovy")
     val scriptBody = scripts.get(scriptName)
     val data = Map("script" -> scriptBody, "params" -> params)
     WS.url(gremlinPath).withHeaders(headers.toList: _*).post(generate(data))

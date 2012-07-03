@@ -22,7 +22,11 @@ trait JsonBuilder[T] {
     // attempt to ensure we catch a known type of error that
     // comes back from Neo4j if it encounters an error in a
     // Gremlin script.
-    data.extractOpt[GremlinError].map(throw _)
+    data.extractOpt[GremlinError].map { error =>
+      println(data)
+      // do some logging here
+      throw error
+    }
     data.children.map(apply(_))
   }
 }
