@@ -31,7 +31,7 @@ case class Query[A](
   private val filters: Map[String,String] = Map(),
   private val inrels: List[String] = Nil,
   private val outrels: List[String] = Nil
-) extends collection.Iterable[A] with GremlinHelper {
+) extends collection.Seq[A] with GremlinHelper {
   def filter(kv: (String, String)*) = copy(filters = kv.foldLeft(filters)((f, k) => f + k))
 
   def compiledFilters = {
@@ -48,14 +48,17 @@ case class Query[A](
   }
 
   def apply(json: JValue) = builder(json)
+  def apply(i: Int) = data(i)
+  def length = data.length
+  override def slice(from: Int, to: Int) = copy(low=from, high=Some(to))
   private def runQuery = {
     val params = Map(
       "index_name" -> indexName,
       "inrels" -> Nil,
       "outrels" -> Nil,
       "filters" -> compiledFilters,
-      "low" -> 0,
-      "high" -> 20,
+      "low" -> low,
+      "high" -> high.getOrElse(null),
       "order_by" -> List(),
       "docount" -> false,
       "dodelete" -> false

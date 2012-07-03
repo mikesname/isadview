@@ -128,12 +128,24 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     }
   }
 
-  def testq = Action {
+  def testq = Action { implicit request =>
     import neo4j.query.Query
 
+    var query = request.queryString.getOrElse("q", Seq()).headOption
+    var field = request.queryString.getOrElse("field", Seq()).headOption.getOrElse("name")
+    var op = request.queryString.getOrElse("op", Seq()).headOption.getOrElse("exact")
+    val from = request.queryString.getOrElse("from", Seq()).headOption.map(_.toInt)
+    val to = request.queryString.getOrElse("to", Seq()).headOption.map(_.toInt)
     val q = Query(models.Repository.apply _, models.Repository.indexName)
     println("Done query...")
-    Ok(q.filter("name__contains" -> "iener Lib").toString)
+
+    var res = q
+    query.map { qstr =>
+      res = res.filter("%s__%s".format(field, op) -> qstr)
+    }
+    if (to.isDefined && from.isDefined)
+      res = res.slice(from.get, to.get.max(from.get))
+    Ok("Result: %s\n\nCount: %d".format(res, res.length))
   }
 
   def dbtest = optionalUserAction { implicit maybeUser => request =>
