@@ -37,7 +37,7 @@ case class Query[A](
   def compiledFilters = {
     val f = filters.map { case(key, value) =>
       val keyparts = key.split(Query.LOOKUP_SEP)
-      // TODO: Check validity of specifier
+      // TODO: Check validity of operator ('exact', 'startswith', etc)
       if (keyparts.length > 1)
         List(keyparts(0), keyparts(1), value)
       else
