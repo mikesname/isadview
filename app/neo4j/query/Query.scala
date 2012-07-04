@@ -67,12 +67,12 @@ case class Query[A](
   }
   def count(): Promise[Int] = {
     gremlin("query", params + ("docount" -> true)).map { resp =>
-      resp.body.toInt  
+      parse[Int](resp.body)
     }
   }
   def delete(): Promise[Boolean] = {
     gremlin("query", params + ("dodelete" -> true)).map { resp =>
-      resp.body.toBoolean  
+      parse[Boolean](resp.body)
     }
   }
 }
