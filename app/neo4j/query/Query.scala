@@ -10,6 +10,7 @@ import neo4j.data._
 
 import play.api.libs.concurrent.Promise
 import net.liftweb.json.JsonAST.JValue
+import com.codahale.jerkson.Json.parse
 
 object Query {
   val LOOKUP_SEP = "__"
@@ -33,7 +34,6 @@ case class Query[A](
   private val outrels: List[String] = Nil
 ) extends GremlinHelper {
   def filter(kv: (String, String)*) = copy(filters = kv.foldLeft(filters)((f, k) => f + k))
-
   def compiledFilters = {
     val f = filters.map { case(key, value) =>
       val keyparts = key.split(Query.LOOKUP_SEP)
@@ -47,24 +47,32 @@ case class Query[A](
     f
   }
 
+  def params = Map(
+    "index_name" -> indexName,
+    "inrels" -> Nil,
+    "outrels" -> Nil,
+    "filters" -> compiledFilters,
+    "low" -> low,
+    "high" -> high.getOrElse(null),
+    "order_by" -> List(),
+    "docount" -> false,
+    "dodelete" -> false
+  )             
   def apply(json: JValue) = builder(json)
   def slice(from: Int, to: Int) = copy(low=from, high=Some(to))
-  def count(): Promise[Int] = get().map(_.length)
   def get() = {
-    val params = Map(
-      "index_name" -> indexName,
-      "inrels" -> Nil,
-      "outrels" -> Nil,
-      "filters" -> compiledFilters,
-      "low" -> low,
-      "high" -> high.getOrElse(null),
-      "order_by" -> List(),
-      "docount" -> false,
-      "dodelete" -> false
-    )
-    println("Calculating response..." + params)
     gremlin("query", params).map { resp => 
       getJson(resp).children.map(apply(_))
+    }
+  }
+  def count(): Promise[Int] = {
+    gremlin("query", params + ("docount" -> true)).map { resp =>
+      resp.body.toInt  
+    }
+  }
+  def delete(): Promise[Boolean] = {
+    gremlin("query", params + ("dodelete" -> true)).map { resp =>
+      resp.body.toBoolean  
     }
   }
 }
