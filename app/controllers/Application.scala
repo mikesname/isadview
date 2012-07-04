@@ -145,7 +145,11 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     }
     if (to.isDefined && from.isDefined)
       res = res.slice(from.get, to.get.max(from.get))
-    Ok("Result: %s\n\nCount: %d".format(res, res.length))
+    Async {
+      res.get().map { out =>
+        Ok("Result: %s\n\nCount: %d".format(out, out.length))
+      }
+    }
   }
 
   def dbtest = optionalUserAction { implicit maybeUser => request =>

@@ -8,7 +8,7 @@ package neo4j.query
 
 import neo4j.data._
 
-import models.Repository
+import play.api.libs.concurrent.Promise
 import net.liftweb.json.JsonAST.JValue
 
 object Query {
@@ -31,7 +31,7 @@ case class Query[A](
   private val filters: Map[String,String] = Map(),
   private val inrels: List[String] = Nil,
   private val outrels: List[String] = Nil
-) extends collection.Seq[A] with GremlinHelper {
+) extends GremlinHelper {
   def filter(kv: (String, String)*) = copy(filters = kv.foldLeft(filters)((f, k) => f + k))
 
   def compiledFilters = {
@@ -48,10 +48,9 @@ case class Query[A](
   }
 
   def apply(json: JValue) = builder(json)
-  def apply(i: Int) = data(i)
-  def length = data.length
-  override def slice(from: Int, to: Int) = copy(low=from, high=Some(to))
-  private def runQuery = {
+  def slice(from: Int, to: Int) = copy(low=from, high=Some(to))
+  def count(): Promise[Int] = get().map(_.length)
+  def get() = {
     val params = Map(
       "index_name" -> indexName,
       "inrels" -> Nil,
@@ -65,13 +64,8 @@ case class Query[A](
     )
     println("Calculating response..." + params)
     gremlin("query", params).map { resp => 
-      println(resp.body)
       getJson(resp).children.map(apply(_))
-    }.await.get
+    }
   }
-
-  private lazy val data: List[A] = runQuery
-
-  override def iterator = data.iterator
 }
 

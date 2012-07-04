@@ -10,6 +10,8 @@ import neo4j.json.{JsonBuilder,GremlinError}
 import play.api.PlayException
 import play.api.Play.current
 
+import neo4j.query._
+
 case class NoResultsFound(err: String = "") extends PlayException("NoResultsFound", err)
 case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
 
@@ -202,5 +204,8 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
       list(getJson(response))
     }
   }
+
+  def query = Query(apply, indexName)
+
 }
 
