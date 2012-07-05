@@ -27,7 +27,7 @@
         }}
     </p>
     @maybeUser.map { user =>
-        <a class="save-item ajax" data-user="@user.id" data-slug="@result.slug" href="@routes.Users.listVirtualCollections">Save item</a>
+        <a class="save-item ajax" data-user="@user.id" data-id="@result.id" data-slug="@result.slug" href="@routes.Users.listVirtualCollections">Save item</a>
     }
 </div>
 

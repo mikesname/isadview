@@ -18,20 +18,20 @@ jQuery(function($) {
     });
 
     function initPopovers(vclist) {
-        function getLinks(itemSlug) {
+        function getLinks(itemId) {
             var s = "<ul>";
             $.each(vclist, function(i, item) {
-                s += "<li><a class='store-item' href='/profile/stash/" + itemSlug + "/" + item[1] + "'>" + item[0] + "</a></li>"
+                s += "<li><a class='store-item' href='/profile/stash/" + itemId + "/" + item[2] + "'>" + item[0] + "</a></li>"
             });
             return s + "</ul>"
         }
         $("a.save-item").each(function(i, elem) {
-            var slug = $(this).data("slug");
+            var id = $(this).data("id");
 
             $(elem).popover({
                 title: "Save Item?",
                 placement: "top",
-                content: getLinks(slug),
+                content: getLinks(id),
                 delay: {
                     show: 500,
                     hide: 2000,

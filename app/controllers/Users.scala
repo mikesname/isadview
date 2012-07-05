@@ -72,10 +72,6 @@ object Users extends Controller with Auth with Authorizer with ControllerHelpers
     }
   }
 
-  def saveItem(item: String, vc: String) = authorizedAction(models.sql.NormalUser) { user => implicit request =>
-    Ok("saved: %s -> %s".format(item, vc))
-  }
-
   private def createProfile(user: models.sql.User, data: ProfileData) = {
     Async {
       UserProfile.create0(new UserProfile(userId=user.id, data=data)).map { created =>

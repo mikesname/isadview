@@ -54,4 +54,14 @@ object VirtualCollections extends Controller with Auth with Authorizer with Cont
       }
     }
   }
+
+  def saveItem(item: Long, vc: Long) = authorizedAction(models.sql.NormalUser) { user => implicit request =>
+    // TODO: Check virtual collection `vc` belongs to user!
+    Async {
+      VirtualCollection.createRelationship(vc, item, "contains").map { edge =>
+        Ok(generate(Map("ok" -> true)))
+      }
+    }
+  }
+
 }

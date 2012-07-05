@@ -158,11 +158,15 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
     })
   }
 
-  def createRelationship(from: Neo4jModel, to: Neo4jModel, label: String) = {
+  def createRelationship(from: Neo4jModel, to: Neo4jModel, label: String): Promise[net.liftweb.json.JsonAST.JValue] = {
+    createRelationship(from.id, to.id, label)
+  }
+
+  def createRelationship(from: Long, to: Long, label: String) = {
     val params = Map(
-      "outV" -> from.id,
+      "outV" -> from,
       "label" -> label,
-      "inV" -> to.id,
+      "inV" -> to,
       "data" -> Map(),
       "index_name" -> label,
       "keys" -> null,
