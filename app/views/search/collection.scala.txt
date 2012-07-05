@@ -1,0 +1,29 @@
+@(c: CollectionDescription)
+
+@c.identity.name
+
+@c.identity.otherNames.map { on =>
+    @on
+}
+
+@c.identity.extentAndMedium
+
+@c.context.archivalHistory
+@c.context.acquisition
+
+@c.content.scopeAndContent
+@c.content.appraisal
+@c.content.accrurals
+@c.content.systemOfArrangement
+
+@c.conditions.conditionsOfAccess
+@c.conditions.conditionsOfReproduction
+@c.conditions.physicalCharacteristics
+@c.conditions.findingAids
+
+@c.materials.locationOfOriginals
+@c.materials.locationOfCopies
+@c.materials.relatedUnitsOfDescription
+
+@c.control.rules
+@c.control.sources

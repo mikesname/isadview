@@ -1,5 +1,6 @@
 package models
 
+import solr._
 import neo4j.data._
 import play.api.libs.concurrent.Promise
 import org.joda.time.DateTime
@@ -93,7 +94,7 @@ case class Collection(
   val updatedOn: Option[DateTime] = None,
   val repository: Option[Repository] = None,
   val creator: Option[Authority] = None
-) extends Neo4jSlugModel with CrudUrls {
+) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))
@@ -121,6 +122,27 @@ case class Collection(
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ description.toMap
+  }
+
+  def toSolrDoc = {
+    require(id > 0 && slug.isDefined)
+    Map(
+      "id" -> id,
+      "slug" -> slug,
+      "name" -> name,
+      "description" -> description.content.scopeAndContent,
+      "repository" -> repository.map(_.name),
+      "other_names" -> description.identity.otherNames,
+      "languages" -> description.conditions.languages,
+      "languages_of_description" -> description.control.languagesOfDescription,
+      "location_of_materials" -> repository.flatMap(_.countryCode),
+      "start_date" -> description.identity.dates.headOption.map(_.startDate),
+      "end_date" -> description.identity.dates.lastOption.map(d => d.endDate.getOrElse(d.startDate)),
+      "repository_slug" -> repository.map(_.slug),
+      "tags" -> List(),
+      "publication_status" -> description.admin.publicationStatus,
+      "text" -> views.txt.search.collection(description).toString.replaceAll("\n{2,}", "\n\n")
+    )
   }
 
   def withSlug(newSlug: String) = copy(slug=Some(newSlug))

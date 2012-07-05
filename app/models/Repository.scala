@@ -94,6 +94,9 @@ case class Repository(
   }
 
   def withSlug(slug: String) = copy(slug=Some(slug))
+
+  def primaryContact = description.contacts.sortBy(!_.primary).headOption
+  def countryCode = primaryContact.map(_.countryCode)
 }
 
 case class RepositoryDescription(
