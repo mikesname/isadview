@@ -35,7 +35,7 @@ case class Query[A](
 ) extends GremlinHelper {
   def filter(kv: (String, String)*) = copy(filters = kv.foldLeft(filters)((f, k) => f + k))
   def compiledFilters = {
-    val f = filters.map { case(key, value) =>
+    filters.map { case(key, value) =>
       val keyparts = key.split(Query.LOOKUP_SEP)
       // TODO: Check validity of operator ('exact', 'startswith', etc)
       if (keyparts.length > 1)
@@ -43,8 +43,6 @@ case class Query[A](
       else
         List(key, Query.DEFAULT_OP, value)
     }.toList
-    println("Compiled filters: " + f)
-    f
   }
 
   def params = Map(
