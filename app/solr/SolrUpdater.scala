@@ -24,7 +24,7 @@ object SolrUpdater {
       res.rawBody
 
     } catch {
-      case e: NullPointerException => "NULL POINTER, WHY!???: %s".format(docs)
+      case e: NullPointerException => "NULL POINTER, WHY!???: %s".format(solrdocs)
       case e: java.io.IOException => "IO EXCEPTION: WHY!???: \n\n%s\n\n".format(solrdocs)
       case other => throw other
     }

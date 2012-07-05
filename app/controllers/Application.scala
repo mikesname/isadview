@@ -143,7 +143,7 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     import solr.SolrUpdater
     import play.api.libs.concurrent.Akka
     import play.api.Play.current
-    val batchSize = 5
+    val batchSize = 2000
 
     // Holy moly does this get confusing...
     Async {
