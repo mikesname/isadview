@@ -128,6 +128,50 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     }
   }
 
+  def testSolr = Action { implicit request =>
+    import neo4j.query.Query
+
+    var query = request.queryString.getOrElse("q", Seq()).headOption
+    var field = request.queryString.getOrElse("field", Seq()).headOption.getOrElse("name")
+    var op = request.queryString.getOrElse("op", Seq()).headOption.getOrElse("exact")
+    
+    var q = Query(models.Collection.apply _, models.Collection.indexName)
+    query.map { qstr =>
+      q = q.filter("%s__%s".format(field, op) -> qstr)
+    }
+
+    import solr.SolrUpdater
+    import play.api.libs.concurrent.Akka
+    import play.api.Play.current
+    val batchSize = 5
+
+    // Holy moly does this get confusing...
+    Async {
+      // First, take the initial async list of objects and get their
+      // full representations, including relations
+      val clist: Promise[List[Promise[models.Collection]]] = q.get().map { list =>
+        list.map(c => models.Collection.fetchBySlug(c.slug.get))
+      }
+      clist.map { cp =>
+        Async {
+          // Now take the List of Promises and convert them into
+          // a Promise[List[models.Collection]] using the sequence
+          // function.
+          Promise.sequence(cp).flatMap { result =>
+            val batches = result.grouped(batchSize).map { docs =>
+                Akka.future {
+                  SolrUpdater.updateDocs(docs.map(_.toSolrDoc))  
+                }
+            }.toList
+            Promise.sequence(batches).map { alldone => 
+              Ok("%s".format(alldone))  
+            }
+          }
+        }
+      }
+    }
+  }
+
   def testq = Action { implicit request =>
     import neo4j.query.Query
 

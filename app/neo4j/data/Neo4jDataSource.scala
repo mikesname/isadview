@@ -1,6 +1,6 @@
 package neo4j.data
 
-import org.joda.time.DateTime
+import org.joda.time.{DateTime,DateTimeZone}
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.concurrent.Promise
 import play.api.libs.ws.{WS,Response}
@@ -22,6 +22,9 @@ trait Neo4jModel {
   def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
   def getIncomingSubordinateRelations: List[String] = Nil
   def getOutgoingSubordinateRelations: List[String] = Nil
+
+  def formatDate(d: org.joda.time.DateTime) = ISODateTimeFormat.dateTime.print(d)
+  def formatSolrDate(d: org.joda.time.DateTime) = ISODateTimeFormat.dateTime.withZone(DateTimeZone.UTC).print(d)
 }
 
 trait Neo4jSlugModel extends Neo4jModel {

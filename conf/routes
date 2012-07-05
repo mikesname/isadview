@@ -4,6 +4,7 @@
 
 GET     /dbtest                         controllers.Application.dbtest()
 GET     /testq                          controllers.Application.testq()
+GET     /testsolr                       controllers.Application.testSolr()
 
 # Home page
 GET     /                               controllers.Application.index
