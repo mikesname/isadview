@@ -133,18 +133,18 @@ case class Collection(
       "name" -> name,
       "description" -> description.content.scopeAndContent,
       "repository" -> repository.map(_.name),
-     // "other_names" -> description.identity.otherNames.filterNot(_==""),
-     // "languages" -> description.conditions.languages.filterNot(_==""),
-     // "languages_of_description" -> description.control.languagesOfDescription.filterNot(_==""),
-     // "location_of_materials" -> repository.flatMap(_.countryCode).filterNot(v => {v=="" || v==null}),
-    //  "start_date" -> description.identity.dates.headOption.map(fd => fd.startDate.map(formatSolrDate(_))),
-    //  "end_date" -> description.identity.dates.lastOption.map(d =>
-    //      d.endDate.map(formatSolrDate(_)).getOrElse(d.startDate.map(formatSolrDate(_)))),
+      "other_names" -> description.identity.otherNames.filterNot(_==""),
+      "languages" -> description.conditions.languages.filterNot(_==""),
+      "languages_of_description" -> description.control.languagesOfDescription.filterNot(_==""),
+      "location_of_materials" -> repository.flatMap(_.countryCode).filterNot(_==""),
+      "start_date" -> description.identity.dates.headOption.map(fd => fd.startDate.map(formatSolrDate(_))),
+      "end_date" -> description.identity.dates.lastOption.map(d =>
+          d.endDate.map(formatSolrDate(_)).getOrElse(d.startDate.map(formatSolrDate(_)))),
       "repository_slug" -> repository.map(_.slug),
-    //  "tags" -> List(),
+      "tags" -> List(),
       "publication_status" -> description.admin.publicationStatus,
       "text" -> views.txt.search.collection(description).toString.replaceAll("\n{2,}", "\n\n")
-    ).filterNot { case (k, v) => v == null || v == None }
+    )
   }
 
   def withSlug(newSlug: String) = copy(slug=Some(newSlug))

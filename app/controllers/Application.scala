@@ -140,10 +140,10 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
       q = q.filter("%s__%s".format(field, op) -> qstr)
     }
 
-    import solr.SolrUpdater
-    import play.api.libs.concurrent.Akka
-    import play.api.Play.current
-    val batchSize = 2000
+    import play.api.libs.ws.{WS,Response}
+    import com.codahale.jerkson.Json.generate
+    val solrbase = play.Play.application.configuration.getString("solr.path")
+    val batchSize = 50
 
     // Holy moly does this get confusing...
     Async {
@@ -154,17 +154,21 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
       }
       clist.map { cp =>
         Async {
+          val headers = Map(
+            "Accept" -> "application/json",
+            "Content-Type" -> "application/json; charset=utf8"
+          )
           // Now take the List of Promises and convert them into
           // a Promise[List[models.Collection]] using the sequence
           // function.
           Promise.sequence(cp).flatMap { result =>
             val batches = result.grouped(batchSize).map { docs =>
-                Akka.future {
-                  SolrUpdater.updateDocs(docs.map(_.toSolrDoc))  
-                }
+              val data = docs.map(_.toSolrDoc)
+              val path = solrbase + "/update/json?wt=json&commit=true"
+              WS.url(path).withHeaders(headers.toList: _*).post(generate(data))
             }.toList
             Promise.sequence(batches).map { alldone => 
-              Ok("%s".format(alldone))  
+              Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
             }
           }
         }
