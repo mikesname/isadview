@@ -1,5 +1,6 @@
 package models
 
+import solr.SolrModel
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
@@ -58,7 +59,7 @@ case class Authority(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val description: AuthorityDescription
-) extends Neo4jSlugModel with CrudUrls {
+) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Authorities.edit(slug=slug.getOrElse(""))
@@ -73,6 +74,23 @@ case class Authority(
     ) ++ description.toMap
   }
 
+  def toSolrDoc = {
+    require(id > 0 && slug.isDefined)
+    Map(
+      "id" -> id,
+      "slug" -> slug,
+      "django_ct" -> ("portal." + Authority.indexName), // Legacy!!!
+      "name" -> name,
+      "history" -> description.description.history,
+      "type_of_entity" -> description.identity.typeOfEntity,
+      "places" -> description.description.places,
+      "functions" -> description.description.functions,
+      "other_names" -> description.identity.otherFormsOfName.filterNot(_==""),
+      "tags" -> List(),
+      "publication_status" -> description.admin.publicationStatus,
+      "text" -> views.txt.search.authority(description).toString.replaceAll("\n{2,}", "\n\n")
+    )
+  }
   def withSlug(slug: String) = copy(slug=Some(slug))
 }
 

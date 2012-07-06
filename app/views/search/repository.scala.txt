@@ -1,0 +1,30 @@
+@(c: RepositoryDescription)
+
+@c.identity.name
+
+@c.identity.otherFormsOfName.map { on =>
+    @on
+}
+
+@c.identity.parallelFormsOfName.map { on =>
+    @on
+}
+
+@c.description.geoculturalContext
+@c.description.history
+@c.description.mandates
+@c.description.administrativeStructure
+@c.description.policies
+@c.description.buildings
+@c.description.holdings
+@c.description.findingAids
+
+@c.access.openingTimes
+@c.access.conditions
+@c.access.accessibility
+
+@c.services.researchServices
+@c.services.reproductionServices
+@c.services.publicAreas
+
+@* TODO: Add control fields *@

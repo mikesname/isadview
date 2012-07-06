@@ -1,5 +1,6 @@
 package models
 
+import solr.SolrModel
 import neo4j.data._
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -65,7 +66,7 @@ case class Repository(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val description: RepositoryDescription
-) extends Neo4jSlugModel with CrudUrls {
+) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
@@ -91,6 +92,23 @@ case class Repository(
       "created_on" -> createdOn.map(ISODateTimeFormat.dateTime.print(_)),
       "updated_on" -> updatedOn.map(ISODateTimeFormat.dateTime.print(_))
     ) ++ description.toMap
+  }
+
+  def toSolrDoc = {
+    require(id > 0 && slug.isDefined)
+    Map(
+      "id" -> id,
+      "slug" -> slug,
+      "django_ct" -> ("portal." + Repository.indexName), // Legacy!!!
+      "name" -> name,
+      "address" -> primaryContact.map(_.format()),
+      "description" -> description.description.geoculturalContext,
+      "other_names" -> description.identity.otherFormsOfName.filterNot(_==""),
+      "country" -> countryCode,
+      "tags" -> List(),
+      "publication_status" -> description.admin.publicationStatus,
+      "text" -> views.txt.search.repository(description).toString.replaceAll("\n{2,}", "\n\n")
+    )
   }
 
   def withSlug(slug: String) = copy(slug=Some(slug))

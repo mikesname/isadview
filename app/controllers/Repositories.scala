@@ -116,4 +116,30 @@ object Repositories extends Controller with Auth with Authorizer with Controller
       }
     }
   }
+
+  def updateIndex = authorizedAction(models.sql.Administrator) { user => implicit request =>
+    import neo4j.query.Query
+    import solr.SolrUpdater
+
+    // Holy moly does this get confusing...
+    Async {
+      // First, take the initial async list of objects and get their
+      // full representations, including relations
+      val clist = Repository.query.get().map { list =>
+        list.map(c => Repository.fetchBySlug(c.slug.get))
+      }
+      clist.map { cp =>
+        Async {
+          // Now take the List of Promises and convert them into
+          // a Promise[List[models.Repository]] using the sequence
+          // function.
+          Promise.sequence(cp).flatMap { items =>
+            SolrUpdater.updateSolrModels(items).map { alldone =>
+              Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
+            }
+          }
+        }
+      }
+    }
+  }
 }

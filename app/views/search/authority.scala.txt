@@ -1,0 +1,16 @@
+@(c: AuthorityDescription)
+
+@c.identity.name
+
+@c.identity.otherFormsOfName.map { on =>
+    @on
+}
+
+@c.description.datesOfExistence
+@c.description.history
+@c.description.places
+@c.description.functions
+@c.description.geneology
+@c.description.generalContext
+
+@* TODO: Add control fields *@

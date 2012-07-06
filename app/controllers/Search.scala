@@ -7,7 +7,6 @@ import play.api.mvc._
 import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
 import controllers._
-import solr.models
 
 
 object Search extends Controller with Auth with Authorizer with ControllerHelpers {
@@ -22,7 +21,7 @@ object Search extends Controller with Auth with Authorizer with ControllerHelper
   
   def list(rtype: String, page: Int, orderBy: Int, filter:String, field:String) = optionalUserAction { implicit
       maybeUser => implicit request =>
-    Ok(views.html.list(rtype, models.Description.list(
+    Ok(views.html.list(rtype, solr.models.Description.list(
         index=Some(rtype),
         page=page,
         pageSize=20,
@@ -36,7 +35,7 @@ object Search extends Controller with Auth with Authorizer with ControllerHelper
 
   def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:String) = optionalUserAction {
       implicit maybeUser => implicit request =>
-    var fpage = models.Description.facet(
+    var fpage = solr.models.Description.facet(
       facet=facet, index=Some(rtype), page=page, sort=sort, query=filter, field=field, facets=request.queryString)
     if(isAjaxRequest(request))
       Ok(views.html.facets_ajax(fpage, sort))
