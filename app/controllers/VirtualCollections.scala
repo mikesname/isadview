@@ -37,10 +37,19 @@ object VirtualCollections extends Controller with Auth with Authorizer with Cont
           errorForm => BadRequest(views.html.user.vcform(
               user, errorForm, routes.VirtualCollections.create)),
           newvc => {
-            // TODO: if we don't already have a profile, create one
-            val profile = profileopt.getOrElse(
-                throw play.api.PlayException("Missing profile", "No profile found for user."))
-            createNew(profile, newvc)
+            // if we don't already have a profile, create one
+            profileopt match {
+              case None => {
+                Async {
+                  UserProfile.create0(new UserProfile(userId=user.id, data=new ProfileData())).flatMap { created =>
+                    UserProfile.createVirtualCollection(created, newvc).map { created =>
+                      Redirect(routes.Users.profile)
+                    }
+                  }
+                }
+              }
+              case Some(profile) => createNew(profile, newvc)
+            }
           }
         )
       }
