@@ -3,6 +3,7 @@ package models
 import solr.SolrModel
 import neo4j.data._
 import org.joda.time.DateTime
+import play.api.libs.concurrent.Promise
 import org.joda.time.format.ISODateTimeFormat
 import collection.JavaConversions._
 
@@ -58,6 +59,29 @@ object Repository extends Neo4jDataSource[Repository] {
       )
     )
   }
+
+  override def fetchByFieldOption(field: String, value: String): Promise[Option[Repository]] = {
+    val params = Map(
+      "index_name" -> indexName,
+      "key" -> field,
+      "query_string" -> value,
+      "inRels" -> List("addressOf"),
+      "outRels" -> List()
+    )
+    gremlin("query_exact_index_with_related", params).map(response => {
+      val items = getJson(response).children
+      items.headOption.map(apply(_)).map { repo =>
+        items.tail.foldLeft(repo) { (r: Repository, json: net.liftweb.json.JsonAST.JValue) =>
+          (json \ "data" \ TypeKey).extractOpt[String].map { eletype =>
+            eletype match {
+              case Contact.indexName => r.withContact(Contact(json))
+              case _ => r
+            }
+          }.getOrElse(r)
+        }
+      }
+    })
+  }
 }
 
 case class Repository(
@@ -112,9 +136,10 @@ case class Repository(
   }
 
   def withSlug(slug: String) = copy(slug=Some(slug))
+  def withContact(add: Contact) = copy(description=description.withContact(add))
 
   def primaryContact = description.contacts.sortBy(!_.primary).headOption
-  def countryCode = primaryContact.map(_.countryCode)
+  def countryCode = primaryContact.flatMap(_.countryCode)
 }
 
 case class RepositoryDescription(
@@ -126,7 +151,8 @@ case class RepositoryDescription(
   val control: AuthorityControl,
   val admin: RepositoryAdmin
 ) {
-  def withContacts(contacts: List[Contact]) = copy(contacts=contacts.map(_.description))
+  def withContact(contact: Contact) = copy(contacts=contacts ++ List(contact.description))
+  def withContacts(contacts: List[Contact]) = contacts.foldLeft(this)((r, c) => r.withContact(c))
   def toMap = {
     identity.toMap ++
     description.toMap ++
