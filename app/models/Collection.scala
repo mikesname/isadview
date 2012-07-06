@@ -140,11 +140,25 @@ case class Collection(
       "start_date" -> description.identity.dates.headOption.map(fd => fd.startDate.map(formatSolrDate(_))),
       "end_date" -> description.identity.dates.lastOption.map(d =>
           d.endDate.map(formatSolrDate(_)).getOrElse(d.startDate.map(formatSolrDate(_)))),
+      "years" -> yearRange,
       "repository_slug" -> repository.map(_.slug),
       "tags" -> List(),
       "publication_status" -> description.admin.publicationStatus,
       "text" -> views.txt.search.collection(description).toString.replaceAll("\n{2,}", "\n\n")
     )
+  }
+
+  /*
+   * Get an integer range of years spanned by this collection
+   */
+  def yearRange: List[Int] = {
+    description.identity.dates.flatMap { fd =>
+      (fd.startDate, fd.endDate) match {
+        case (Some(s), Some(e)) => s.getYear.to(e.getYear)
+        case (Some(s), None) => List(s.getYear)
+        case (None, None) => Nil
+      }
+    }.sorted
   }
 
   def withSlug(newSlug: String) = copy(slug=Some(newSlug))
