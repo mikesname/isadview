@@ -130,6 +130,7 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
 
   def testSolr = Action { implicit request =>
     import neo4j.query.Query
+    import solr.SolrUpdater
 
     var query = request.queryString.getOrElse("q", Seq()).headOption
     var field = request.queryString.getOrElse("field", Seq()).headOption.getOrElse("name")
@@ -140,11 +141,6 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
       q = q.filter("%s__%s".format(field, op) -> qstr)
     }
 
-    import play.api.libs.ws.{WS,Response}
-    import com.codahale.jerkson.Json.generate
-    val solrbase = play.Play.application.configuration.getString("solr.path")
-    val batchSize = 50
-
     // Holy moly does this get confusing...
     Async {
       // First, take the initial async list of objects and get their
@@ -154,20 +150,11 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
       }
       clist.map { cp =>
         Async {
-          val headers = Map(
-            "Accept" -> "application/json",
-            "Content-Type" -> "application/json; charset=utf8"
-          )
           // Now take the List of Promises and convert them into
           // a Promise[List[models.Collection]] using the sequence
           // function.
-          Promise.sequence(cp).flatMap { result =>
-            val batches = result.grouped(batchSize).map { docs =>
-              val data = docs.map(_.toSolrDoc)
-              val path = solrbase + "/update/json?wt=json&commit=true"
-              WS.url(path).withHeaders(headers.toList: _*).post(generate(data))
-            }.toList
-            Promise.sequence(batches).map { alldone => 
+          Promise.sequence(cp).flatMap { items =>
+            SolrUpdater.updateSolrModels(items).map { alldone =>
               Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
             }
           }
