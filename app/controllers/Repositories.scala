@@ -21,12 +21,7 @@ object Repositories extends Controller with Auth with Authorizer with Controller
   def detail(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repo =>
-        Async {
-          // get contacts
-          Contact.findRelatedTo(repo, Contact.Direction.In, "addressOf").map { contacts =>
-            Ok(views.html.repository.detail(repo=repo, repo.description.withContacts(contacts)))
-          }
-        }
+        Ok(views.html.repository.detail(repo=repo, repo.description))
       }
     }
   }
@@ -60,14 +55,9 @@ object Repositories extends Controller with Auth with Authorizer with Controller
   def edit(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
-        Async {
-          // get dates
-          Contact.findRelatedTo(repository, Contact.Direction.In, "addressOf").map { contacts =>
-            val form = RepositoryForm.form.fill(repository.description.withContacts(contacts))
-            val action = routes.Repositories.save(slug)
-            Ok(views.html.repository.form(f=form, action=action, r=Some(repository)))
-          }
-        }
+        val form = RepositoryForm.form.fill(repository.description)
+        val action = routes.Repositories.save(slug)
+        Ok(views.html.repository.form(f=form, action=action, r=Some(repository)))
       }
     }
   }
