@@ -14,7 +14,11 @@ object SolrUpdater {
     "Content-Type" -> "application/json; charset=utf8"
   )
   
-
+  /*
+   * Update a list of Solr models. The actual list is broken up
+   * into batches of a fixed size so this function can accept
+   * arbitrarily long lists.
+   */
   def updateSolrModels(items: List[SolrModel]): Promise[List[Response]] = {
     Promise.sequence {
       items.grouped(batchSize).map { batch =>
@@ -23,6 +27,8 @@ object SolrUpdater {
     }
   }
 
+ /* Update a single batch of solr models.
+  */ 
   def updateBatch(items: List[SolrModel]): Promise[Response] = {
     val data = items.map(_.toSolrDoc)
     WS.url(updatePath).withHeaders(headers.toList: _*).post(Json.generate(data))
