@@ -7,7 +7,6 @@ GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
 
 # Home page
-GET     /                               controllers.Application.index
 GET     /home                           controllers.Application.index
 GET     /login                          controllers.Application.login
 POST    /login                          controllers.Application.loginPost
@@ -31,8 +30,8 @@ POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItem(
 
 
 # Searching
-GET     /$rtype<(collection|repository|authority)>     controllers.Search.list(rtype:String, page:Int ?= 0, s:Int ?= 2, q ?= "", field ?= "")
-GET     /$rtype<(collection|repository|authority)>/facets/:facet          controllers.Search.facets(facet:String, rtype:String, page:Int ?= 0, sort:String ?= "count", q ?= "", field ?= "")
+GET     /$rtype<(collection|repository|authority|search)>     controllers.Search.list(rtype:String, page:Int ?= 0, s:Int ?= 2, q ?= "", field ?= "")
+GET     /$rtype<(collection|repository|authority|search)>/facets/:facet    controllers.Search.facets(facet:String, rtype:String, page:Int ?= 0, sort:String ?= "count", q ?= "", field ?= "")
 
 GET     /repository/updateIndex     controllers.Repositories.updateIndex
 GET     /repository/edit/:slug      controllers.Repositories.edit(slug: String)

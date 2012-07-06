@@ -6,6 +6,8 @@ import app.util.Helpers
 
 import com.github.seratch.scalikesolr.request.query.facet.{FacetParams, FacetParam, Param, Value}
 
+import models.AuthorityType
+
 
 object Utils {
 
@@ -44,8 +46,9 @@ object Utils {
 
 // Scala's enum-like Phantom types for defining
 // how facets are ordered
-case object OrderedByName extends Enumeration
-case object OrderedByCount extends Enumeration
+case object NameOrder extends Enumeration
+case object CountOrder extends Enumeration
+case object FixedOrder extends Enumeration
 
 /**
  * Encapsulates a single facet.
@@ -63,7 +66,7 @@ case class Facet(
   val count: Int = 0,
   val applied: Boolean = false
 ) {
-
+  def sortVal = humanVal.getOrElse(paramVal)
 }
 
 
@@ -85,7 +88,7 @@ sealed abstract class FacetClass (
   val param: String,
   val render: (String) => String = s => s,
   private val facets: List[Facet] = Nil,
-  val sort: Enumeration = OrderedByCount
+  val sort: Enumeration = CountOrder
 )
 {
   val fieldType: String
@@ -94,13 +97,13 @@ sealed abstract class FacetClass (
   
   def filtered: List[Facet] = facets.filter(_.count > 0)
   
-  def sortedByName = filtered.sortWith((a, b) => a.paramVal < b.paramVal)
+  def sortedByName = filtered.sortWith((a, b) => a.sortVal < b.sortVal)
 
   def sortedByCount = filtered.sortWith((a, b) => b.count < a.count)
 
   def sorted: List[Facet] = sort match {
-    case OrderedByName => sortedByName
-    case OrderedByCount => sortedByCount
+    case NameOrder => sortedByName
+    case CountOrder => sortedByCount
     case _ => filtered
   }
   
@@ -120,7 +123,7 @@ case class FieldFacetClass(
   override val param: String,
   override val render: (String) => String = s=>s,
   val facets: List[Facet] = Nil,
-  override val sort: Enumeration = OrderedByCount
+  override val sort: Enumeration = CountOrder
 ) extends FacetClass(key,name, param,render,facets,sort) {
   override val fieldType: String = "facet.field"
   
@@ -154,7 +157,7 @@ case class QueryFacetClass(
   override val param: String,
   override val render: (String) => String = s=>s,
   facets: List[Facet] = Nil,
-  override val sort: Enumeration = OrderedByName
+  override val sort: Enumeration = NameOrder
 ) extends FacetClass(key,name,param,render,facets,sort) {
   override val fieldType: String = "facet.query"
   
@@ -193,17 +196,7 @@ object FacetData {
   implicit val locale: Locale = new Locale("en", "GB")
 
   val facets = Map(
-    "collection" -> List(
-      FieldFacetClass(
-        key="publication_status",
-        name="Status",
-        param="pub",
-        render=(s: String) => s match {
-          case "0" => "Draft"
-          case "1" => "Published"
-          case _ => "Unknown"
-        }
-      ),
+    "all" -> List(
       FieldFacetClass(
         key="django_ct",
         name="Resource Type",
@@ -214,17 +207,36 @@ object FacetData {
           case "portal.collection" => "Collection"
           case _ => "Unknown"
         }
+      )
+    ),
+    models.Collection.indexName -> List(
+      FieldFacetClass(
+        key="publication_status",
+        name="Status",
+        param="pub",
+        render=(s: String) => s match {
+          case "0" => "Draft"
+          case "1" => "Published"
+          case _ => "Unknown"
+        }
       ),
       QueryFacetClass(
         key="years",
         name="Date",
         param="date",
         facets=List(
-          Facet("[* TO 1939]", "_1939", Some("Up to 1939")),
-          Facet("[1940 TO 1941]", "1940-1941", Some("1940 to 1941")),
+          Facet("[* TO 1933]", "_1933", Some("Up to 1933")),
+          Facet("[1933 TO 1939]", "1933_1939", Some("1933 to 1939")),
+          Facet("1939", "1939", Some("1939")),
+          Facet("1940", "1940", Some("1940")),
           Facet("1941", "1941", Some("1941")),
-          Facet("1946", "1946", Some("1946"))
-        )
+          Facet("1942", "1942", Some("1942")),
+          Facet("1943", "1943", Some("1943")),
+          Facet("1944", "1944", Some("1944")),
+          Facet("1945", "1945", Some("1945")),
+          Facet("[1946 TO *]", "1946_", Some("1946 Onwards"))
+        ),
+        sort=FixedOrder
       ),
       FieldFacetClass(
         key="languages",
@@ -238,20 +250,17 @@ object FacetData {
         param="tag"
       )
     ),
-    "repository" -> List(
+    models.Authority.indexName -> List(
       FieldFacetClass(
-        key="django_ct",
-        name="Resource Type",
-        param="res",
-        render=(s: String) => s match {
-          case "portal.repository" => "Repository"
-          case "portal.authority" => "Authority"
-          case "portal.collection" => "Collection"
-          case _ => "Unknown"
-        }
-      ),
+        key="type_of_entity",
+        name="Type",
+        param="type",
+        render=(s: String) => AuthorityType(s.toInt).toString  
+      )
+    ),
+    models.Repository.indexName -> List(
       FieldFacetClass(
-        key="country_exact",
+        key="country",
         name="Location of Materials",
         param="loc",
         render=Helpers.countryCodeToName
@@ -259,5 +268,11 @@ object FacetData {
     )
   )
 
+  def getForIndex(rtype: Option[String]) = {
+    rtype match {
+      case None => facets.flatMap { case(k, l) => l }.toList
+      case Some(index) => facets.get(index).getOrElse(Nil)
+    }
+  }
 }
 

@@ -1,4 +1,4 @@
-@(req: RequestHeader, facets: List[solr.facet.FacetClass])
+@(rtype: String, req: RequestHeader, facets: List[solr.facet.FacetClass])
 
 @import solr.facet.Utils
 
@@ -15,14 +15,14 @@
                     req.path, req.queryString.filterKeys(_!="page"))"><i class="icon-remove"></i></a>
             } else {
             <dd>
-                <a href="@Utils.pathWithFacet(fc, f, req.path, req.queryString.filterKeys(_!="page"))">@fc.pretty(f)
+                <a href="@Utils.pathWithFacet(fc, f, routes.Search.list(rtype).toString, req.queryString.filterKeys(_!="page"))">@fc.pretty(f)
                     (@f.count)</a>
             </dd>
             }
         }
         @if(fc.sorted.length > 10) {
             <a data-fclass="@fc.param"
-                href="@Utils.joinPath(req.path + "/facets/" + fc.param, req.queryString.filterKeys(_!="page"))"
+                href="@Utils.joinPath(routes.Search.facets(facet=fc.param, rtype=rtype).toString, req.queryString.filterKeys(_!="page"))"
                 class="more-facets">More...</a>
         }
         </dl>

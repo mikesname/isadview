@@ -57,20 +57,17 @@ object SolrHelper {
     request.setFilterQuery(FilterQuery(fqstring))
   }
 
-  def constrain(request: QueryRequest, rtype: String, appliedFacets: Map[String,Seq[String]]): Unit = {
-    FacetData.facets.get(rtype).map(flist => {
-      setRequestFacets(request, flist)
-      setRequestFilters(request, flist, appliedFacets)
-    })
+  def constrain(request: QueryRequest, rtype: Option[String], appliedFacets: Map[String,Seq[String]]): Unit = {
+    val flist = FacetData.getForIndex(rtype)
+    setRequestFacets(request, flist)
+    setRequestFilters(request, flist, appliedFacets)
   }
 
-  def extract(response: QueryResponse, rtype: String, appliedFacets: Map[String,Seq[String]]): List[FacetClass] = {
+  def extract(response: QueryResponse, rtype: Option[String], appliedFacets: Map[String,Seq[String]]): List[FacetClass] = {
     val rawData = xml.XML.loadString(response.rawBody)
-    FacetData.facets.get(rtype).map(flist => {
-      flist.map(_.populateFromSolr(rawData, appliedFacets))
-    }).getOrElse(Nil)
+    FacetData.getForIndex(rtype).map(_.populateFromSolr(rawData, appliedFacets))
   }
-
+  
   def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: Int,
         field: String, query: String, facets: Map[String, Seq[String]]): Tuple2[QueryResponse, List[FacetClass]] = {
 
@@ -93,12 +90,13 @@ object SolrHelper {
         isPhraseHighlighterEnabled=IsPhraseHighlighterEnabled(true)))
 
     // Facet the request accordingly
-    index.map(SolrHelper.constrain(req, _, facets))
+    SolrHelper.constrain(req, index, facets)
 
     // if we're using a specific index, constrain on that as well
-    var squery = index match {
-      case Some(rt) => req.setFilterQuery(
-          FilterQuery(req.filterQuery.fq + " +django_ct:portal." + rt))
+    index match {
+      case Some(rt) =>
+          req.setFilterQuery(
+            FilterQuery(req.filterQuery.fq + " +django_ct:portal." + rt))
       case None => 
     }
 
@@ -110,7 +108,7 @@ object SolrHelper {
     val response = client.doQuery(req)
 
     // extract the useful classes from the response
-    val fclasses = index.map(SolrHelper.extract(response, _, facets)).getOrElse(Nil)
+    val fclasses = SolrHelper.extract(response, index, facets)
     (response, fclasses)
   }       
 }
