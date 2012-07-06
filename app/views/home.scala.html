@@ -1,0 +1,19 @@
+@(action: Call)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
+
+@main(Messages("Welcome to EHRI"), body_class="home") {
+    
+<div class="container-fluid">
+    <form id="search-form" action="@action" method="get">
+        <div class="row-fluid">
+            <div class="span12 columns">
+                <center>
+                    <h1 style="padding-top:5em">@Messages("Welcome to EHRI")</h1>
+                    <input name="q" class="span5" style="font-size:1.3em;" type="text" />
+                    <input type="submit" value="Search Collections" />
+                </center>
+            </div>
+        </div>
+    </form>
+</div>    
+}
+

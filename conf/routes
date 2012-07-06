@@ -7,7 +7,7 @@ GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
 
 # Home page
-GET     /home                           controllers.Application.index
+GET     /home                           controllers.Search.home
 GET     /login                          controllers.Application.login
 POST    /login                          controllers.Application.loginPost
 GET     /logout                         controllers.Application.logout
