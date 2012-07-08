@@ -1,4 +1,5 @@
-@(result: solr.models.Description, maybeUser: Option[models.sql.User])
+@(result: solr.models.Description, maybeUser: Option[models.sql.User], savedItems: List[Long])
+
 
 <div class="search-result@if(result.publication_status == 0) { draft }" data-slug="@result.slug">
     @if(result.django_ct == "portal.repository") {
@@ -29,7 +30,7 @@
     @maybeUser.map { user =>
         @user.profile.map { profile =>
             <a class="show-save-item-list" href="#">
-            @if(profile.virtualCollections.flatMap(_.items).map(_.id).contains(result.id.toLong)) {
+            @if(savedItems.contains(result.id.toLong)) {
                 <i class="icon-star"></i>
             } else {
                 <i class="icon-bookmark"></i>
