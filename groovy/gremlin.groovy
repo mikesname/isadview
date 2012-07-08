@@ -14,15 +14,15 @@
 // using the newer Tree() pipe.
 def get_user_profile_data(user_id) {
   t= new Table()
-  pipe = g.idx("userprofile").get("user_id", Neo4jTokens.QUERY_HEADER + user_id)
-  pipe._()
+  item = g.idx("userprofile").get("user_id", Neo4jTokens.QUERY_HEADER + user_id).iterator().next()
+  g.v(item.id)._()
 	  .out('hasCollection').as('vc')
 	  .table(t,['vc']){[
 		  "item": it._(),
 		  "collections": it._().out('contains')._()
 	  ]}.iterate();
 
-  ["item": pipe._(), "virtualcollections": t]
+  ["item": item._(), "virtualcollections": t]
 }
 
 

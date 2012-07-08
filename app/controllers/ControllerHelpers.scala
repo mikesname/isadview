@@ -16,7 +16,6 @@ trait AuthController extends Controller with Auth with Authorizer {
         case Some(user) => {
           Async {            
             models.UserProfile.fetchByUserID(user.id).map { profileopt =>
-              println("ID: " + profileopt.map(_.id).getOrElse(-1L))
               f(Some(user.withProfile(profileopt)))(request)
             }
           }

@@ -30,6 +30,7 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
 
   def createVirtualCollection(profile: UserProfile, vcdesc: VirtualCollectionDescription) = {
     VirtualCollection.create(new VirtualCollection(description=vcdesc)).flatMap { created =>
+      println("Creating relationship between: %s -> %s".format(profile, created))
       createRelationship(profile, created, "hasCollection").map { edge =>
         profile.withCollection(created)
       }
@@ -64,8 +65,8 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
 
     gremlin("get_user_profile_data", params).map(response => {
       val data = getJson(response)
-      val userprofile = apply(data \ "item")
-      if (userprofile.id == -1) {
+      val userprofile = apply((data \ "item"))
+      if (userprofile.id != -1) {
         val vcs = (data \ "virtualcollections" \ "data").children.map { vcjson =>
           val vc = VirtualCollection(vcjson \ "item")
           (vcjson \ "collections").children.foldLeft(vc) { (vc: VirtualCollection, cjson: JValue) =>
