@@ -56,8 +56,14 @@ case class VirtualCollection(
   val updatedOn: Option[DateTime] = None,
   val items: List[Neo4jSlugModel] = Nil,
   val description: VirtualCollectionDescription
-) extends Neo4jSlugModel {
+) extends Neo4jSlugModel with CrudUrls {
   def name = description.name
+  def summary = description.description
+  val detailUrl = controllers.routes.VirtualCollections.detail(id=id)
+  val editUrl = controllers.routes.VirtualCollections.edit(id=id)
+  val deleteUrl = controllers.routes.VirtualCollections.confirmDelete(id=id)
+
+
   def toMap = Map(
     VirtualCollection.TypeKey -> VirtualCollection.indexName,
     "slug" -> slug,

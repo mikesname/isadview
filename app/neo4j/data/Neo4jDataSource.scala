@@ -28,8 +28,17 @@ trait Neo4jModel {
 }
 
 trait Neo4jSlugModel extends Neo4jModel {
+  self: Neo4jModel with models.CrudUrls =>
   def name: String
   def withSlug(slug: String): Neo4jModel
+  def summary: Option[String]
+  def details: Map[String, Any] = Map()
+
+  // FIXME: These are only here because we need to somehow combine
+  // SlugModel and the CrudUrls model, and the self type isn't working
+  def detailUrl: play.api.mvc.Call
+  def editUrl: play.api.mvc.Call
+  def deleteUrl: play.api.mvc.Call
 }
 
 trait GremlinHelper {
@@ -146,6 +155,12 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
       apply(getJson(resp))
     }
   }
+  
+  def delete(nodeId: Long): Promise[Boolean] = {
+    gremlin("delete_vertex", Map("_id" -> nodeId)).map(response => {
+      true
+    })
+  }
 
   def delete(nodeId: Long, item: Neo4jModel): Promise[Boolean] = {
     val params = Map(
@@ -176,6 +191,10 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
       // TODO: Return some kind of Edge model
       getJson(resp)
     }
+  }
+
+  def fetchByID(id: Long): Promise[T] = {
+    gremlin("v", Map("_id" -> id)).map(response => apply(getJson(response)))
   }
 
   def fetchByField(field: String, value: String): Promise[T] = {
