@@ -17,10 +17,25 @@ jQuery(function($) {
         });
     });
 
+    $("a.show-save-item-list").click(function(event) {
+        $(".save-item-list").hide();
+        event.preventDefault();
+        $(document).bind("click.close-save-list", function(event) {
+            $(".save-item-list").hide();
+            $(this).unbind("click.close-save-list");
+        });
+        $(this).next("div").click(function(event) {
+            event.stopPropagation();
+        }).show(200);
+        event.stopPropagation();
+    });
+
     $("a.save-item").click(function(event) {
         event.preventDefault();
-        $.post($(this).attr("href"), function(data) {
+        var $elem = $(this);
+        $.post($elem.attr("href"), function(data) {
             alert(data);
+            $elem.closest(".save-item-list").hide(200);
         });
     });
 

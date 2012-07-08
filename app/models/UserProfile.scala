@@ -4,6 +4,7 @@ import org.joda.time.DateTime
 import play.api.libs.concurrent.Promise
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
+import net.liftweb.json.JsonAST.JValue
 
 object UserProfile extends Neo4jDataSource[UserProfile] {
   val indexName = "userprofile"
@@ -46,7 +47,7 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
     gremlin("query_exact_index_with_related", params).map(response => {
       val items = getJson(response).children
       items.headOption.map(apply(_)).map { prof =>
-        items.tail.foldLeft(prof) { (p: UserProfile, json: net.liftweb.json.JsonAST.JValue) =>
+        items.tail.foldLeft(prof) { (p: UserProfile, json: JValue) =>
           (json \ "data" \ TypeKey).extractOpt[String].map { eletype =>
             eletype match {
               case VirtualCollection.indexName => p.withCollection(VirtualCollection(json))
@@ -55,6 +56,31 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
           }.getOrElse(p)
         }
       }
+    })
+  }
+
+  def fetchByUserID(id: Long): Promise[Option[UserProfile]] = {
+    val params = Map("user_id" -> id.toString)
+
+    gremlin("get_user_profile_data", params).map(response => {
+      val data = getJson(response)
+      val userprofile = apply(data \ "item")
+      if (userprofile.id == -1) {
+        val vcs = (data \ "virtualcollections" \ "data").children.map { vcjson =>
+          val vc = VirtualCollection(vcjson \ "item")
+          (vcjson \ "collections").children.foldLeft(vc) { (vc: VirtualCollection, cjson: JValue) =>
+            (cjson \ "data" \ "element_type").extractOpt[String].map { eletype =>
+              eletype match {
+                case Collection.indexName => vc.withItem(Collection(cjson))
+                case Repository.indexName => vc.withItem(Repository(cjson))
+                case Authority.indexName => vc.withItem(Authority(cjson))
+                case _ => throw sys.error("Unexpected element type in virtual collection contents: " + eletype)
+              }
+            }.getOrElse(vc)
+          }
+        }
+        Some(userprofile.withCollections(vcs))
+      } else None
     })
   }
 }
@@ -84,6 +110,7 @@ case class UserProfile(
 
   def withCollection(vc: VirtualCollection) = 
       copy(virtualCollections=virtualCollections ++ List(vc))
+  def withCollections(vclist: List[VirtualCollection]) = copy(virtualCollections=vclist)
 }
 
 case class ProfileData(

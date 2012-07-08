@@ -7,6 +7,24 @@
 //       See https://groups.google.com/forum/#!topic/neo4j/sjH2f5dulTQ
 
 // Model - Vertex
+//
+
+// Special one-off method for loading UserProfile data more efficiently
+// This is a stopgap measure until a better method is devised (perhaps
+// using the newer Tree() pipe.
+def get_user_profile_data(user_id) {
+  t= new Table()
+  pipe = g.idx("userprofile").get("user_id", Neo4jTokens.QUERY_HEADER + user_id)
+  pipe._()
+	  .out('hasCollection').as('vc')
+	  .table(t,['vc']){[
+		  "item": it._(),
+		  "collections": it._().out('contains')._()
+	  ]}.iterate();
+
+  ["item": pipe._(), "virtualcollections": t]
+}
+
 
 // TODO: Fix code duplication with the update equivilent...
 def create_indexed_vertex_with_subordinates(data, index_name, subs) {
