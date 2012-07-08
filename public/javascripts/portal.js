@@ -17,42 +17,12 @@ jQuery(function($) {
         });
     });
 
-    function initPopovers(vclist) {
-        function getLinks(itemId) {
-            var s = "<ul>";
-            $.each(vclist, function(i, item) {
-                s += "<li><a class='store-item' href='/profile/stash/" + itemId + "/" + item[2] + "'>" + item[0] + "</a></li>"
-            });
-            return s + "</ul>"
-        }
-        $("a.save-item").each(function(i, elem) {
-            var id = $(this).data("id");
-
-            $(elem).popover({
-                title: "Save Item?",
-                placement: "top",
-                content: getLinks(id),
-                delay: {
-                    show: 500,
-                    hide: 2000,
-                }
-            });
-        });
-    }
-
-    $(document).on("click", "a.store-item", function(event) {
+    $("a.save-item").click(function(event) {
         event.preventDefault();
         $.post($(this).attr("href"), function(data) {
             alert(data);
         });
     });
-
-    // show a popup to save items to one of the users's virtual collection
-    if ($("a.save-item").length > 0) {
-        $.getJSON($("a.save-item").first().attr("href"), function(data) {
-            initPopovers(data);
-        });
-    }
 
     //add Ajax behaviour on pagination links
     $(document).on("click", ".ajax, #facet-popup > .pagination ul li a", function(event) {

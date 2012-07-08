@@ -27,7 +27,19 @@
         }}
     </p>
     @maybeUser.map { user =>
-        <a class="save-item ajax" data-user="@user.id" data-id="@result.id" data-slug="@result.slug" href="@routes.Users.listVirtualCollections">Save item</a>
+        @user.profile.map { profile =>
+            <a class="show-save-item-list" href="#"><i class="icon-bookmark"></i></a>
+            <div class="save-item-list">
+                <h4>Save item</h4>
+                <ul>
+                    @profile.virtualCollections.map { vc =>
+                    <li>
+                        <a class="save-item ajax" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
+                    </li>
+                    }   
+                </ul>
+            </div>
+        }
     }
 </div>
 

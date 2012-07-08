@@ -26,7 +26,8 @@ GET     /profile/collection/list        controllers.Users.listVirtualCollections
 GET     /profile/collection/create      controllers.VirtualCollections.new_
 POST    /profile/collection/create      controllers.VirtualCollections.create
 GET     /profile/collection/:slug       controllers.VirtualCollections.detail(slug:String)
-POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItem(item: Long, vc: Long)
+GET     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItem(item: Long, vc: Long)
+POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItemPost(item: Long, vc: Long)
 
 
 # Searching
