@@ -116,7 +116,11 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
               case Some(user) => {
                 user.addAssociation(openid)
                 request.session - "openid"
-                gotoLoginSucceeded(user.id)
+                Async {
+                  models.UserProfile.create0(new models.UserProfile(userId=user.id, data=new models.ProfileData())).map { created =>
+                    gotoLoginSucceeded(user.id)
+                  }
+                }
               }
               case None => BadRequest("Error creating user account.")
             }
