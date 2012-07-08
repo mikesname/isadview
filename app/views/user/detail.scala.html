@@ -15,7 +15,7 @@
         @if(!profile.virtualCollections.isEmpty) {
             <ul>
                 @profile.virtualCollections.map { vc =>
-                <li><a href="@routes.VirtualCollections.detail(vc.slug.getOrElse("arse"))">@vc.name</a></li>
+                <li><a href="@routes.VirtualCollections.detail(vc.id)">@vc.name</a></li>
                 }
             </ul>
         } else {

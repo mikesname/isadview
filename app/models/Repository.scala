@@ -92,6 +92,7 @@ case class Repository(
   val description: RepositoryDescription
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
+  def summary = description.description.geoculturalContext
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Repositories.confirmDelete(slug=slug.getOrElse(""))

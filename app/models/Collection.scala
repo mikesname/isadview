@@ -96,6 +96,7 @@ case class Collection(
   val creator: Option[Authority] = None
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
+  def summary = description.content.scopeAndContent
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Collections.confirmDelete(slug=slug.getOrElse(""))
@@ -133,7 +134,6 @@ case class Collection(
       "name" -> name,
       "description" -> description.content.scopeAndContent,
       "repository" -> repository.map(_.name),
-      "other_names" -> description.identity.otherNames.filterNot(_==""),
       "languages" -> description.conditions.languages.filterNot(_==""),
       "languages_of_description" -> description.control.languagesOfDescription.filterNot(_==""),
       "location_of_materials" -> repository.flatMap(_.countryCode).filterNot(_==""),

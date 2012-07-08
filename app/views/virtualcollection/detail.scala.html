@@ -2,25 +2,30 @@
 
 @main(user.name, body_class="profile") {
 <div class="row">
-    <div class="span3 columns">
-
-        <div class="sidebar">
-        </div>
-    </div>
     <div class="span9 columns">
         <h2>@vc.name</h2>
+        <p>@vc.description.description</p>
         <hr />
 
-        <h4>@Messages("Items")</h4>
         @if(!vc.items.isEmpty) {
-            <ul>
-                @vc.items.map { c =>
-                    <li>@c.name</li>
-                }
-            </ul>
+            @vc.items.map { c =>
+            <div class="virtual-collection-item">
+                <h4><a href="@c.detailUrl">@c.name</a></h4>
+                <p>@c.summary</p>
+                <hr />
+            </div>
+            }
         } else {
             @Messages("This collection is currently empty.")
         }
+    </div>
+    <div class="span3 columns">
+
+        <div class="sidebar">
+            <div class="well">
+                Last updated: @vc.updatedOn
+            </div>
+        </div>
     </div>
 </div>
 }(Some(user), request)

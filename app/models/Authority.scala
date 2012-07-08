@@ -61,6 +61,7 @@ case class Authority(
   val description: AuthorityDescription
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
+  def summary = description.description.history
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))
   val editUrl = controllers.routes.Authorities.edit(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Authorities.confirmDelete(slug=slug.getOrElse(""))
