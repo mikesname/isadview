@@ -81,6 +81,7 @@ trait Authorizer extends Results with AuthConfig {
     println("Authorising: %s with %s".format(user, authority))
     (user.name, authority) match {
       case ("mikesname", _) => true
+      case ("Mikeyb", _) => true
       case (_, NormalUser) => true
       case _ => false
     }

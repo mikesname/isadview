@@ -16,7 +16,7 @@ case object Administrator extends Permission
 case object NormalUser extends Permission
 
 
-case class User(id: Long, name: String, email: String) {
+case class User(id: Long, name: String, email: String, profile: Option[models.UserProfile] = None) {
   
   lazy val associations: Seq[Association] = DB.withConnection { implicit connection =>
     SQL(
@@ -37,6 +37,8 @@ case class User(id: Long, name: String, email: String) {
     println("Added association! " + res)
     this
   }
+
+  def withProfile(prof: Option[models.UserProfile]) = copy(profile=prof)
 
   def isStaff = false // STUB
 }

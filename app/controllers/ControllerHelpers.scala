@@ -2,8 +2,43 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
+
+
+/*
+ * Wraps optionalUserAction to asyncronously fetch the User's profile.
+ */
+class AuthController extends Controller with Auth with Authorizer {
+
+  def optionalUserProfileAction(f: Option[User] => Request[AnyContent] => Result): Action[AnyContent] = {
+    optionalUserAction { implicit userOption => implicit request => 
+      userOption match {
+        case Some(user) => {
+          Async {
+            models.UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
+              f(Some(user.withProfile(profileopt)))(request)
+            }
+          }
+        }
+        case None => f(userOption)(request)
+      }
+    }
+  }
+
+  def authorizedUserProfileAction(authority: Authority)(f: User => Request[AnyContent] => Result): Action[AnyContent] = {
+    authorizedAction(authority) { implicit user => implicit request => 
+      Async {
+        models.UserProfile.fetchByFieldOption("user_id", user.id.toString).map { profileopt =>
+          f(user.withProfile(profileopt))(request)
+        }
+      }
+    }
+  }
+}
+
 
 trait ControllerHelpers {
+
   def isAjaxRequest[T](request: Request[T]): Boolean = {
       request.headers.get("X-REQUESTED-WITH").getOrElse("").toUpperCase() == "XMLHTTPREQUEST"
   }

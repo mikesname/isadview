@@ -10,15 +10,14 @@ import play.api.libs.concurrent.Promise
 import net.liftweb.json
 
 import com.codahale.jerkson.Json._
-import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
 import models.{Repository,Contact,Collection,FuzzyDate,Authority}
 import forms.CollectionForm
 
 
 
-object Collections extends Controller with Auth with Authorizer with ControllerHelpers {
-  def detail(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+object Collections extends AuthController with ControllerHelpers {
+  def detail(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         Ok(views.html.collection.detail(collection, collection.description))
@@ -26,11 +25,11 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
     }
   }
 
-  def new_ = optionalUserAction { implicit maybeUser => implicit request =>
+  def new_ = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Ok(views.html.collection.form(f=CollectionForm.form, action=routes.Collections.create))
   }
 
-  def create = optionalUserAction { implicit maybeUser => implicit request =>
+  def create = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -52,7 +51,7 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
     )
   }
 
-  def edit(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def edit(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         val form = CollectionForm.form.fill(collection.description)
@@ -62,7 +61,7 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
     }
   }
 
-  def save(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def save(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "conditions.languages",
@@ -91,7 +90,7 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
     }
   }
   
-  def confirmDelete(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def confirmDelete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         val action = routes.Collections.delete(slug)
@@ -100,7 +99,7 @@ object Collections extends Controller with Auth with Authorizer with ControllerH
     }
   }
 
-  def delete(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         Collection.delete(collection.id, collection)

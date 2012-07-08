@@ -17,8 +17,8 @@ import forms.RepositoryForm
 
 
 
-object Repositories extends Controller with Auth with Authorizer with ControllerHelpers {
-  def detail(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+object Repositories extends AuthController with ControllerHelpers {
+  def detail(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repo =>
         Ok(views.html.repository.detail(repo=repo, repo.description))
@@ -26,11 +26,11 @@ object Repositories extends Controller with Auth with Authorizer with Controller
     }
   }
 
-  def new_ = optionalUserAction { implicit maybeUser => implicit request =>
+  def new_ = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Ok(views.html.repository.form(f=RepositoryForm.form, action=routes.Repositories.create))
   }
 
-  def create = optionalUserAction { implicit maybeUser => implicit request =>
+  def create = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -52,7 +52,7 @@ object Repositories extends Controller with Auth with Authorizer with Controller
     )
   }
 
-  def edit(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def edit(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
         val form = RepositoryForm.form.fill(repository.description)
@@ -62,7 +62,7 @@ object Repositories extends Controller with Auth with Authorizer with Controller
     }
   }
 
-  def save(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def save(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -89,7 +89,7 @@ object Repositories extends Controller with Auth with Authorizer with Controller
     }
   }
   
-  def confirmDelete(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def confirmDelete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
         val action = routes.Repositories.delete(slug)
@@ -98,7 +98,7 @@ object Repositories extends Controller with Auth with Authorizer with Controller
     }
   }
 
-  def delete(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
         Repository.delete(repository.id, repository)

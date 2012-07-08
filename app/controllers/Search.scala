@@ -4,12 +4,11 @@ import java.util.Locale
 
 import play.api._
 import play.api.mvc._
-import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 
 import controllers._
 
 
-object Search extends Controller with Auth with Authorizer with ControllerHelpers {
+object Search extends AuthController with ControllerHelpers {
 
   val ALL_SEARCH = "search"
 
@@ -17,11 +16,11 @@ object Search extends Controller with Auth with Authorizer with ControllerHelper
   // from the application context somehow
   implicit val locale: Locale = new Locale("de", "GB")
 
-  def home = optionalUserAction { implicit maybeUser => implicit request =>
+  def home = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Ok(views.html.home(routes.Search.list(ALL_SEARCH)))
   }
 
-  def list(rtype: String, page: Int, orderBy: Int, filter:String, field:String) = optionalUserAction { implicit
+  def list(rtype: String, page: Int, orderBy: Int, filter:String, field:String) = optionalUserProfileAction { implicit
       maybeUser => implicit request =>
     println("Search for items with rtype: " + rtype)
     val index = if (rtype == ALL_SEARCH) None else Some(rtype)
@@ -37,7 +36,7 @@ object Search extends Controller with Auth with Authorizer with ControllerHelper
     )
   }
 
-  def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:String) = optionalUserAction {
+  def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:String) = optionalUserProfileAction {
       implicit maybeUser => implicit request =>
 
     val index = if (rtype == ALL_SEARCH) None else Some(rtype)
