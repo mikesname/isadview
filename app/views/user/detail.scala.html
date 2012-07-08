@@ -5,23 +5,28 @@
     <div class="span3 columns">
 
         <div class="sidebar">
+            <a class="btn btn-primary" href="@routes.VirtualCollections.new_">@Messages("New Virtual Collection")</a>
+
         </div>
     </div>
     <div class="span9 columns">
         <h2>@profile.data.name</h2>
         <hr />
 
-        <h4>@Messages("Virtual Collections")</h4>
+        <h3>@Messages("Virtual Collections")</h3>
+        <p>
         @if(!profile.virtualCollections.isEmpty) {
-            <ul>
-                @profile.virtualCollections.map { vc =>
-                <li><a href="@routes.VirtualCollections.detail(vc.id)">@vc.name</a></li>
-                }
-            </ul>
+            @profile.virtualCollections.map { vc =>
+                <div class="virtual-collection">
+                    <h4><a href="@routes.VirtualCollections.detail(vc.id)">@vc.name (@vc.items.length)</a></h4>
+                    <p>@vc.description.description</p>
+                    <hr />
+                </div>
+            }
         } else {
             @Messages("No virtual collections.")
         }
-        <a href="@routes.VirtualCollections.new_">@Messages("New Virtual Collection")</a>
+        </p>
     </div>
 </div>
 }(Some(user), request)
