@@ -23,7 +23,6 @@
                 <span class="label">@Messages("Draft Description")</span>
             }
         </h2>
-        <h3>@cl.repository.map(_.name)</h3>
         @if(c.identity.otherNames.size > 0) {
             <h3 class="alternate-name">
                 @c.identity.otherNames.mkString(",")

@@ -64,8 +64,8 @@ GET     /collection/edit/:slug      controllers.Collections.edit(slug: String)
 POST    /collection/edit/:slug      controllers.Collections.save(slug: String)
 GET     /collection/delete/:slug    controllers.Collections.confirmDelete(slug: String)
 POST    /collection/delete/:slug    controllers.Collections.delete(slug: String)
-GET     /collection/create          controllers.Collections.new_
-POST    /collection/create          controllers.Collections.create
+GET     /collection/:slug/create    controllers.Collections.create(slug: String)
+POST    /collection/:slug/create    controllers.Collections.createPost(slug: String)
 GET     /collection/:slug           controllers.Collections.detail(slug:String)
 
 # Javascript routing

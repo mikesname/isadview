@@ -25,11 +25,12 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  def new_ = optionalUserProfileAction { implicit maybeUser => implicit request =>
-    Ok(views.html.collection.form(f=CollectionForm.form, action=routes.Collections.create))
+  def create(repo: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+    val action = routes.Collections.createPost(repo)
+    Ok(views.html.collection.form(f=CollectionForm.form, action=action))
   }
 
-  def create = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def createPost(repo: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -39,12 +40,16 @@ object Collections extends AuthController with ControllerHelpers {
     CollectionForm.form.bindFromRequest(formData).fold(
       errorForm => {
         BadRequest(
-          views.html.collection.form(f=errorForm, action=routes.Collections.create))
+          views.html.collection.form(f=errorForm, action=routes.Collections.createPost(repo)))
       },
       data => {
         Async {
-          Collection.create(new Collection(description=data)).map { created =>
-            Redirect(routes.Collections.detail(slug=created.slug.get))
+          Repository.fetchBySlug(repo).flatMap { repository =>
+            Collection.create(new Collection(description=data)).flatMap { created =>
+              Repository.createRelationship(created, repository, "heldBy").map { edge =>
+                Redirect(routes.Collections.detail(slug=created.slug.get))
+              }
+            }
           }
         }
       }
