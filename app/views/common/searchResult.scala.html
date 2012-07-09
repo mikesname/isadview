@@ -2,6 +2,40 @@
 
 
 <div class="search-result@if(result.publication_status == 0) { draft }" data-slug="@result.slug">
+    @maybeUser.map { user =>
+        @user.profile.map { profile =>
+        <div class="bookmark-controls" data-item="@result.id">
+            <a class="show-save-item-list" href="#">
+            @if(savedItems.contains(result.id.toLong)) {
+                <i class="icon-star"></i>
+            } else {
+                <i class="icon-bookmark"></i>
+            }
+            </a>
+
+            <div class="save-item-list">
+                <h4>Save item</h4>
+                <p>
+                <ul>
+                    @profile.virtualCollections.map { vc =>
+                    <li>
+                        <a class="save-item" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
+                    </li>
+                    }   
+                </ul>
+                </p>
+                <form class="stash-new-collection-form form-horizontal" action="@routes.VirtualCollections.saveItemToNew(result.id.toLong)" method="POST">
+                    <div class="input-append">
+                        <input placeholder="@Messages("Save to new collection...")" class="span8" name="name" type="text" />
+                        <input type="submit" class="btn btn-small" value="@Messages("Save")" />
+                    </div>
+                </form>
+            </div>
+        </div>
+        }
+    }
+
+    <div class="search-result-content">
     @if(result.django_ct == "portal.repository") {
         <h4><a href="@routes.Repositories.detail(slug=result.slug)">@result.name</a></h4>
     } else {
@@ -27,35 +61,6 @@
             result.asInstanceOf[solr.models.Collection].description.slice(0, 200)
         }}
     </p>
-    @maybeUser.map { user =>
-        @user.profile.map { profile =>
-        <div class="bookmark-controls" data-item="@result.id">
-            <a class="show-save-item-list" href="#">
-            @if(savedItems.contains(result.id.toLong)) {
-                <i class="icon-star"></i>
-            } else {
-                <i class="icon-bookmark"></i>
-            }
-            </a>
-
-            <div class="save-item-list">
-                <h4>Save item</h4>
-                <ul>
-                    @profile.virtualCollections.map { vc =>
-                    <li>
-                        <a class="save-item" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
-                    </li>
-                    }   
-                </ul>
-                <form class="stash-new-collection-form form-horizontal" action="@routes.VirtualCollections.saveItemToNew(result.id.toLong)" method="POST">
-                    <div class="input-append">
-                        <input placeholder="@Messages("Save to new collection...")" class="span8" name="name" type="text" />
-                        <input type="submit" class="btn btn-small" value="@Messages("Save")" />
-                    </div>
-                </form>
-            </div>
-        </div>
-        }
-    }
+    </div>
 </div>
 

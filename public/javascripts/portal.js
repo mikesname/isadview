@@ -24,20 +24,58 @@ jQuery(function($) {
             $(".save-item-list").hide();
             $(this).unbind("click.close-save-list");
         });
-        $(this).next("div").click(function(event) {
+        var $div = $(this).next("div")
+        $div.click(function(event) {
             event.stopPropagation();
-        }).show(200);
+        }).css({
+            left: $(this).position().left - $div.width()        
+        }).fadeIn(100);
         event.stopPropagation();
     });
 
-    $("a.save-item").click(function(event) {
+    function handleSaveLinkClick(elem, event) {
         event.preventDefault();
-        var $elem = $(this);
+        console.log("Got click");
+        var $elem = $(elem);
         $.post($elem.attr("href"), function(data) {
             if (data && data.ok) {
                 $elem.closest(".save-item-list")
                     .hide(200)
                     .prev("a").find("i").attr("class", "icon-star");
+            }
+        }, "json");
+    }
+
+
+    //$("body").on("click", "a.save-item", function(event) {
+    $("a.save-item").click(function(event) {
+        handleSaveLinkClick(this, event);
+    });
+
+    $(".stash-new-collection-form").submit(function(event) {
+        event.preventDefault();
+        // submit the form with Ajax - we should recieve back some details
+        // of the newly created collection, which we can use to insert into
+        // the other lists...
+        var $elem = $(this);
+        $.post($(this).attr("action"), $(this).formSerialize(), function(data) {
+            if (data && data.ok) {
+                $(".bookmark-controls").each(function(i, item) {
+                    var itemid = $(item).data("item");
+                    var url = jsRoutes.controllers.VirtualCollections.saveItem(itemid, data.id).url;
+                    // Add a link for adding subsequent items to this collection
+                    var $link = $("<a></a>").attr("href", url).addClass("save-item").text(data.name);
+
+                    // BAH! Should be able to do this with live events, but because
+                    // the element is initially hidden it doesn't seem to work...
+                    $link.click(function(event) {
+                        handleSaveLinkClick(this, event);
+                    });
+                    $(item).find("ul").append($("<li></li>").append($link));
+                    $elem.closest(".save-item-list")
+                        .hide(200)
+                        .prev("a").find("i").attr("class", "icon-star");
+                });
             }
         }, "json");
     });

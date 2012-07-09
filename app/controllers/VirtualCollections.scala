@@ -109,6 +109,19 @@ object VirtualCollections extends AuthController with ControllerHelpers {
     }
   }
 
+  def removeItemPost(item: Long, vc: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+    // TODO: Check virtual collection `vc` belongs to user!
+    Async {
+      VirtualCollection.createRelationship(vc, item, "contains").map { edge =>
+        if (isAjaxRequest(request))
+          Ok(generate(Map("ok" -> true)))
+        else
+          // TODO: Find out where the user came from!
+          Redirect(routes.Search.home)
+      }
+    }
+  }
+
   def saveItemToNew(item: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
     // TODO: Check virtual collection `vc` belongs to user!
     UserForm.virtualCollection.bindFromRequest.fold(
@@ -125,7 +138,7 @@ object VirtualCollections extends AuthController with ControllerHelpers {
                 println("Saving item to collection: %d -> %d".format(created.id, item))
                 VirtualCollection.createRelationship(created.id, item, "contains").map { edge =>
                   if (isAjaxRequest(request))
-                    Ok(generate(Map("id" -> created.id)))
+                    Ok(generate(Map("ok" -> true, "name" -> created.name, "id" -> created.id)))
                   else
                     Redirect(routes.VirtualCollections.detail(created.id))
                 }

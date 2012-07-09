@@ -132,6 +132,16 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     }
   }
 
+  def javascriptRoutes = Action { implicit request =>
+    import routes.javascript._
+    Ok(
+      Routes.javascriptRouter("jsRoutes")(
+        VirtualCollections.saveItem,
+        VirtualCollections.saveItemToNew
+      )
+    ).as("text/javascript")
+  }
+
   def testSolr = Action { implicit request =>
     import neo4j.query.Query
     import solr.SolrUpdater

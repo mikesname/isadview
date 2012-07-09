@@ -332,6 +332,14 @@ def create_indexed_edge(outV,label,inV,data,index_name,keys,label_var) {
   }
 }
 
+def delete_edge(_id) {
+  // TODO... this is more complicated because there
+  // can be multiple edges with the same label between
+  // a pair of nodes. The only safe way is to delete
+  // an edge by its id.
+  g.removeEdge(g.e(_id))
+}
+
 // don't need to update indexed label, it can't change
 def update_indexed_edge(_id, data, index_name, keys) {
   neo4j = g.getRawGraph()

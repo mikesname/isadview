@@ -32,6 +32,7 @@ GET     /profile/collection/delete/:id  controllers.VirtualCollections.confirmDe
 POST    /profile/collection/delete/:id  controllers.VirtualCollections.delete(id: Long)
 GET     /profile/stash/:item/:vc        controllers.VirtualCollections.saveItem(item: Long, vc: Long)
 POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItemPost(item: Long, vc: Long)
+POST     /profile/stash/remove/:item/:vc       controllers.VirtualCollections.removeItemPost(item: Long, vc: Long)
 POST     /profile/stash/:item           controllers.VirtualCollections.saveItemToNew(item: Long)
 
 
@@ -65,6 +66,9 @@ POST    /collection/delete/:slug    controllers.Collections.delete(slug: String)
 GET     /collection/create          controllers.Collections.new_
 POST    /collection/create          controllers.Collections.create
 GET     /collection/:slug           controllers.Collections.detail(slug:String)
+
+# Javascript routing
+GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
