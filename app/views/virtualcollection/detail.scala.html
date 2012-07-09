@@ -33,8 +33,15 @@
                 <h4>@Messages("Stash Details")</h4>
                 Last updated: @vc.updatedOn
             </div>
-            <div class="well">
-                <a class="btn btn-danger" href="@vc.deleteUrl">@Messages("Delete Collection")</a>
+            <div class="admin-actions well">
+                <ul class="unstyled">
+                    <li>
+                        <a class="btn btn-primary" href="@vc.editUrl">@Messages("Edit Collection")</a>
+                    </li>
+                    <li>
+                        <a class="btn btn-danger" href="@vc.deleteUrl">@Messages("Delete Collection")</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
