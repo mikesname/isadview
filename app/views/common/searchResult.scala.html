@@ -29,6 +29,7 @@
     </p>
     @maybeUser.map { user =>
         @user.profile.map { profile =>
+        <div class="bookmark-controls" data-item="@result.id">
             <a class="show-save-item-list" href="#">
             @if(savedItems.contains(result.id.toLong)) {
                 <i class="icon-star"></i>
@@ -42,11 +43,18 @@
                 <ul>
                     @profile.virtualCollections.map { vc =>
                     <li>
-                        <a class="save-item ajax" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
+                        <a class="save-item" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
                     </li>
                     }   
                 </ul>
+                <form class="stash-new-collection-form form-horizontal" action="@routes.VirtualCollections.saveItemToNew(result.id.toLong)" method="POST">
+                    <div class="input-append">
+                        <input placeholder="@Messages("Save to new collection...")" class="span8" name="name" type="text" />
+                        <input type="submit" class="btn btn-small" value="@Messages("Save")" />
+                    </div>
+                </form>
             </div>
+        </div>
         }
     }
 </div>

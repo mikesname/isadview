@@ -31,7 +31,7 @@
             @helper.inputText(f("identity.name"), '_label -> "Authorised form of Name")
 
             <div class="control-group form-inline">
-                <label>@Messages("Other Forms of Name")</label>
+                <label class="control-label">@Messages("Other Forms of Name")</label>
                 @helper.repeat(f("identity.otherFormsOfName"), min = f("identity.otherFormsOfName").indexes.length + 1) { on =>
                 <div class="controls inlinemulti" id="@{f("identity.otherFormsOfName").id}_field">
                     <p>
@@ -61,7 +61,7 @@
               @common.descriptionChoice(f("control.levelOfDetail"), models.LevelOfDetail, "Level of Detail", blank=true)
 
               <div class="control-group">
-                  <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
+                  <label class="control-label" for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
                   <div class="controls input">
                       <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                           id="control_languagesOfDescription" name="control.languagesOfDescription">
@@ -74,7 +74,7 @@
               </div>
 
               <div class="control-group">
-                  <label for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
+                  <label class="control-label" for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
                   <div class="controls input">
                       <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple
                           id="control_scriptsOfDescription"

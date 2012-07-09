@@ -6,7 +6,6 @@ currentOrderBy: Int, currentFilter: String
     @defining(maybeUser.flatMap(_.profile.map(_.virtualCollections.flatMap(_.items).map(_.id))).getOrElse(Nil)) { savedItemList =>
     
         <div class="container-fluid">
-            <form id="search-form" method="get">
                 <div class="row-fluid">
                     <div class="span3 columns">
                         <div class="search-sidebar">
@@ -18,12 +17,19 @@ currentOrderBy: Int, currentFilter: String
                         </div>
                     </div>
                     <div class="span9 columns">
-                        <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
-                        <input type="submit" value="Search">
-                        <!-- facets go here -->
-                        @* include "_selected_facets.html" *@
-                        @common.selectedFacets(currentPage)
-
+                        <form id="search-form form-horizontal" method="get">
+                            <div class="control-group">                            
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
+                                        <button class="btn" type="submit">@Messages("Search")</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- facets go here -->
+                            @* include "_selected_facets.html" *@
+                            @common.selectedFacets(currentPage)
+                        </form>
                         <h3 id="result-summary"><!-- TODO: Summary --></h3>
                         @if(currentPage.items) {
                             <div class="result-list">

@@ -32,7 +32,7 @@
         @helper.inputText(f("identity.name"), '_label -> "Title")
 
         <div class="control-group">
-            <label>@Messages("Dates")</label>
+            <label class="control-label">@Messages("Dates")</label>
             @helper.repeat(f("identity.dates"), min = f("identity.dates").indexes.length + 1) { date =>
             <div class="controls stacked-multi" id="@{date.id}_field">
                 <p>
@@ -65,7 +65,7 @@
           @common.descriptionTextarea(f("content.scopeAndContent"), "Scope and Content")
           @common.descriptionTextarea(f("content.appraisal"), "Appraisal")
           @common.descriptionTextarea(f("content.accruals"), "Accruals")
-          @common.descriptionTextarea(f("content.systemOfArrangement"), "System_of Arrangement")
+          @common.descriptionTextarea(f("content.systemOfArrangement"), "System of Arrangement")
     </fieldset>
 
     <fieldset id="access-area">
@@ -75,7 +75,7 @@
           @*common.descriptionTextarea(f("conditions.languages"), "Languages")*@
 
           <div class="control-group">
-              <label for="conditions_languages">@Messages("Languages")</label>
+              <label class="control-label" for="conditions_languages">@Messages("Languages")</label>
               <div class="controls input">
                   <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple id="conditions_languages" name="conditions.languages">
                     @Helpers.languageList.map{t =>
@@ -87,7 +87,7 @@
           </div>
 
           <div class="control-group">
-              <label for="conditions_scripts">@Messages("Scripts")</label>
+              <label class="control-label" for="conditions_scripts">@Messages("Scripts")</label>
               <div class="controls input">
                   <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple id="conditions_scripts"
                       name="conditions.scripts">
@@ -124,7 +124,7 @@
           @common.descriptionTextarea(f("control.rules"), "Rules")
 
           <div class="control-group">
-              <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
+              <label class="control-label" for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
               <div class="controls input">
                   <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                       id="control_languagesOfDescription" name="control.languagesOfDescription">
@@ -137,7 +137,7 @@
           </div>
 
           <div class="control-group">
-              <label for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
+              <label class="control-label" for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
               <div class="controls input">
                   <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple
                       id="control_scriptsOfDescription"

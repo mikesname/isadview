@@ -34,7 +34,7 @@ Option[models.sql.User], request: RequestHeader)
             @helper.inputText(f("identity.name"), '_label -> "Title")
 
             <div class="control-group form-inline">
-                <label>@Messages("Parallel Form(s) of Name")</label>
+                <label class="control-label">@Messages("Parallel Form(s) of Name")</label>
                 @helper.repeat(f("identity.parallelFormsOfName"), min = f("identity.parallelFormsOfName").indexes.length + 1) { on =>
                 <div class="controls inlinemulti" id="@{f("identity.parallelFormsOfName").id}_field">
                     <p>
@@ -44,7 +44,7 @@ Option[models.sql.User], request: RequestHeader)
                 }
             </div>
             <div class="control-group form-inline">
-                <label>@Messages("Other Form(s) of Name")</label>
+                <label class="control-label">@Messages("Other Form(s) of Name")</label>
                 @helper.repeat(f("identity.otherFormsOfName"), min = f("identity.otherFormsOfName").indexes.length + 1) { on =>
                 <div class="controls inlinemulti" id="@{f("identity.otherFormsOfName").id}_field">
                     <p>
@@ -113,7 +113,7 @@ Option[models.sql.User], request: RequestHeader)
               @common.descriptionChoice(f("control.levelOfDetail"), models.LevelOfDetail, "Level of Detail", blank=true)
 
               <div class="control-group">
-                  <label for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
+                  <label class="control-label" for="cotrol_languagesOfDescription">@Messages("Languages of Description")</label>
                   <div class="controls input">
                       <select class="chzn-select" placeholder="@Messages("Choose languages")" multiple
                           id="control_languagesOfDescription" name="control.languagesOfDescription">
@@ -126,7 +126,7 @@ Option[models.sql.User], request: RequestHeader)
               </div>
 
               <div class="control-group">
-                  <label for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
+                  <label class="control-label" for="control_scriptsOfDescription">@Messages("Scripts of Description")</label>
                   <div class="controls input">
                       <select class="chzn-select" placeholder="@Messages("Choose scripts")" multiple
                           id="control_scriptsOfDescription"

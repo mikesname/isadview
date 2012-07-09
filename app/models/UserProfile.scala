@@ -30,9 +30,8 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
 
   def createVirtualCollection(profile: UserProfile, vcdesc: VirtualCollectionDescription) = {
     VirtualCollection.create(new VirtualCollection(description=vcdesc)).flatMap { created =>
-      println("Creating relationship between: %s -> %s".format(profile, created))
       createRelationship(profile, created, "hasCollection").map { edge =>
-        profile.withCollection(created)
+        created
       }
     }
   }

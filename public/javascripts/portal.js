@@ -34,9 +34,12 @@ jQuery(function($) {
         event.preventDefault();
         var $elem = $(this);
         $.post($elem.attr("href"), function(data) {
-            alert(data);
-            $elem.closest(".save-item-list").hide(200);
-        });
+            if (data && data.ok) {
+                $elem.closest(".save-item-list")
+                    .hide(200)
+                    .prev("a").find("i").attr("class", "icon-star");
+            }
+        }, "json");
     });
 
     //add Ajax behaviour on pagination links

@@ -75,15 +75,7 @@ object VirtualCollections extends AuthController with ControllerHelpers {
       newvc => {
         // if we don't already have a profile, create one
         user.profile match {
-          case None => {
-            Async {
-              UserProfile.create0(new UserProfile(userId=user.id, data=new ProfileData())).flatMap { created =>
-                UserProfile.createVirtualCollection(created, newvc).map { created =>
-                  Redirect(routes.Users.profile)
-                }
-              }
-            }
-          }
+          case None => throw sys.error("No user profile found!")
           case Some(profile) => createNew(profile, newvc)
         }
       }
@@ -115,5 +107,33 @@ object VirtualCollections extends AuthController with ControllerHelpers {
           Redirect(routes.Search.home)
       }
     }
+  }
+
+  def saveItemToNew(item: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+    // TODO: Check virtual collection `vc` belongs to user!
+    UserForm.virtualCollection.bindFromRequest.fold(
+      errorForm => BadRequest(views.html.user.vcform(
+          user, errorForm, routes.VirtualCollections.create)),
+      newvc => {
+        // if we don't already have a profile, create one
+        user.profile match {
+          case None => throw sys.error("No user profile found!")
+          case Some(profile) => {
+            Async {
+              UserProfile.createVirtualCollection(profile, newvc).flatMap { created =>
+                println("Created virtual collection with id: " + created.id)
+                println("Saving item to collection: %d -> %d".format(created.id, item))
+                VirtualCollection.createRelationship(created.id, item, "contains").map { edge =>
+                  if (isAjaxRequest(request))
+                    Ok(generate(Map("id" -> created.id)))
+                  else
+                    Redirect(routes.VirtualCollections.detail(created.id))
+                }
+              }
+            }
+          }
+        }
+      }
+    )
   }
 }

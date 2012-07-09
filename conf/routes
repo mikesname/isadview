@@ -32,6 +32,7 @@ GET     /profile/collection/delete/:id  controllers.VirtualCollections.confirmDe
 POST    /profile/collection/delete/:id  controllers.VirtualCollections.delete(id: Long)
 GET     /profile/stash/:item/:vc        controllers.VirtualCollections.saveItem(item: Long, vc: Long)
 POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItemPost(item: Long, vc: Long)
+POST     /profile/stash/:item           controllers.VirtualCollections.saveItemToNew(item: Long)
 
 
 # Searching
