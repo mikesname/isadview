@@ -109,15 +109,21 @@ object VirtualCollections extends AuthController with ControllerHelpers {
     }
   }
 
-  def removeItemPost(item: Long, vc: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
-    // TODO: Check virtual collection `vc` belongs to user!
+  def removeItem(vc: Long, rel: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+    assert(user.profile.map(_.virtualCollections.flatMap(_.items.map(_.edge.id)).contains(rel)).getOrElse(false))
+    val action = routes.VirtualCollections.removeItemPost(vc, rel)
+    Ok(views.html.virtualcollection.removeItem(user, rel, action=action))
+  }
+
+  def removeItemPost(vc: Long, rel: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+    assert(user.profile.map(_.virtualCollections.flatMap(_.items.map(_.edge.id)).contains(rel)).getOrElse(false))
     Async {
-      VirtualCollection.createRelationship(vc, item, "contains").map { edge =>
+      VirtualCollection.deleteRelationship(rel).map { edge =>
         if (isAjaxRequest(request))
           Ok(generate(Map("ok" -> true)))
         else
           // TODO: Find out where the user came from!
-          Redirect(routes.Search.home)
+          Redirect(routes.VirtualCollections.detail(vc))
       }
     }
   }

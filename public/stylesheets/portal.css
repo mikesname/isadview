@@ -259,3 +259,13 @@ a.show-save-item-list:hover {
     background-color: #FBFBFB;
 }
 
+.stash-item-actions {
+    float: right;
+    opacity: 0.5;
+}
+
+.stash-item-info {
+    opacity: 0.5;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+}

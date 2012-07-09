@@ -16,6 +16,8 @@ case class NoResultsFound(err: String = "") extends PlayException("NoResultsFoun
 case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
 
 
+trait Neo4jRelationship
+
 trait Neo4jModel {
   val id: Long
   def toMap: Map[String,Any]
@@ -173,16 +175,22 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
     })
   }
 
+  def deleteRelationship(rel: Long): Promise[Boolean] = {
+    gremlin("delete_edge", Map("_id" -> rel)).map(response => {
+      true
+    });
+  }
+
   def createRelationship(from: Neo4jModel, to: Neo4jModel, label: String): Promise[net.liftweb.json.JsonAST.JValue] = {
     createRelationship(from.id, to.id, label)
   }
 
-  def createRelationship(from: Long, to: Long, label: String) = {
+  def createRelationship(from: Long, to: Long, label: String, data: Map[String,Any] = Map()) = {
     val params = Map(
       "outV" -> from,
       "label" -> label,
       "inV" -> to,
-      "data" -> Map(),
+      "data" -> (data + ("created_on" -> nowDateTime)),
       "index_name" -> label,
       "keys" -> null,
       "label_var" -> "label"

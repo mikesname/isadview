@@ -17,6 +17,21 @@ jQuery(function($) {
         });
     });
 
+    $("a.remove-stash-item").click(function(event) {
+        event.preventDefault();
+        var $link = $(this);
+        if (confirm("Remove item?")) {
+            $.post($link.attr("href"), function(data) {
+                if (data && data.ok) {
+                    var $item = $link.closest(".virtual-collection-item");
+                    $item.hide("fast", function() {
+                        $item.detach();        
+                    });
+                }
+            }, "json");
+        }
+    });
+
     $("a.show-save-item-list").click(function(event) {
         $(".save-item-list").hide();
         event.preventDefault();

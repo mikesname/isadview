@@ -10,8 +10,16 @@
         @if(!vc.items.isEmpty) {
             @vc.items.map { c =>
             <div class="virtual-collection-item">
-                <h4><a href="@c.detailUrl">@c.name</a></h4>
-                <p>@c.summary</p>
+                <div class="stash-item-actions">
+                    <a class="remove-stash-item" href="@routes.VirtualCollections.removeItem(vc.id, c.edge.id)"><i class="icon-remove"></i></a>
+                </div>
+                <h4><a href="@c.item.detailUrl">@c.item.name</a></h4>
+                @c.edge.createdOn.map { date =>
+                <div class="stash-item-info">
+                    @Messages("Stashed on"): @{new java.text.SimpleDateFormat() format date.toDate}
+                </div>
+                }
+                <p>@c.item.summary</p>
                 <hr />
             </div>
             }
@@ -20,7 +28,6 @@
         }
     </div>
     <div class="span3 columns">
-
         <div class="sidebar">
             <div class="well">
                 <h4>@Messages("Stash Details")</h4>

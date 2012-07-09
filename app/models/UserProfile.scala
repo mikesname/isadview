@@ -4,7 +4,8 @@ import org.joda.time.DateTime
 import play.api.libs.concurrent.Promise
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
-import net.liftweb.json.JsonAST.JValue
+import net.liftweb.json.JsonAST.{JObject,JValue}
+import net.liftweb.json.Serialization.write
 
 object UserProfile extends Neo4jDataSource[UserProfile] {
   val indexName = "userprofile"
@@ -68,15 +69,20 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
       if (userprofile.id != -1) {
         val vcs = (data \ "virtualcollections" \ "data").children.map { vcjson =>
           val vc = VirtualCollection(vcjson \ "item")
-          (vcjson \ "collections").children.foldLeft(vc) { (vc: VirtualCollection, cjson: JValue) =>
-            (cjson \ "data" \ "element_type").extractOpt[String].map { eletype =>
-              eletype match {
-                case Collection.indexName => vc.withItem(Collection(cjson))
-                case Repository.indexName => vc.withItem(Repository(cjson))
-                case Authority.indexName => vc.withItem(Authority(cjson))
-                case _ => throw sys.error("Unexpected element type in virtual collection contents: " + eletype)
+          (vcjson \\ "collections" \ "data").children.foldLeft(vc) { (vc: VirtualCollection, cjson: JValue) =>
+            cjson.extract[List[JObject]] match {
+              case edge :: node :: Nil => {
+                (node \ "data" \ "element_type").extractOpt[String].map { eletype =>
+                  eletype match {
+                    case Collection.indexName => vc.withItem(new ItemPointer(edge=Edge(edge), item=Collection(node)))
+                    case Repository.indexName => vc.withItem(new ItemPointer(edge=Edge(edge), item=Repository(node)))
+                    case Authority.indexName => vc.withItem(new ItemPointer(edge=Edge(edge), item=Authority(node)))
+                    case _ => throw sys.error("Unexpected element type in virtual collection contents: " + eletype)
+                  }
+                }.getOrElse(vc)
               }
-            }.getOrElse(vc)
+              case _ => vc
+            }
           }
         }
         Some(userprofile.withCollections(vcs))

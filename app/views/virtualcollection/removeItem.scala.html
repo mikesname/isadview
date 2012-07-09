@@ -1,0 +1,17 @@
+@(user: models.sql.User, item: Long, action: Call)(implicit request: RequestHeader)
+
+@* This template is a placeholder for an action that will mainly be performed via Ajax *@
+
+@main(Messages("Remove Item")) {
+
+    <div class="row">
+        <div class="span12 columns">
+            <h2>@Messages("Remove Item: ") @item?</h2>
+            
+            <form method="POST" action="@action" class="form-actions">
+                <button type="submit" class="btn btn-danger">@Messages("Yes, remove it!")</button>
+            </form>
+        </div>
+    </div>
+}(Some(user), request)
+

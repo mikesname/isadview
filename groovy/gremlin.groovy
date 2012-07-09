@@ -19,7 +19,11 @@ def get_user_profile_data(user_id) {
 	  .out('hasCollection').as('vc')
 	  .table(t,['vc']){[
 		  "item": it._(),
-		  "collections": it._().out('contains')._()
+		  //"collections": it._().out('contains')._()
+      // Do this if we ever get parsing both the edges and the relationships to work
+      // As it is getting the results through lift-json is weirdly tricky...
+      "collections": it._().outE('contains').as("e").inV.as("v").table(new Table(), ["e","v"]).cap
+		  //"collections": it._().outE('contains').as("edges").inV.as("vertices").table(new Table(), ["edges", "vertices"])._()
 	  ]}.iterate();
 
   ["item": item._(), "virtualcollections": t]

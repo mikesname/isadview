@@ -30,10 +30,11 @@ GET     /profile/collection/edit/:id    controllers.VirtualCollections.edit(id: 
 POST    /profile/collection/update/:id  controllers.VirtualCollections.save(id: Long)
 GET     /profile/collection/delete/:id  controllers.VirtualCollections.confirmDelete(id: Long)
 POST    /profile/collection/delete/:id  controllers.VirtualCollections.delete(id: Long)
+GET      /profile/stash/remove/:vc/:rel     controllers.VirtualCollections.removeItem(vc: Long, rel: Long)
+POST     /profile/stash/remove/:vc/:rel     controllers.VirtualCollections.removeItemPost(vc: Long, rel: Long)
+POST     /profile/stash/:item/new           controllers.VirtualCollections.saveItemToNew(item: Long)
 GET     /profile/stash/:item/:vc        controllers.VirtualCollections.saveItem(item: Long, vc: Long)
 POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItemPost(item: Long, vc: Long)
-POST     /profile/stash/remove/:item/:vc       controllers.VirtualCollections.removeItemPost(item: Long, vc: Long)
-POST     /profile/stash/:item           controllers.VirtualCollections.saveItemToNew(item: Long)
 
 
 # Searching

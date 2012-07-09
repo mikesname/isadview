@@ -3,7 +3,7 @@ currentOrderBy: Int, currentFilter: String
 )(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @main("Descriptions", body_class=rtype) {
-    @defining(maybeUser.flatMap(_.profile.map(_.virtualCollections.flatMap(_.items).map(_.id))).getOrElse(Nil)) { savedItemList =>
+    @defining(maybeUser.flatMap(_.profile.map(_.virtualCollections.flatMap(_.items).map(_.item.id))).getOrElse(Nil)) { savedItemList =>
     
         <div class="container-fluid">
                 <div class="row-fluid">
