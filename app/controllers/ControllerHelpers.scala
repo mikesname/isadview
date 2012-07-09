@@ -55,7 +55,7 @@ trait Crud {
 trait ControllerHelpers {
 
   def isAjaxRequest[T](request: Request[T]): Boolean = {
-      request.headers.get("X-REQUESTED-WITH").getOrElse("").toUpperCase() == "XMLHTTPREQUEST"
+      request.headers.get("X-REQUESTED-WITH").map(_.toUpperCase() == "XMLHTTPREQUEST").getOrElse(false)
   }
   
   /*
