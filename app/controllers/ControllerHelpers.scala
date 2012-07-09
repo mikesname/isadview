@@ -3,6 +3,7 @@ package controllers
 import play.api._
 import play.api.mvc._
 import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
+import play.api.libs.concurrent.Promise
 
 
 /*
@@ -36,6 +37,20 @@ trait AuthController extends Controller with Auth with Authorizer {
   }
 }
 
+/*
+ * Possible way to start refactoring common patterns in controllers, using delegation
+ */
+trait Crud {
+  self: AuthController =>
+  def crudDetail[T](finder: (String => Promise[T]), view: (T => String), slug: String) = optionalUserProfileAction { 
+      implicit maybeUser => implicit request =>
+    Async {
+      finder(slug).map { item =>
+        Ok(view(item))
+      }
+    }
+  }
+}
 
 trait ControllerHelpers {
 
