@@ -19,12 +19,10 @@ currentOrderBy: Int, currentFilter: String
                     <div class="span9 columns">
                         <form id="search-form form-horizontal" method="get">
                             <div class="control-group">                            
-                                <div class="controls">
                                     <div class="input-append">
                                         <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
-                                        <button class="btn" type="submit">@Messages("Search")</button>
+                                        <input class="btn" type="submit" value="@Messages("Search")" />
                                     </div>
-                                </div>
                             </div>
                             <!-- facets go here -->
                             @* include "_selected_facets.html" *@
