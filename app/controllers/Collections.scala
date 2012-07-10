@@ -146,19 +146,23 @@ object Collections extends AuthController with ControllerHelpers {
       }.filter(_.trim.nonEmpty).mkString("\n"))
     }
 
-    val nodes: List[Map[String,Any]] = (request.body \ "doc").map { elem =>
-      Map(
-        "name"        -> getField("title", elem),
-        "identifier"  -> getField("irn", elem),
-        "source"  -> getField("acq_source", elem),
-        "scope_and_content"  -> getField("scope_content", elem),
-        "extent_and_medium"  -> getField("extent", elem),
-        "legal_status"  -> getField("legal_status", elem),
-        "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n", elem)
-      )
+    val nodes: List[String] = (request.body \ "doc").flatMap { elem =>
+      getField("irn", elem).map { ident =>
+        val data = Map(
+          "identifier"  -> ident,
+          "element_type" -> "collection",
+          "name"        -> getField("title", elem),
+          "source"  -> getField("acq_source", elem),
+          "scope_and_content"  -> getField("scope_content", elem),
+          "extent_and_medium"  -> getField("extent", elem),
+          "legal_status"  -> getField("legal_status", elem),
+          "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n", elem)
+        )
+        List("(%s) %s".format(ident, generate(data)))
+      }.getOrElse(Nil)
     }.toList
 
-    Ok(nodes.mkString(", "))
+    Ok(generate(Map("subgraph" -> List(nodes.mkString("\n")))))
   }
 
   def updateIndex = authorizedAction(models.sql.Administrator) { user => implicit request =>
