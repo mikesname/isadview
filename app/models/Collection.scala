@@ -230,6 +230,7 @@ case class CollectionContent(
 }
 
 case class CollectionConditions(
+  val legalStatus: Option[String] = None,
   val conditionsOfAccess: Option[String] = None,
   val conditionsOfReproduction: Option[String] = None,
   val languages: List[String] = Nil,
@@ -238,6 +239,7 @@ case class CollectionConditions(
   val findingAids: Option[String] = None
 ) {
   def toMap = Map(
+    "legal_status" -> legalStatus,
     "conditions_of_access" -> conditionsOfAccess,
     "conditions_of_reproduction" -> conditionsOfReproduction,
     "languages" -> languages.mkString(","),

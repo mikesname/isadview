@@ -32,6 +32,7 @@ object CollectionForm {
         "systemOfArrangement" -> optional(text)
       )(CollectionContent.apply)(CollectionContent.unapply),
       "conditions" -> mapping(
+        "legalStatus" -> optional(text),
         "conditionsOfAccess" -> optional(text),
         "conditionsOfReproduction" -> optional(text),
         "languages" -> list(text),
