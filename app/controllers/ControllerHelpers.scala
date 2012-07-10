@@ -42,7 +42,7 @@ trait AuthController extends Controller with Auth with Authorizer {
  */
 trait Crud {
   self: AuthController =>
-  def crudDetail[T](finder: (String => Promise[T]), view: (T => String), slug: String) = optionalUserProfileAction { 
+  def crudDetail[T](finder: (String => Promise[T]), view: (T => templates.Html), slug: String) = optionalUserProfileAction { 
       implicit maybeUser => implicit request =>
     Async {
       finder(slug).map { item =>
