@@ -7,6 +7,7 @@ GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
 
 # Home page
+GET     /                               controllers.Search.home
 GET     /home                           controllers.Search.home
 GET     /login                          controllers.Application.login
 POST    /login                          controllers.Application.loginPost
@@ -67,6 +68,8 @@ POST    /collection/delete/:slug    controllers.Collections.delete(slug: String)
 GET     /collection/:slug/create    controllers.Collections.create(slug: String)
 POST    /collection/:slug/create    controllers.Collections.createPost(slug: String)
 GET     /collection/:slug           controllers.Collections.detail(slug:String)
+GET     /collection/:slug/import    controllers.Collections.importForm(slug: String)
+POST    /collection/:slug/import    controllers.Collections.importPost(slug: String)
 
 # Javascript routing
 GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()

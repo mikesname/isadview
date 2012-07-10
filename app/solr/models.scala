@@ -7,6 +7,8 @@ import com.github.seratch.scalikesolr.request.query.highlighting.{
     IsPhraseHighlighterEnabled, HighlightingParams}
 
 import play.api.i18n
+import play.api.libs.concurrent.Promise
+import play.api.libs.ws.{WS,Response}
 
 import solr.facet.{FacetData,FacetClass,FieldFacetClass,QueryFacetClass,Facet}
 import com.github.seratch.scalikesolr.request.query.facet.{FacetParams,FacetParam,Param,Value}
@@ -69,7 +71,7 @@ object SolrHelper {
   }
   
   def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: Int,
-        field: String, query: String, facets: Map[String, Seq[String]]): Tuple2[QueryResponse, List[FacetClass]] = {
+        field: String, query: String, facets: Map[String, Seq[String]]): QueryRequest = {
 
     // Solr 3.6 seems to break querying with *:<query> style
     // http://bit.ly/MBKghG
@@ -78,7 +80,6 @@ object SolrHelper {
     //  if (query.trim == "") "*" else query)
     val queryString = if (query.trim == "") "*" else query.trim
 
-    val client = Solr.httpServer(new java.net.URL(play.Play.application.configuration.getString("solr.path"))).newClient
     val req = new QueryRequest(query=Query(queryString))
     req.setFacet(new FacetParams(
       enabled=true, 
@@ -103,14 +104,15 @@ object SolrHelper {
     // Setup start and number of objects returned
     req.setStartRow(request.query.StartRow(offset))
     req.setMaximumRowsReturned(request.query.MaximumRowsReturned(pageSize))
+    req
+  }
 
-    // run the query
-    val response = client.doQuery(req)
-
-    // extract the useful classes from the response
-    val fclasses = SolrHelper.extract(response, index, facets)
-    (response, fclasses)
-  }       
+  def buildSearchUrl(query: QueryRequest) = {
+    "%s/select%s".format(
+      play.Play.application.configuration.getString("solr.path"),
+      query.queryString
+    )
+  }
 }
 
 
@@ -124,22 +126,27 @@ object Description {
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
-  ): Page[Description] = {
+  ): Promise[Page[Description]] = {
     val offset = page * pageSize
 
-    val(resp, fclasses) = SolrHelper.buildQuery(
+    val queryreq = SolrHelper.buildQuery(
           index, offset, pageSize, orderBy, field, query, facets)
 
-    // We only care about documents with the following content types,
-    // so use a flatMap to extract them into the correct classes
-    Page(resp.response.documents.flatMap(d => {
-      d.get("django_ct").toString match {
-        case "portal.repository" => List(d.bind(classOf[Repository]))
-        case "portal.collection" => List(d.bind(classOf[Collection]))
-        case "portal.authority" => List(d.bind(classOf[Authority]))
-        case _ => Nil
-      }
-    }), page, offset, resp.response.numFound, fclasses)
+    WS.url(SolrHelper.buildSearchUrl(queryreq)).get.map { response =>
+      val resp = new QueryResponse(writerType=queryreq.writerType, rawBody=response.body)
+      val fclasses = SolrHelper.extract(resp, index, facets)
+
+      // We only care about documents with the following content types,
+      // so use a flatMap to extract them into the correct classes
+      Page(resp.response.documents.flatMap(d => {
+        d.get("django_ct").toString match {
+          case "portal.repository" => List(d.bind(classOf[Repository]))
+          case "portal.collection" => List(d.bind(classOf[Collection]))
+          case "portal.authority" => List(d.bind(classOf[Authority]))
+          case _ => Nil
+        }
+      }), page, offset, resp.response.numFound, fclasses)
+    }
   }
   
   def facet(
@@ -152,24 +159,29 @@ object Description {
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
-  ): FacetPage = {
+  ): Promise[FacetPage] = {
     val offset = page * pageSize
 
     // create a response returning 0 documents - we don't
     // actually care about the documents, so even this is
     // not strictly necessary... we also don't care about the
     // ordering.
-    val (resp, fclasses) = SolrHelper.buildQuery(
+    val queryreq = SolrHelper.buildQuery(
           index=index, offset=0, pageSize=0, orderBy=0,
           field=field, query=query, facets=facets)
     
-    val fclass = fclasses.find(_.param==facet).getOrElse(
-        throw new Exception("Unknown facet: " + facet))
-    val flist = sort match {
-      case "name" => fclass.sortedByName.slice(offset, offset + pageSize)
-      case _ => fclass.sortedByCount.slice(offset, offset + pageSize)
+    WS.url(SolrHelper.buildSearchUrl(queryreq)).get.map { response =>
+      val resp = new QueryResponse(writerType=queryreq.writerType, rawBody=response.body)
+      val fclasses = SolrHelper.extract(resp, index, facets)
+    
+      val fclass = fclasses.find(_.param==facet).getOrElse(
+          throw new Exception("Unknown facet: " + facet))
+      val flist = sort match {
+        case "name" => fclass.sortedByName.slice(offset, offset + pageSize)
+        case _ => fclass.sortedByCount.slice(offset, offset + pageSize)
+      }
+      FacetPage(fclass, flist, page, offset, fclass.count)
     }
-    FacetPage(fclass, flist, page, offset, fclass.count)
   }
 }
 
