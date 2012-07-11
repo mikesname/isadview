@@ -117,7 +117,7 @@ object Collections extends AuthController with ControllerHelpers {
     Ok(views.html.importForm(user, routes.Collections.importPost(repo)))
   }
 
-  def importPost(repo: String) = optionalUserAction(parse.xml) { implicit maybeUser => implicit request =>
+  def importPost(repo: String) = optionalUserAction(parse.xml(maxLength = 1024 * 1024 * 100)) { implicit maybeUser => implicit request =>
     //request.body.file("file").map { xml =>
     //  val ev = new XMLEventReader(Source.fromFile(xml.ref.file))
     //  val out = ev.map(_.toString)
