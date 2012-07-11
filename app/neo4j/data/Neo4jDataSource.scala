@@ -117,7 +117,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
    *  The headers that get sent to the Neo4j Gremlin plugin for a
    *  JSON request/response.
    */
-  private def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
+  def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
 
   def create0(item: Neo4jModel): Promise[T] = {
     val params = Map(
