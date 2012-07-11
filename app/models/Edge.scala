@@ -7,7 +7,7 @@ import org.joda.time.format.ISODateTimeFormat
 
 import neo4j.json.JsonBuilder
 
-object Edge extends Neo4jRelationship with JsonBuilder[Edge] with GremlinHelper {
+object Edge extends JsonBuilder[Edge] with GremlinHelper {
   def apply(data: net.liftweb.json.JsonAST.JValue): Edge = {
     Edge(
       id = idFromUrl((data \ "self").extractOpt[String]),

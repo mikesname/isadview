@@ -16,8 +16,6 @@ case class NoResultsFound(err: String = "") extends PlayException("NoResultsFoun
 case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
 
 
-trait Neo4jRelationship
-
 trait Neo4jModel {
   val id: Long
   def toMap: Map[String,Any]
@@ -99,19 +97,47 @@ trait GremlinHelper {
 }
 
 
+trait IndexedEntity {
+  /*
+   * Implementing objects must specify this as the TypeKey
+   * and the name of vertex indexes.
+   */
+  val indexName: String
+  def initialize(): Promise[Boolean]
+}
 
-trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
+trait IndexedVertex extends IndexedEntity {
+  self: GremlinHelper =>
+  // Create an index on the server at startup
+  def initialize(): Promise[Boolean] = {
+    val params = Map("index_name" -> indexName, "index_params" -> None)
+    gremlin("get_or_create_vertex_index", params).map { resp =>
+      true
+    }
+  }
+}
+
+trait IndexedEdge extends IndexedEntity {
+  self: GremlinHelper =>
+  // Create an index on the server at startup
+  def initialize(): Promise[Boolean] = {
+    val params = Map("index_name" -> indexName, "index_params" -> None)
+    gremlin("get_or_create_edge_index", params).map { resp =>
+      true
+    }
+  }
+}
+
+trait Neo4jRelationship extends IndexedEdge with GremlinHelper
+
+
+trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
   /*
    * The name of the (mandatory) neo4j property that marks
    * denotes the type of a node.
    */
   val TypeKey = "element_type"
 
-  /*
-   * Implementing objects must specify this as the TypeKey
-   * and the name of vertex indexes.
-   */
-  val indexName: String
 
   /**
    *  The headers that get sent to the Neo4j Gremlin plugin for a
@@ -139,6 +165,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with GremlinHelper {
     // Promise and we want to compose them together.
     // TODO: Sanity check slug response...
     gremlin("ensure_unique_for_index", slugparams).flatMap { slugresp =>
+      println(slugresp.body)
       var slug: String = parse(slugresp.body)
       create0(item.withSlug(slug))
     }
