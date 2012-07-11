@@ -5,6 +5,7 @@
 GET     /dbtest                         controllers.Application.dbtest()
 GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
+POST    /uploadtest                     controllers.Collections.uploadTest
 
 # Home page
 GET     /                               controllers.Search.home

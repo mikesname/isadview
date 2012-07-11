@@ -117,19 +117,61 @@ object Collections extends AuthController with ControllerHelpers {
     Ok(views.html.importForm(user, routes.Collections.importPost(repo)))
   }
 
-  def importPost(repo: String) = optionalUserAction(parse.xml(maxLength = 1024 * 1024 * 100)) { implicit maybeUser => implicit request =>
-    //request.body.file("file").map { xml =>
-    //  val ev = new XMLEventReader(Source.fromFile(xml.ref.file))
-    //  val out = ev.map(_.toString)
-    //  Ok(out.mkString("\n"))
-    //}.getOrElse(BadRequest("nope"))
+
+  import scala.io.Source
+  import scala.xml.XML._
+  import scala.xml.pull._
+  import scala.xml._
+
+  // Pinched from:
+  // http://stackoverflow.com/questions/8525675/how-to-get-a-streaming-iteratornode-from-a-large-xml-document
+  def processSource[T](input: Source)(f: scala.xml.NodeSeq => T) {
+    new scala.xml.parsing.ConstructingParser(input, false) {
+      var depth = 0 // track depth
+      nextch // initialize per documentation
+      document // trigger parsing by requesting document
+
+      override def elemStart(pos: Int, pre: String, label: String,
+          attrs: MetaData, scope: NamespaceBinding) {
+        super.elemStart(pos, pre, label, attrs, scope)
+        depth += 1
+      }
+      override def elemEnd(pos: Int, pre: String, label: String) {
+        depth -= 1
+        super.elemEnd(pos, pre, label)
+      }
+      override def elem(pos: Int, pre: String, label: String, attrs: MetaData,
+          pscope: NamespaceBinding, nodes: NodeSeq): NodeSeq = {
+        val node = super.elem(pos, pre, label, attrs, pscope, nodes)
+        depth match {
+          case 1 => <dummy/> // dummy final roll up
+          case 2 => f(node); NodeSeq.Empty // process and discard employee nodes
+          case _ => node // roll up other nodes
+        }
+      }
+    }
+  }
+
+  def uploadTest = Action(parse.temporaryFile) {  request =>
+    processSource(Source.fromFile(request.body.file)) { node =>
+
+      println(node.headOption)
+    }
+    Ok("done")
+  }
+
+  def importPost(repo: String) = optionalUserAction(parse.temporaryFile) { implicit maybeUser => implicit request =>
+    import play.api.libs.iteratee.Enumerator
+
     Async {
       Repository.fetchBySlug(repo).map { repository =>
         val params = Map("(repo%s)".format(repository.id) -> "/node/%d".format(repository.id))
-        val descriptors = (request.body \ "doc").flatMap { elem =>
-          importers.USHMM.docToGeoff(repository.id, elem)    
+        processSource(Source.fromFile(request.body.file)) { elem =>
+          println(importers.USHMM.docToGeoff(repository.id, elem))
         }
-        Ok(generate(Map("subgraph" -> List(descriptors.mkString("\n")), "params" -> params)))
+
+        //Ok(generate(Map("subgraph" -> List(descriptors.mkString("\n")), "params" -> params)))
+        Ok("done")
       }
     }
   }
