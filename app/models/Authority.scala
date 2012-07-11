@@ -55,7 +55,7 @@ object Authority extends Neo4jDataSource[Authority] {
   // FIXME: This also sets a slug but makes no guarantees of
   // uniqueness!
   // FIXME: This doesn't set an identifier field!
-  def apply(atype: AuthorityType.AuthorityType, name: String) = new Authority(
+  def apply(atype: AuthorityType.AuthorityType, name: String, role: Option[String], bio: Option[String]) = new Authority(
     id = -1, 
     slug = Some(app.util.Helpers.slugify(name)),
     description = AuthorityDescription(
@@ -63,7 +63,7 @@ object Authority extends Neo4jDataSource[Authority] {
         typeOfEntity = atype.id,
         name = name
       ),
-      description = AuthorityDetails(),
+      description = AuthorityDetails(history=bio, generalContext=role),
       control = AuthorityControl(),
       admin = AuthorityAdmin()
     )
