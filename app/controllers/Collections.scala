@@ -113,12 +113,6 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  import play.api.data._
-  import play.api.data.Forms._
-  import scala.xml._
-  import scala.xml.pull._
-  import scala.io.Source
-
   def importForm(repo: String) = authorizedAction(models.sql.Administrator) { user => implicit request =>
     Ok(views.html.importForm(user, routes.Collections.importPost(repo)))
   }
@@ -129,40 +123,15 @@ object Collections extends AuthController with ControllerHelpers {
     //  val out = ev.map(_.toString)
     //  Ok(out.mkString("\n"))
     //}.getOrElse(BadRequest("nope"))
-
-    def optString(s: String) = if (s.trim.isEmpty) None else Some(s)
-
-    def attributeValueEquals(value: String)(node: Node) = {
-      node.attributes.exists(_.value.text == value)
+    Async {
+      Repository.fetchBySlug(repo).map { repository =>
+        val params = Map("(repo%s)".format(repository.id) -> "/node/%d".format(repository.id))
+        val descriptors = (request.body \ "doc").flatMap { elem =>
+          importers.USHMM.docToGeoff(repository.id, elem)    
+        }
+        Ok(generate(Map("subgraph" -> List(descriptors.mkString("\n")), "params" -> params)))
+      }
     }
-
-    def getField(field: String, elem: NodeSeq): Option[String] = {
-      optString((elem \ "field").filter(attributeValueEquals(field)).text)
-    }
-
-    def multiFields(fields: List[String], sep: String, elem: NodeSeq) = {
-      optString(fields.map { fname =>
-        (elem \ "field").filter(attributeValueEquals(fname)).text
-      }.filter(_.trim.nonEmpty).mkString("\n"))
-    }
-
-    val nodes: List[String] = (request.body \ "doc").flatMap { elem =>
-      getField("irn", elem).map { ident =>
-        val data = Map(
-          "identifier"  -> ident,
-          "element_type" -> "collection",
-          "name"        -> getField("title", elem),
-          "source"  -> getField("acq_source", elem),
-          "scope_and_content"  -> getField("scope_content", elem),
-          "extent_and_medium"  -> getField("extent", elem),
-          "legal_status"  -> getField("legal_status", elem),
-          "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n", elem)
-        )
-        List("(%s) %s".format(ident, generate(data)))
-      }.getOrElse(Nil)
-    }.toList
-
-    Ok(generate(Map("subgraph" -> List(nodes.mkString("\n")))))
   }
 
   def updateIndex = authorizedAction(models.sql.Administrator) { user => implicit request =>
