@@ -50,6 +50,24 @@ object Authority extends Neo4jDataSource[Authority] {
       )
     )
   }
+
+  // Shortcut function for generating authorities from just a name
+  // FIXME: This also sets a slug but makes no guarantees of
+  // uniqueness!
+  // FIXME: This doesn't set an identifier field!
+  def apply(atype: AuthorityType.AuthorityType, name: String) = new Authority(
+    id = -1, 
+    slug = Some(app.util.Helpers.slugify(name)),
+    description = AuthorityDescription(
+      identity = AuthorityIdentity(
+        typeOfEntity = atype.id,
+        name = name
+      ),
+      description = AuthorityDetails(),
+      control = AuthorityControl(),
+      admin = AuthorityAdmin()
+    )
+  )
 }
 
 
