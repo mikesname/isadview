@@ -1,0 +1,36 @@
+package models
+
+import neo4j.data._
+
+object Place extends Neo4jDataSource[Place] {
+  val indexName = "place"
+  
+  def apply(data: net.liftweb.json.JsonAST.JValue): Place = {
+    Place(
+      id = idFromUrl((data \ "self").extractOpt[String]),
+      text = (data \ "data" \ "text").extractOpt[String].getOrElse(""),
+      standard = (data \ "data" \ "standard").extractOpt[String],
+      note = (data \ "data" \ "note").extractOpt[String]
+    )
+  }
+
+  def apply(text: String) = new Place(-1, text)
+}
+
+case class Place(
+  val id: Long = -1,
+  val text: String,
+  val standard: Option[String] = None,
+  val note: Option[String] = None,
+  val parent: Option[Place] = None
+) extends Neo4jModel {
+  def toMap = Map(
+    Place.TypeKey -> Place.indexName,
+    "text" -> text,
+    "standard" -> standard,
+    "note" -> note
+  )
+
+  override def toString = "<Place: %s>".format(text)
+}
+
