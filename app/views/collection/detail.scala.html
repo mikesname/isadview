@@ -29,11 +29,13 @@
             </h3>
         }
 
-        @cl.creator.map { auth =>
+        @if(cl.creators.length > 0) {
             <h4>@Messages("Created By")</h4>
-            <p>
-                <a href="@routes.Authorities.detail(slug=auth.slug.get)">@auth.name</a>
-            </p>
+            @cl.creators.map { auth =>
+                <p>
+                    <a href="@routes.Authorities.detail(slug=auth.slug.get)">@auth.name</a>
+                </p>
+            }
         }
         
         @common.descriptionValue(c.context.archivalHistory, "Archival History")

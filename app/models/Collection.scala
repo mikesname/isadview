@@ -76,7 +76,7 @@ object Collection extends Neo4jDataSource[Collection] {
             eletype match {
               case FuzzyDate.indexName => c.withDate(FuzzyDate(json))
               case Repository.indexName => c.copy(repository=Some(Repository(json)))
-              case Authority.indexName => c.copy(creator=Some(Authority(json)))
+              case Authority.indexName => c.withCreator(Authority(json))
               case _ => c
             }
           }.getOrElse(c)
@@ -93,7 +93,7 @@ case class Collection(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val repository: Option[Repository] = None,
-  val creator: Option[Authority] = None
+  val creators: List[Authority] = Nil
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   def summary = description.content.scopeAndContent
@@ -162,6 +162,7 @@ case class Collection(
   }
 
   def withSlug(newSlug: String) = copy(slug=Some(newSlug))
+  def withCreator(creator: Authority) = copy(creators = creators ++ List(creator))
   def withDate(date: FuzzyDate) = copy(description=description.withDate(date))
 }
 
