@@ -193,7 +193,7 @@ object FacetData {
   
   // FIXME: Work out out to get the preferred lang
   // from the application context somehow
-  implicit val locale: Locale = new Locale("en", "GB")
+  implicit val locale: Locale = Locale.getDefault
 
   val facets = Map(
     "all" -> List(

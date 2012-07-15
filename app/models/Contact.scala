@@ -69,7 +69,7 @@ case class ContactDescription(
     case _ => None
   }
 
-  def format(loc: Locale = new Locale("en", "GB")): String = {
+  def format(loc: Locale = Locale.getDefault): String = {
     List(streetAddress, city, region, postalCode, countryName(loc)).flatMap {
         case Some(addr) if addr.trim != "" => List(addr)
         case _ => Nil

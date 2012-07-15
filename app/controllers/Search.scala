@@ -14,7 +14,7 @@ object Search extends AuthController with ControllerHelpers {
 
   // FIXME: Work out out to get the preferred lang
   // from the application context somehow
-  implicit val locale: Locale = new Locale("en", "GB")
+  implicit val locale: Locale = Locale.getDefault
 
   def home = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Ok(views.html.home(routes.Search.list(ALL_SEARCH)))
