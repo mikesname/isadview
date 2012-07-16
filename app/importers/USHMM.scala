@@ -184,7 +184,7 @@ object USHMM {
       }
       val idxkeys = List("identifier", "name", "slug")
       val reporel = List(
-        "(%s)-[%srepository:heldBy]->(repo%d)".format(ident, ident, repoid)
+        "(%s)-[%sheldBy%d:heldBy]->(repo%d)".format(ident, ident, repoid, repoid)
       )
 
       List(

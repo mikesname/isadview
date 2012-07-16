@@ -75,7 +75,7 @@ object Repository extends Neo4jDataSource[Repository] {
     val startparams = Map(
       "subgraph" -> geoff, // Each line is a separate JSON encoding
       "params" -> Map(
-        "(repo%s)".format(repo.id) -> "/node/%d".format(repo.id) // FIXME: Hard-coded ID
+        "(repo%s)" -> "/node/%d".format(repo.id) // FIXME: Hard-coded ID
       )
     )
     val params = List(inparams, startparams).reduce(_ ++ _)
