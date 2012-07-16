@@ -175,18 +175,18 @@ object Collections extends AuthController with ControllerHelpers {
     Ok("done")
   }
 
-  //def importTest(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+  def importTest(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
 
-  //  import scala.io.Source
-  //  // Let's crash the JVM...
-  //  val lines = Source.fromFile("out.geoff").getLines
-  //  val init = Map[String,Map[String,String]]()
-  //  val repository = Repository.fetchBySlug(slug).await.get
-  //  val out = lines.grouped(5000).map(_.toList).foldLeft(init) { case(params, lineList) =>
-  //    Repository.importGeoff(repository, lineList, params).await(100000L).get
-  //  }
-  //  Ok(generate(out))
-  //}
+    import scala.io.Source
+    // Let's crash the JVM...
+    val lines = Source.fromFile("out.geoff").getLines
+    val init = Map[String,Map[String,String]]()
+    val repository = Repository.fetchBySlug(slug).await.get
+    val out = lines.grouped(10000).map(_.toList).foldLeft(init) { case(params, lineList) =>
+      Repository.importGeoff(repository, lineList, params).await(100000L).get
+    }
+    Ok(generate(out))
+  }
 
   def importPost(repo: String) = optionalUserAction(parse.temporaryFile) { implicit maybeUser => implicit request =>
     import play.api.libs.iteratee.Enumerator

@@ -63,28 +63,28 @@ object Repository extends Neo4jDataSource[Repository] {
   /* Function to import a set of Geoff statements into the Neo4j Geoff
    * plugin, and return a Promise containing the output parameters.
    */
-  //def importGeoff(repo: Repository, geoff: List[String],
-  //    inparams: Map[String,Map[String,String]] = Map()): Promise[Map[String,Map[String,String]]] = {
-  //  import play.api.libs.ws.{WS,Response}
-  //  import com.codahale.jerkson.Json._
-  //  import play.api.Play.current
+  def importGeoff(repo: Repository, geoff: List[String],
+      inparams: Map[String,Map[String,String]] = Map()): Promise[Map[String,Map[String,String]]] = {
+    import play.api.libs.ws.{WS,Response}
+    import com.codahale.jerkson.Json._
+    import play.api.Play.current
 
-  //  val geoffMerge = play.api.Play.configuration.getString("geoff.merge").getOrElse(
-  //      sys.error("The path to the Neo4j Geoff plugin is not specified in application.conf"))
+    val geoffMerge = play.api.Play.configuration.getString("geoff.merge").getOrElse(
+        sys.error("The path to the Neo4j Geoff plugin is not specified in application.conf"))
 
-  //  val startparams = Map(
-  //    "subgraph" -> geoff, // Each line is a separate JSON encoding
-  //    "params" -> Map(
-  //      "(repo3)" -> "/node/%d".format(repo.id) // FIXME: Hard-coded ID
-  //    )
-  //  )
-  //  val params = List(inparams, startparams).reduce(_ ++ _)
-  //  WS.url(geoffMerge).withHeaders(headers.toList: _*).post(generate(params)).map { response =>
-  //    val out = parse[Map[String,Map[String,String]]](fixEncoding(response.body))
-  //    // return a merged map 
-  //    List(out, inparams).reduce(_ ++ _)
-  //  }
-  //}
+    val startparams = Map(
+      "subgraph" -> geoff, // Each line is a separate JSON encoding
+      "params" -> Map(
+        "(repo%s)".format(repo.id) -> "/node/%d".format(repo.id) // FIXME: Hard-coded ID
+      )
+    )
+    val params = List(inparams, startparams).reduce(_ ++ _)
+    WS.url(geoffMerge).withHeaders(headers.toList: _*).post(generate(params)).map { response =>
+      val out = parse[Map[String,Map[String,String]]](fixEncoding(response.body))
+      // return a merged map 
+      List(out, inparams).reduce(_ ++ _)
+    }
+  }
 
   override def fetchByFieldOption(field: String, value: String): Promise[Option[Repository]] = {
     val params = Map(

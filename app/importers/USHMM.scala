@@ -147,7 +147,7 @@ object USHMM {
 
   def getParents(ident: String, elem: NodeSeq): List[String] = {
     getField("assoc_parent_irn", elem).map(parent =>
-      List("(%s)-[%schild:isChildOf]->(%s)".format(ident, ident, parent))
+      List("(%s)-[%schildOf%s:isChildOf]->(%s)".format(ident, ident, parent, parent))
     ).getOrElse(Nil)
   }
 
