@@ -6,6 +6,7 @@ GET     /dbtest                         controllers.Application.dbtest()
 GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
 POST    /uploadtest                     controllers.Collections.uploadTest
+#POST    /importtest/:slug                     controllers.Collections.importTest(slug: String)
 
 # Home page
 GET     /                               controllers.Search.home

@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 import neo4j.json.JsonBuilder
+import neo4j.GremlinHelper
 
 object Edge extends JsonBuilder[Edge] with GremlinHelper {
   def apply(data: net.liftweb.json.JsonAST.JValue): Edge = {

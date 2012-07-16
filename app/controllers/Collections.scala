@@ -152,13 +152,41 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  def uploadTest = Action(parse.temporaryFile) {  request =>
-    processSource(Source.fromFile(request.body.file)) { node =>
+  import play.api.libs.iteratee.{Iteratee,Enumerator}
 
-      println(node.headOption)
-    }
+  def uploadTest = Action(parse.raw) {  request =>
+    //val processor = processSource(Source.fromFile(request.body.file)) _
+    //val channel = Enumerator.pushee[NodeSeq] ( onStart = pushee =>
+    //  processor(node => pushee.push(node)) 
+    //)
+    //SimpleResult(
+    //  header=ResponseHeader(200),
+    //  body=channel
+    //)
+
+    //val enumerator = Enumerator.fromStream(request.body)
+    ////val iter = Iteratee.foreach[Array[Byte]](s => s)
+    ////val iter2 = enumerator(iter)
+
+    //SimpleResult(
+    //  header=ResponseHeader(200),
+    //  body=enumerator
+    //)
     Ok("done")
   }
+
+  //def importTest(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+
+  //  import scala.io.Source
+  //  // Let's crash the JVM...
+  //  val lines = Source.fromFile("out.geoff").getLines
+  //  val init = Map[String,Map[String,String]]()
+  //  val repository = Repository.fetchBySlug(slug).await.get
+  //  val out = lines.grouped(5000).map(_.toList).foldLeft(init) { case(params, lineList) =>
+  //    Repository.importGeoff(repository, lineList, params).await(100000L).get
+  //  }
+  //  Ok(generate(out))
+  //}
 
   def importPost(repo: String) = optionalUserAction(parse.temporaryFile) { implicit maybeUser => implicit request =>
     import play.api.libs.iteratee.Enumerator

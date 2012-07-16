@@ -6,7 +6,7 @@
 
 package neo4j.query
 
-import neo4j.data._
+import neo4j.GremlinHelper
 
 import play.api.libs.concurrent.Promise
 import net.liftweb.json.JsonAST.JValue

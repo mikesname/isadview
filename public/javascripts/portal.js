@@ -39,18 +39,19 @@ jQuery(function($) {
             $(".save-item-list").hide();
             $(this).unbind("click.close-save-list");
         });
-        var $div = $(this).next("div")
+        var $elem = $(this);
+        var $div = $elem.next("div");
+        console.log($div.width());
         $div.click(function(event) {
             event.stopPropagation();
-        }).css({
-            left: $(this).position().left - $div.width()        
-        }).fadeIn(100);
+        }).show().css({
+            left: $elem.position().left - $div.width()        
+        });
         event.stopPropagation();
     });
 
     function handleSaveLinkClick(elem, event) {
         event.preventDefault();
-        console.log("Got click");
         var $elem = $(elem);
         $.post($elem.attr("href"), function(data) {
             if (data && data.ok) {
