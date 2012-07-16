@@ -12,7 +12,7 @@ import app.util.Helpers.slugify
 
 object USHMM {
 
-  implicit val locale = new java.util.Locale("en", "US")
+  implicit val locale = java.util.Locale.getDefault
 
   // Reverse lookup of language codes: English -> en
   lazy val languageMap: Map[String,String] = java.util.Locale.getISOLanguages.map(
@@ -67,8 +67,8 @@ object USHMM {
     val json = generate(item.toMap)
     val idx = generate(filteredMap(item.toMap))
     val desc = slugify(name).replace("-","")
-    "(%s) %s".format(desc, json) ::
     "(%s)<=|%s| %s".format(desc, Authority.indexName, idx) ::
+    "(%s) %s".format(desc, json) ::
     "(%s)-[%sauth%d:%s]->(%s)".format(desc, ident, i, "mentionedIn", ident) :: Nil
   }
 
@@ -93,8 +93,8 @@ object USHMM {
       val json = generate(item.toMap)
       val idx = generate(filteredMap(item.toMap))
       val desc = slugify(name).replace("-","")
-      "(%s) %s".format(desc, json) ::
       "(%s)<=|%s| %s".format(desc, Authority.indexName, idx) ::
+      "(%s) %s".format(desc, json) ::
       "(%s)-[%screated%d:%s]->(%s)".format(ident, ident, i, "createdBy", desc) :: Nil
     }
   }
@@ -111,8 +111,8 @@ object USHMM {
       val json = generate(item.toMap)
       val idx = generate(filteredMap(item.toMap))
       val desc = slugify(name).replace("-","")
-      "(%s) %s".format(desc, json) ::
       "(%s)<=|%s| %s".format(desc, Place.indexName, idx) ::
+      "(%s) %s".format(desc, json) ::
       "(%s)-[%splace%d:%s]->(%s)".format(desc, ident, i, "locatesInSpace", ident) :: Nil
     }
 
@@ -129,8 +129,8 @@ object USHMM {
       val json = generate(item.toMap)
       val idx = generate(filteredMap(item.toMap))
       val desc = slugify(keyword).replace("-","")
-      "(%s) %s".format(desc, json) ::
       "(%s)<=|%s| %s".format(desc, Keyword.indexName, idx) ::
+      "(%s) %s".format(desc, json) ::
       "(%s)-[%skeyword%d:%s]->(%s)".format(desc, ident, i, "describes", ident) :: Nil
     }
 
@@ -188,8 +188,8 @@ object USHMM {
       )
 
       List(
-        "(%s) %s".format(ident, json),
-        "(%s)<=|%s| %s".format(ident, Collection.indexName, idx)
+        "(%s)<=|%s| %s".format(ident, Collection.indexName, idx),
+        "(%s) %s".format(ident, json)
       ) ++ dates ++ reporel ++ parents ++ subjects ++ creators
     }.getOrElse(Nil)
   }
