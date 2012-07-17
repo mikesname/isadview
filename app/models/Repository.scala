@@ -72,17 +72,31 @@ object Repository extends Neo4jDataSource[Repository] {
     val geoffMerge = play.api.Play.configuration.getString("geoff.merge").getOrElse(
         sys.error("The path to the Neo4j Geoff plugin is not specified in application.conf"))
 
-    val startparams = Map(
+    // Because the Geoff plugin is currently broken with relationships
+    // filter them out of passed back params
+    val passed = inparams.getOrElse("params", Map[String,String]()).filter { case (k, v) =>
+      v match {
+        case s:String => !s.contains("/relationship/")
+        case _ => true
+      }
+    }
+    println("Adding subgraph")
+    println(geoff)
+    val params = Map(
       "subgraph" -> geoff, // Each line is a separate JSON encoding
-      "params" -> Map(
-        "(repo%s)" -> "/node/%d".format(repo.id) // FIXME: Hard-coded ID
-      )
+      "params" -> (Map(
+        "(repo%s)".format(repo.id) -> "/node/%d".format(repo.id) // FIXME: Hard-coded ID
+      ) ++ passed)
     )
-    val params = List(inparams, startparams).reduce(_ ++ _)
+    println(generate(params))
+    //println(generate(params))
     WS.url(geoffMerge).withHeaders(headers.toList: _*).post(generate(params)).map { response =>
+      //println(response.body)
       val out = parse[Map[String,Map[String,String]]](fixEncoding(response.body))
       // return a merged map 
-      List(out, inparams).reduce(_ ++ _)
+      val p1 = inparams.getOrElse("params", Map[String,String]())
+      val p2 = out.getOrElse("params", Map[String,String]())
+      inparams + ("params" -> (p1 ++ p2))
     }
   }
 

@@ -179,10 +179,10 @@ object Collections extends AuthController with ControllerHelpers {
 
     import scala.io.Source
     // Let's crash the JVM...
-    val lines = Source.fromFile("out.geoff").getLines
+    val lines = Source.fromFile("out2.geoff").getLines
     val init = Map[String,Map[String,String]]()
     val repository = Repository.fetchBySlug(slug).await.get
-    val out = lines.grouped(100).map(_.toList).foldLeft(init) { case(params, lineList) =>
+    val out = lines.grouped(40000).map(_.toList).foldLeft(init) { case(params, lineList) =>
       Repository.importGeoff(repository, lineList, params).await(100000L).get
     }
     Ok(generate(out))
