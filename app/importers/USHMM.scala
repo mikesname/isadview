@@ -12,7 +12,7 @@ import app.util.Helpers.slugify
 
 object USHMM {
 
-  implicit val locale = java.util.Locale.getDefault
+  implicit val locale = new java.util.Locale("en", "US")
 
   // Reverse lookup of language codes: English -> en
   lazy val languageMap: Map[String,String] = java.util.Locale.getISOLanguages.map(
@@ -25,6 +25,9 @@ object USHMM {
   private val PLACE = "Geographic Name"
   private val CORPORATION = "Corporate Name"
   private val PERSON = "Personal Name"
+
+  private val DEFAULT_SCRIPT = "Latn"
+
 
   def optString(s: String) = if (s.trim.isEmpty) None else Some(s)
 
@@ -65,11 +68,12 @@ object USHMM {
       name: String, role: Option[String] = None, bio: Option[String] = None): List[String] = {
     val item = Authority(atype, name, role, bio)
     val json = generate(item.toMap)
-    val idx = generate(filteredMap(item.toMap))
     val desc = slugify(name).replace("-","")
-    "(%s)<=|%s| %s".format(desc, Authority.indexName, idx) ::
-    "(%s) %s".format(desc, json) ::
-    "(%s)-[%sauth%d:%s]->(%s)".format(desc, ident, i, "mentionedIn", ident) :: Nil
+    filteredMap(item.toMap).map { case (k, v) =>
+      "(%s)<=|%s| %s".format(desc, Authority.indexName, generate(Map(k -> v)))
+    }.toList ++
+    ("(%s) %s".format(desc, json) ::
+    "(%s)-[%sauth%d:%s]->(%s)".format(desc, ident, i, "mentionedIn", ident) :: Nil)
   }
 
   def filteredMap(m: Map[String,Any]) = m.flatMap { case (k, v) =>
@@ -91,11 +95,12 @@ object USHMM {
       val (name, role, bios) = details
       val item = Authority(AuthorityType.Person, name, optString(role), optString(bios))
       val json = generate(item.toMap)
-      val idx = generate(filteredMap(item.toMap))
       val desc = slugify(name).replace("-","")
-      "(%s)<=|%s| %s".format(desc, Authority.indexName, idx) ::
-      "(%s) %s".format(desc, json) ::
-      "(%s)-[%screated%d:%s]->(%s)".format(ident, ident, i, "createdBy", desc) :: Nil
+      filteredMap(item.toMap).map { case (k, v) =>
+        "(%s)<=|%s| %s".format(desc, Authority.indexName, generate(Map(k->v)))
+      }.toList ++ 
+      ("(%s) %s".format(desc, json) ::
+      "(%s)-[%screated%d:%s]->(%s)".format(ident, ident, i, "createdBy", desc) :: Nil)
     }
   }
 
@@ -109,11 +114,12 @@ object USHMM {
       val (name, stype) = nametype
       val item = Place(name)
       val json = generate(item.toMap)
-      val idx = generate(filteredMap(item.toMap))
       val desc = slugify(name).replace("-","")
-      "(%s)<=|%s| %s".format(desc, Place.indexName, idx) ::
-      "(%s) %s".format(desc, json) ::
-      "(%s)-[%splace%d:%s]->(%s)".format(desc, ident, i, "locatesInSpace", ident) :: Nil
+      filteredMap(item.toMap).map { case (k, v) =>
+        "(%s)<=|%s| %s".format(desc, Place.indexName, generate(Map(k -> v)))
+      }.toList ++ 
+      ("(%s) %s".format(desc, json) ::
+      "(%s)-[%splace%d:%s]->(%s)".format(desc, ident, i, "locatesInSpace", ident) :: Nil)
     }
 
     // Subjects are more complicated because they are listed like:
@@ -127,11 +133,12 @@ object USHMM {
     val topics = keywords.zipWithIndex.flatMap { case (keyword, i) =>
       val item = Keyword(keyword)
       val json = generate(item.toMap)
-      val idx = generate(filteredMap(item.toMap))
       val desc = slugify(keyword).replace("-","")
-      "(%s)<=|%s| %s".format(desc, Keyword.indexName, idx) ::
-      "(%s) %s".format(desc, json) ::
-      "(%s)-[%skeyword%d:%s]->(%s)".format(desc, ident, i, "describes", ident) :: Nil
+      filteredMap(item.toMap).map { case (k, v) =>
+        "(%s)<=|%s| %s".format(desc, Keyword.indexName, generate(Map(k->v)))
+      }.toList ++ 
+      ("(%s) %s".format(desc, json) ::
+      "(%s)-[%skeyword%d:%s]->(%s)".format(desc, ident, i, "describes", ident) :: Nil)
     }
 
     val people = names.zip(types).filter(t => t._2 == PERSON).zipWithIndex.flatMap { case (nametype, i) =>
@@ -147,20 +154,29 @@ object USHMM {
 
   def getParents(ident: String, elem: NodeSeq): List[String] = {
     getField("assoc_parent_irn", elem).map(parent =>
-      List("(%s)-[%schild%s:isChildOf]->(%s)".format(ident, ident, parent, parent))
+      List("(%s)-[%schildOf%s:isChildOf]->(%s)".format(ident, ident, parent, parent))
     ).getOrElse(Nil)
   }
 
   def extractKeyValues(ident: String, elem: NodeSeq) = {
-   Map(
+
+    def getLanguage(displayNames: List[String]) = {
+      if (displayNames.isEmpty)
+        locale.getLanguage
+      else
+        displayNames.map(n => languageMap.getOrElse(n, n)).mkString(",")
+    }
+    def getSlug(str: String) = app.util.Helpers.slugify(str)
+
+    Map(
       "identifier"  -> ident,
       "element_type" -> Collection.indexName,
       "name"        -> getField("title", elem),
-      "slug"        -> app.util.Helpers.slugify(
-          List(getField("title", elem).getOrElse(""), ident).filter(_.nonEmpty).mkString(" ")),
+      "slug"        -> getSlug(getField("title", elem).getOrElse(ident)),
       "source"  -> getFields("acq_source", elem).mkString(", "),
       "source"  -> getFields("provinence", elem).mkString(", "),
-      "languages" -> getFields("language", elem).toList.map(name => languageMap.get(name).getOrElse(name)),
+      "languages" -> getLanguage(getFields("language", elem).toList),
+      "scripts" -> DEFAULT_SCRIPT,
       "scope_and_content"  -> getField("scope_content", elem),
       "extent_and_medium"  -> getFields("extent", elem).mkString("\n"),
       "legal_status"  -> getField("legal_status", elem),
@@ -182,15 +198,14 @@ object USHMM {
         //"(%sdate%d)<=|%s| %s".format(ident, i, FuzzyDate.indexName, generate(filteredMap(d.toMap))) ::
         "(%sdate%d)-[%sdate%drel:locatesInTime]->(%s)".format(ident, i, ident, i, ident) :: Nil
       }
-      val idxkeys = List("identifier", "name", "slug")
       val reporel = List(
-        "(%s)-[%srepository:heldBy]->(repo%d)".format(ident, ident, repoid)
+        "(%s)-[%sheldBy%d:heldBy]->(repo%d)".format(ident, ident, repoid, repoid)
       )
 
-      List(
-        "(%s)<=|%s| %s".format(ident, Collection.indexName, idx),
-        "(%s) %s".format(ident, json)
-      ) ++ dates ++ reporel ++ parents ++ subjects ++ creators
+      filteredMap(data).map { case(k,v) =>
+        "(%s)<=|%s| %s".format(ident, Collection.indexName, generate(Map(k->v)))
+      }.toList ++ (List("(%s) %s".format(ident, json))
+       ++ dates ++ reporel ++ parents ++ subjects ++ creators)
     }.getOrElse(Nil)
   }
 }
