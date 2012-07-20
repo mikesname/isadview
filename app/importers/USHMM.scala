@@ -11,18 +11,12 @@ import app.util.Helpers.slugify
    like Solr 'add' documents. */
 
 object USHMM {
-
-  object RelDir extends Enumeration("In", "Out") {
-    type RelDir = Value
-    val In, Out = Value
-  }
-
-  class GeoffRelationship(val dir: RelDir.RelDir, label: String, from: String, to: String) {
+  case class GeoffRelationship(label: String, from: String, to: String) {
     override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, label, to, label, to)
   }
 
-  class GeoffEntity(
-      val rels: List[GeoffRelationship], val indexName: Option[String] = None,
+  case class GeoffEntity(
+      val indexName: Option[String] = None,
       val descriptor: String, val data: Map[String,Any]) {
     def toStringList: List[String] = {
       val idxs: List[String] = indexName match {
@@ -93,11 +87,8 @@ object USHMM {
     val item = Authority(atype, name, role, bio)
     val json = generate(item.toMap)
     val desc = slugify(name).replace("-","")
-    filteredMap(item.toMap).map { case (k, v) =>
-      "(%s)<=|%s| %s".format(desc, Authority.indexName, generate(Map(k -> v)))
-    }.toList ++
-    ("(%s) %s".format(desc, json) ::
-    "(%s)-[%sauth%d:%s]->(%s)".format(desc, ident, i, "mentionedIn", ident) :: Nil)
+    val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
+    entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
   }
 
   def filteredMap(m: Map[String,Any]) = m.flatMap { case (k, v) =>
