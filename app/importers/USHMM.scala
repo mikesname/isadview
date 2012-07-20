@@ -12,7 +12,31 @@ import app.util.Helpers.slugify
 
 object USHMM {
 
-  implicit val locale = new java.util.Locale("en", "US")
+  object RelDir extends Enumeration("In", "Out") {
+    type RelDir = Value
+    val In, Out = Value
+  }
+
+  class GeoffRelationship(val dir: RelDir.RelDir, label: String, from: String, to: String) {
+    override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, label, to, label, to)
+  }
+
+  class GeoffEntity(
+      val rels: List[GeoffRelationship], val indexName: Option[String] = None,
+      val descriptor: String, val data: Map[String,Any]) {
+    def toStringList: List[String] = {
+      val idxs: List[String] = indexName match {
+        case Some(idx) => filteredMap(data).map { case (k, v) =>
+            "(%s)<=|%s| %s".format(descriptor, idx, generate(Map(k -> v)))
+          }.toList
+        case _ => Nil
+      }
+
+      idxs ::: "(%s) %s".format(descriptor, generate(data)) :: Nil
+    }
+  }
+
+  implicit val locale = java.util.Locale.getDefault
 
   // Reverse lookup of language codes: English -> en
   lazy val languageMap: Map[String,String] = java.util.Locale.getISOLanguages.map(
