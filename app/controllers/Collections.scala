@@ -175,15 +175,36 @@ object Collections extends AuthController with ControllerHelpers {
     Ok("done")
   }
 
+  def xmlToGeoff(slug: String, in: String, out: String) = optionalUserAction { implicit maybeUser => implicit request =>
+    
+    Async {
+      Repository.fetchBySlug(slug).map { repo =>
+    
+        import scalax.io._
+        val output = Resource.fromFile(out)
+        output.truncate(0)
+        processSource(Source.fromFile(in)) { doc =>
+          output.writeStrings(importers.USHMM.docToGeoff(repo.id, doc), separator="\n")(Codec.UTF8)
+        }
+        Ok("done")
+      }
+    }
+  }
+
   def importTest(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
+
+    var file = request.queryString.getOrElse("f", Seq()).headOption.getOrElse(
+          throw sys.error("No Geoff file supplied."))
+    val size = 40000
+    val timeout = 100000L
 
     import scala.io.Source
     // Let's crash the JVM...
-    val lines = Source.fromFile("out2.geoff").getLines
+    val lines = Source.fromFile(file).getLines
     val init = Map[String,Map[String,String]]()
     val repository = Repository.fetchBySlug(slug).await.get
-    val out = lines.grouped(40000).map(_.toList).foldLeft(init) { case(params, lineList) =>
-      Repository.importGeoff(repository, lineList, params).await(100000L).get
+    val out = lines.grouped(size).map(_.toList).foldLeft(init) { case(params, lineList) =>
+      Repository.importGeoff(repository, lineList, params).await(timeout).get
     }
     Ok(generate(out))
   }
@@ -204,7 +225,49 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  def updateIndex = authorizedAction(models.sql.Administrator) { user => implicit request =>
+  def updateIndexSyncro = optionalUserAction { implicit maybeUser => implicit request =>
+    import neo4j.query.Query
+    import solr.SolrUpdater
+
+    val timeout = 100000L
+    val batch = 500
+    val ccount = Collection.query.count().await(timeout).get
+    val acount = Authority.query.count().await(timeout).get
+    val rcount = Repository.query.count().await(timeout).get
+
+    // TODO: Reduce this code dup and parallise!
+    for (range <- (0 to ccount).grouped(batch)) {
+      range.headOption.map { start =>
+        val end = range.lastOption.getOrElse(start)
+        var partials = Collection.query.slice(start, end).get().await(timeout).get
+        val plist = partials.map { item => Collection.fetchBySlug(item.slug.get) }
+        val full = Promise.sequence(plist).await(timeout).get
+        SolrUpdater.updateSolrModels(full)
+      }
+    }
+    for (range <- (0 to acount).grouped(batch)) {
+      range.headOption.map { start =>
+        val end = range.lastOption.getOrElse(start)
+        var partials = Authority.query.slice(start, end).get().await(timeout).get
+        val plist = partials.map { item => Authority.fetchBySlug(item.slug.get) }
+        val full = Promise.sequence(plist).await(timeout).get
+        SolrUpdater.updateSolrModels(full)
+      }
+    }
+    for (range <- (0 to rcount).grouped(batch)) {
+      range.headOption.map { start =>
+        val end = range.lastOption.getOrElse(start)
+        var partials = Repository.query.slice(start, end).get().await(timeout).get
+        val plist = partials.map { item => Repository.fetchBySlug(item.slug.get) }
+        val full = Promise.sequence(plist).await(timeout).get
+        SolrUpdater.updateSolrModels(full)
+      }
+    }
+
+    Ok("done")
+  }
+
+  def updateIndex = optionalUserAction { implicit maybeUser => implicit request =>
     import neo4j.query.Query
     import solr.SolrUpdater
 
@@ -215,15 +278,13 @@ object Collections extends AuthController with ControllerHelpers {
       val clist = Collection.query.get().map { list =>
         list.map(c => Collection.fetchBySlug(c.slug.get))
       }
-      clist.map { cp =>
-        Async {
-          // Now take the List of Promises and convert them into
-          // a Promise[List[models.Collection]] using the sequence
-          // function.
-          Promise.sequence(cp).flatMap { items =>
-            SolrUpdater.updateSolrModels(items).map { alldone =>
-              Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
-            }
+      clist.flatMap { cp =>
+        // Now take the List of Promises and convert them into
+        // a Promise[List[models.Collection]] using the sequence
+        // function.
+        Promise.sequence(cp).flatMap { items =>
+          SolrUpdater.updateSolrModels(items).map { alldone =>
+            Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
           }
         }
       }

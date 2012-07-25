@@ -11,6 +11,15 @@ import app.util.Helpers.slugify
    like Solr 'add' documents. */
 
 object USHMM {
+  def filteredMap(m: Map[String,Any]) = m.flatMap { case (k, v) =>
+    v match {
+      case None => Nil
+      case Some("") => Nil
+      case "" => Nil
+      case _ => List((k, v))
+    }
+  }
+
   case class GeoffRelationship(label: String, from: String, to: String) {
     override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, label, to, label, to)
   }
@@ -43,7 +52,6 @@ object USHMM {
   private val PLACE = "Geographic Name"
   private val CORPORATION = "Corporate Name"
   private val PERSON = "Personal Name"
-
   private val DEFAULT_SCRIPT = "Latn"
 
 
@@ -85,17 +93,9 @@ object USHMM {
   def createAuthority(ident: String, i: Int, atype: AuthorityType.AuthorityType,
       name: String, role: Option[String] = None, bio: Option[String] = None): List[String] = {
     val item = Authority(atype, name, role, bio)
-    val json = generate(item.toMap)
     val desc = slugify(name).replace("-","")
     val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
     entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
-  }
-
-  def filteredMap(m: Map[String,Any]) = m.flatMap { case (k, v) =>
-    v match {
-      case None => Nil
-      case _ => List((k, v))
-    }
   }
 
   def extractCreators(ident: String, elem: NodeSeq): List[String] = {
@@ -109,13 +109,9 @@ object USHMM {
     combined.zipWithIndex.flatMap { case (details, i) =>
       val (name, role, bios) = details
       val item = Authority(AuthorityType.Person, name, optString(role), optString(bios))
-      val json = generate(item.toMap)
       val desc = slugify(name).replace("-","")
-      filteredMap(item.toMap).map { case (k, v) =>
-        "(%s)<=|%s| %s".format(desc, Authority.indexName, generate(Map(k->v)))
-      }.toList ++ 
-      ("(%s) %s".format(desc, json) ::
-      "(%s)-[%screated%d:%s]->(%s)".format(ident, ident, i, "createdBy", desc) :: Nil)
+      val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
+      entity.toStringList ::: GeoffRelationship("createdBy", ident, desc).toString :: Nil
     }
   }
 
@@ -128,13 +124,9 @@ object USHMM {
     val places = names.zip(types).filter(t => t._2 == PLACE).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, stype) = nametype
       val item = Place(name)
-      val json = generate(item.toMap)
       val desc = slugify(name).replace("-","")
-      filteredMap(item.toMap).map { case (k, v) =>
-        "(%s)<=|%s| %s".format(desc, Place.indexName, generate(Map(k -> v)))
-      }.toList ++ 
-      ("(%s) %s".format(desc, json) ::
-      "(%s)-[%splace%d:%s]->(%s)".format(desc, ident, i, "locatesInSpace", ident) :: Nil)
+      val entity = GeoffEntity(indexName=Some(Place.indexName), descriptor=desc, data=item.toMap)
+      entity.toStringList ::: GeoffRelationship("locatesInSpace", desc, ident).toString :: Nil
     }
 
     // Subjects are more complicated because they are listed like:
@@ -147,13 +139,9 @@ object USHMM {
 
     val topics = keywords.zipWithIndex.flatMap { case (keyword, i) =>
       val item = Keyword(keyword)
-      val json = generate(item.toMap)
       val desc = slugify(keyword).replace("-","")
-      filteredMap(item.toMap).map { case (k, v) =>
-        "(%s)<=|%s| %s".format(desc, Keyword.indexName, generate(Map(k->v)))
-      }.toList ++ 
-      ("(%s) %s".format(desc, json) ::
-      "(%s)-[%skeyword%d:%s]->(%s)".format(desc, ident, i, "describes", ident) :: Nil)
+      val entity = GeoffEntity(indexName=Some(Keyword.indexName), descriptor=desc, data=item.toMap)
+      entity.toStringList ::: GeoffRelationship("describes", desc, ident).toString :: Nil
     }
 
     val people = names.zip(types).filter(t => t._2 == PERSON).zipWithIndex.flatMap { case (nametype, i) =>
@@ -181,12 +169,14 @@ object USHMM {
       else
         displayNames.map(n => languageMap.getOrElse(n, n)).mkString(",")
     }
-    def getSlug(str: String) = app.util.Helpers.slugify(str)
+
+    def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
+    def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
 
     Map(
       "identifier"  -> ident,
       "element_type" -> Collection.indexName,
-      "name"        -> getField("title", elem),
+      "name"        -> getTitle(getField("title", elem).getOrElse("")),
       "slug"        -> getSlug(getField("title", elem).getOrElse(ident)),
       "source"  -> getFields("acq_source", elem).mkString(", "),
       "source"  -> getFields("provinence", elem).mkString(", "),
@@ -204,7 +194,6 @@ object USHMM {
     getField("irn", elem).map { ident =>
       val data = extractKeyValues(ident, elem)
       val json = generate(data)
-      val idx = generate(filteredMap(data))
       val parents = getParents(ident, elem)
       val subjects = extractSubjects(ident, elem)
       val creators = extractCreators(ident, elem)
@@ -214,7 +203,7 @@ object USHMM {
         "(%sdate%d)-[%sdate%drel:locatesInTime]->(%s)".format(ident, i, ident, i, ident) :: Nil
       }
       val reporel = List(
-        "(%s)-[%sheldBy%d:heldBy]->(repo%d)".format(ident, ident, repoid, repoid)
+        "(%s)-[%sheldByrepo%d:heldBy]->(repo%d)".format(ident, ident, repoid, repoid)
       )
 
       filteredMap(data).map { case(k,v) =>

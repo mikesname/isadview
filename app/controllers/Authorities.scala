@@ -23,7 +23,7 @@ object Authorities extends AuthController with ControllerHelpers {
           // get collections
           Collection.findRelatedTo(auth, Collection.Direction.In, "createdBy").map { createdCollections =>
             Async {
-              Collection.findRelatedTo(auth, Collection.Direction.In, "mentionedIn").map { mentionedCollections =>
+              Collection.findRelatedTo(auth, Collection.Direction.Out, "mentionedIn").map { mentionedCollections =>
                 Ok(views.html.authority.detail(auth, auth.description, createdCollections, mentionedCollections))
               }
             }
@@ -115,7 +115,7 @@ object Authorities extends AuthController with ControllerHelpers {
     }
   }
 
-  def updateIndex = authorizedAction(models.sql.Administrator) { user => implicit request =>
+  def updateIndex = optionalUserAction { implicit maybeUser => implicit request =>
     import neo4j.query.Query
     import solr.SolrUpdater
 

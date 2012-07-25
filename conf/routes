@@ -6,7 +6,8 @@ GET     /dbtest                         controllers.Application.dbtest()
 GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
 POST    /uploadtest                     controllers.Collections.uploadTest
-POST    /importtest/:slug                     controllers.Collections.importTest(slug: String)
+POST    /xmlToGeoff/:slug               controllers.Collections.xmlToGeoff(slug: String, in: String, out: String)
+POST    /importtest/:slug               controllers.Collections.importTest(slug: String)
 
 # Home page
 GET     /                               controllers.Search.home
@@ -62,7 +63,7 @@ GET     /authority/create           controllers.Authorities.new_
 POST    /authority/create           controllers.Authorities.create
 GET     /authority/:slug            controllers.Authorities.detail(slug:String)
 
-GET     /collection/updateIndex     controllers.Collections.updateIndex
+GET     /collection/updateIndex     controllers.Collections.updateIndexSyncro
 GET     /collection/edit/:slug      controllers.Collections.edit(slug: String)
 POST    /collection/edit/:slug      controllers.Collections.save(slug: String)
 GET     /collection/delete/:slug    controllers.Collections.confirmDelete(slug: String)
