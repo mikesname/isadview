@@ -11,8 +11,26 @@ import app.util.Helpers.slugify
    like Solr 'add' documents. */
 
 object USHMM {
+  case class GeoffRelationship(label: String, from: String, to: String) {
+    override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, label, to, label, to)
+  }
 
-  implicit val locale = new java.util.Locale("en", "US")
+  case class GeoffEntity(
+      val indexName: Option[String] = None,
+      val descriptor: String, val data: Map[String,Any]) {
+    def toStringList: List[String] = {
+      val idxs: List[String] = indexName match {
+        case Some(idx) => filteredMap(data).map { case (k, v) =>
+            "(%s)<=|%s| %s".format(descriptor, idx, generate(Map(k -> v)))
+          }.toList
+        case _ => Nil
+      }
+
+      idxs ::: "(%s) %s".format(descriptor, generate(data)) :: Nil
+    }
+  }
+
+  implicit val locale = java.util.Locale.getDefault
 
   // Reverse lookup of language codes: English -> en
   lazy val languageMap: Map[String,String] = java.util.Locale.getISOLanguages.map(
@@ -69,11 +87,8 @@ object USHMM {
     val item = Authority(atype, name, role, bio)
     val json = generate(item.toMap)
     val desc = slugify(name).replace("-","")
-    filteredMap(item.toMap).map { case (k, v) =>
-      "(%s)<=|%s| %s".format(desc, Authority.indexName, generate(Map(k -> v)))
-    }.toList ++
-    ("(%s) %s".format(desc, json) ::
-    "(%s)-[%sauth%d:%s]->(%s)".format(desc, ident, i, "mentionedIn", ident) :: Nil)
+    val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
+    entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
   }
 
   def filteredMap(m: Map[String,Any]) = m.flatMap { case (k, v) =>
