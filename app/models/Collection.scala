@@ -65,7 +65,7 @@ object Collection extends Neo4jDataSource[Collection] {
       "index_name" -> indexName,
       "key" -> field,
       "query_string" -> value,
-      "inRels" -> List("locatesInTime", "describes"),
+      "inRels" -> List("locatesInTime", "locatesInSpace", "describes"),
       "outRels" -> List("heldBy", "createdBy")
     )
     gremlin("query_exact_index_with_related", params).map(response => {
@@ -78,6 +78,7 @@ object Collection extends Neo4jDataSource[Collection] {
               case Repository.indexName => c.copy(repository=Some(Repository(json)))
               case Authority.indexName => c.withCreator(Authority(json))
               case Keyword.indexName => c.withKeyword(Keyword(json))
+              case Place.indexName => c.withPlace(Place(json))
               case _ => c
             }
           }.getOrElse(c)
@@ -170,6 +171,7 @@ case class Collection(
   def withCreator(creator: Authority) = copy(creators = creators ++ List(creator))
   def withDate(date: FuzzyDate) = copy(description=description.withDate(date))
   def withKeyword(kw: Keyword) = copy(keywords = keywords ++ List(kw))
+  def withPlace(place: Place) = copy(places = places ++ List(place))
 }
 
 case class CollectionDescription(
