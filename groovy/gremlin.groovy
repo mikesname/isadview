@@ -13,19 +13,46 @@
 // This is a stopgap measure until a better method is devised (perhaps
 // using the newer Tree() pipe.
 def get_user_profile_data(user_id) {
-  t= new Table()
-  item = g.idx("userprofile").get("user_id", Neo4jTokens.QUERY_HEADER + user_id).iterator().next()
-  g.v(item.id)._()
-	  .out('hasCollection').as('vc')
-	  .table(t,['vc']){[
-		  "item": it._(),
-		  //"collections": it._().out('contains')._()
-      // Do this if we ever get parsing both the edges and the relationships to work
-      // As it is getting the results through lift-json is weirdly tricky...
-      "collections": it._().outE('contains').as("e").inV.as("v").table(new Table(), ["e","v"]).cap
-		  //"collections": it._().outE('contains').as("edges").inV.as("vertices").table(new Table(), ["edges", "vertices"])._()
-	  ]}.iterate();
+  
+  // ARGH, gross code dup - fix with some magic somewhere.
+  def create_indexed_vertex(data,index_name,keys) {
+    neo4j = g.getRawGraph()
+    manager = neo4j.index()
+    g.setMaxBufferSize(0)
+    g.startTransaction()
+    try {
+      index = manager.forNodes(index_name)
+      vertex = neo4j.createNode()
+      for (entry in data.entrySet()) {
+        if (entry.value == null) continue;
+        vertex.setProperty(entry.key,entry.value)
+        if (keys == null || keys.contains(entry.key))
+    index.add(vertex,entry.key,String.valueOf(entry.value))
+      }
+      g.stopTransaction(TransactionalGraph.Conclusion.SUCCESS)
+      return vertex
+    } catch (e) {
+      g.stopTransaction(TransactionalGraph.Conclusion.FAILURE)  
+      return e
+    }
+  }
 
+  t= new Table()
+  try {
+    item = g.idx("userprofile").get("user_id", Neo4jTokens.QUERY_HEADER + user_id).iterator().next()
+    g.v(item.id)._()
+      .out('hasCollection').as('vc')
+      .table(t,['vc']){[
+        "item": it._(),
+        //"collections": it._().out('contains')._()
+        // Do this if we ever get parsing both the edges and the relationships to work
+        // As it is getting the results through lift-json is weirdly tricky...
+        "collections": it._().outE('contains').as("e").inV.as("v").table(new Table(), ["e","v"]).cap
+        //"collections": it._().outE('contains').as("edges").inV.as("vertices").table(new Table(), ["edges", "vertices"])._()
+      ]}.iterate();
+  } catch (NoSuchElementException e) {
+    item = create_indexed_vertex(["element_type":"userprofile","user_id":user_id], "userprofile", null)  
+  }
   ["item": item._(), "virtualcollections": t]
 }
 
