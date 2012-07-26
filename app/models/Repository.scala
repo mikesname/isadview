@@ -82,7 +82,6 @@ object Repository extends Neo4jDataSource[Repository] {
     val sent = carried ++ Map("(repo%s)".format(repo.id) -> "/node/%d".format(repo.id))
     val params = Map("subgraph" -> geoff, "params" -> sent)
     //println(generate(params))
-    println("Importing %d items".format(geoff.length))
     WS.url(geoffMerge).withHeaders(headers.toList: _*).post(generate(params)).map { response =>
       //println(response.body)
       try {

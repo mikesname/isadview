@@ -195,7 +195,7 @@ object Collections extends AuthController with ControllerHelpers {
 
     var file = request.queryString.getOrElse("f", Seq()).headOption.getOrElse(
           throw sys.error("No Geoff file supplied."))
-    val size = 40000
+    val size = 100000
     val timeout = 100000L
 
     import scala.io.Source
@@ -223,48 +223,6 @@ object Collections extends AuthController with ControllerHelpers {
         Ok("done")
       }
     }
-  }
-
-  def updateIndexSyncro = optionalUserAction { implicit maybeUser => implicit request =>
-    import neo4j.query.Query
-    import solr.SolrUpdater
-
-    val timeout = 100000L
-    val batch = 500
-    val ccount = Collection.query.count().await(timeout).get
-    val acount = Authority.query.count().await(timeout).get
-    val rcount = Repository.query.count().await(timeout).get
-
-    // TODO: Reduce this code dup and parallise!
-    for (range <- (0 to ccount).grouped(batch)) {
-      range.headOption.map { start =>
-        val end = range.lastOption.getOrElse(start)
-        var partials = Collection.query.slice(start, end).get().await(timeout).get
-        val plist = partials.map { item => Collection.fetchBySlug(item.slug.get) }
-        val full = Promise.sequence(plist).await(timeout).get
-        SolrUpdater.updateSolrModels(full)
-      }
-    }
-    for (range <- (0 to acount).grouped(batch)) {
-      range.headOption.map { start =>
-        val end = range.lastOption.getOrElse(start)
-        var partials = Authority.query.slice(start, end).get().await(timeout).get
-        val plist = partials.map { item => Authority.fetchBySlug(item.slug.get) }
-        val full = Promise.sequence(plist).await(timeout).get
-        SolrUpdater.updateSolrModels(full)
-      }
-    }
-    for (range <- (0 to rcount).grouped(batch)) {
-      range.headOption.map { start =>
-        val end = range.lastOption.getOrElse(start)
-        var partials = Repository.query.slice(start, end).get().await(timeout).get
-        val plist = partials.map { item => Repository.fetchBySlug(item.slug.get) }
-        val full = Promise.sequence(plist).await(timeout).get
-        SolrUpdater.updateSolrModels(full)
-      }
-    }
-
-    Ok("done")
   }
 
   def updateIndex = optionalUserAction { implicit maybeUser => implicit request =>

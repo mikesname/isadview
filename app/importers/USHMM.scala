@@ -29,12 +29,16 @@ object USHMM {
       val descriptor: String, val data: Map[String,Any]) {
     def toStringList: List[String] = {
       val idxs: List[String] = indexName match {
-        case Some(idx) => filteredMap(data).map { case (k, v) =>
+        case Some(idx) => {
+          // We must have a unique index value at the front of the list of index key/pairs
+          // so that subsequent items creates in a merge do not overwrite the created node.
+          val idxkey = "(%s)<=|%s| %s".format(descriptor, idx, generate(Map("descriptor" -> descriptor)))
+          List(idxkey) ++ filteredMap(data).map { case (k, v) =>
             "(%s)<=|%s| %s".format(descriptor, idx, generate(Map(k -> v)))
           }.toList
+        }
         case _ => Nil
       }
-
       idxs ::: "(%s) %s".format(descriptor, generate(data)) :: Nil
     }
   }
@@ -52,6 +56,8 @@ object USHMM {
   private val PLACE = "Geographic Name"
   private val CORPORATION = "Corporate Name"
   private val PERSON = "Personal Name"
+
+  // This isn't wise, perhaps...
   private val DEFAULT_SCRIPT = "Latn"
 
 
@@ -81,13 +87,19 @@ object USHMM {
 
   /* Extract date fields, which in the USHMM dump format are
   the last YYYY-YYYY field on keyword access fields. */
-  def extractDates(elem: NodeSeq): List[FuzzyDate] = {
-    (elem \ "field").filter(attributeValueEquals("subject_heading")).flatMap { f =>
+  def extractDates(ident: String, elem: NodeSeq): List[String] = {
+    val dates = (elem \ "field").filter(attributeValueEquals("subject_heading")).flatMap { f =>
       f.text match {
         case datePattern(start, end) => List(FuzzyDate(start.toInt, end.toInt))
         case _ => Nil
       }
     }.toList
+
+    dates.flatMap { d =>
+      val desc = slugify("%s%s".format(d, ident)).replace("-", "")
+      val entity = GeoffEntity(indexName=Some(FuzzyDate.indexName), descriptor=desc, data=d.toMap)
+      entity.toStringList ::: GeoffRelationship("locatesInTime", desc, ident).toString :: Nil
+    }
   }
 
   def createAuthority(ident: String, i: Int, atype: AuthorityType.AuthorityType,
@@ -104,7 +116,7 @@ object USHMM {
     val bios = getFields("creator_bio", elem).map(cleanupField)
 
     // not sure how to zip 3 lists together cleanly...
-    val combined = names.zip(roles).zip(bios).map(t => (t._1._1, t._1._2, t._2))
+    val combined = names.zip(roles).zip(bios).map(t => (t._1._1, t._1._2, t._2)).filterNot(t => t._1.isEmpty)
     
     combined.zipWithIndex.flatMap { case (details, i) =>
       val (name, role, bios) = details
@@ -119,9 +131,11 @@ object USHMM {
     val names = getFields("subject_heading", elem).map(cleanupField)
     val types = getFields("subject_type", elem).map(cleanupField)
 
+    def isValid(item: (String,String), itemtype: String) = (!item._1.trim.isEmpty) && item._2 == itemtype
+
     // Places are relatively simple. Create a descriptor for each one and
     // relate it to the model
-    val places = names.zip(types).filter(t => t._2 == PLACE).zipWithIndex.flatMap { case (nametype, i) =>
+    val places = names.zip(types).filter(t => isValid(t, PLACE)).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, stype) = nametype
       val item = Place(name)
       val desc = slugify(name).replace("-","")
@@ -133,9 +147,12 @@ object USHMM {
     // WWII -- Holocaust -- Estonia, so we need to make a descriptor
     // for each one.
     // First, get a unique list of topics
-    val keywords = names.zip(types).filter(t => t._2 == TOPIC).flatMap { case (name, _) =>
-      name.split(" -- ").map(cleanupField)
-    }.distinct
+    val keywords = names.zip(types).filter(t => isValid(t, TOPIC)).flatMap { case (name, _) =>
+      name.split(" -- ").map(cleanupField).lastOption match {
+        case Some(t) => List(t)
+        case None => Nil
+      }
+    }.distinct.filterNot(_.isEmpty)
 
     val topics = keywords.zipWithIndex.flatMap { case (keyword, i) =>
       val item = Keyword(keyword)
@@ -144,11 +161,11 @@ object USHMM {
       entity.toStringList ::: GeoffRelationship("describes", desc, ident).toString :: Nil
     }
 
-    val people = names.zip(types).filter(t => t._2 == PERSON).zipWithIndex.flatMap { case (nametype, i) =>
+    val people = names.zip(types).filter(t => isValid(t, PERSON)).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, _) = nametype
       createAuthority(ident, i, AuthorityType.Person, name, None, None)
     }
-    val corps = names.zip(types).filter(t => t._2 == CORPORATION).zipWithIndex.flatMap { case (nametype, i) =>
+    val corps = names.zip(types).filter(t => isValid(t, CORPORATION)).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, _) = nametype
       createAuthority(ident, i, AuthorityType.CorporateBody, name, None, None)
     }
@@ -197,11 +214,7 @@ object USHMM {
       val parents = getParents(ident, elem)
       val subjects = extractSubjects(ident, elem)
       val creators = extractCreators(ident, elem)
-      val dates = extractDates(elem).zipWithIndex.flatMap { case(d, i) =>
-        "(%sdate%d) %s".format(ident, i, generate(d.toMap)) ::
-        //"(%sdate%d)<=|%s| %s".format(ident, i, FuzzyDate.indexName, generate(filteredMap(d.toMap))) ::
-        "(%sdate%d)-[%sdate%drel:locatesInTime]->(%s)".format(ident, i, ident, i, ident) :: Nil
-      }
+      val dates = extractDates(ident, elem)
       val reporel = List(
         "(%s)-[%sheldByrepo%d:heldBy]->(repo%d)".format(ident, ident, repoid, repoid)
       )
