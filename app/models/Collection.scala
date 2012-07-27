@@ -131,7 +131,6 @@ case class Collection(
 
   def toSolrDoc = {
     require(id > 0 && slug.isDefined, "Item %d has no slug; cannot create Solr index!".format(id))
-    if (keywords.length > 0) println("Indexing tagged item: %s".format(keywords.map(_.text)))
     Map(
       "id" -> id,
       "slug" -> slug,
