@@ -194,8 +194,6 @@ abstract trait Description {
   var text: String
   var publication_date: String
   var publication_status: Int
-  var repository: String
-  var repository_slug: String
 
   def index: String = django_ct.split("\\.")(1)
 }
@@ -203,8 +201,6 @@ abstract trait Description {
 case class Repository(
     var id: String = "",
     var django_ct: String = "",
-    var repository: String = "", // HACK!
-    var repository_slug: String = "", // HACK!
     var name: String = "",
     var slug: String = "",
     var description: String = "",
@@ -216,15 +212,13 @@ case class Repository(
     var publication_date: String = "", // FIXME: Should be a date
     var publication_status: Int = 0
  ) extends Description {
-    def this() = this("", "", "", "", "", "", "", Nil, "", "", "", "", "", 0)
+    def this() = this("", "", "", "", "", Nil, "", "", "", "", "", 0)
     override def toString = "<%s: %s>".format(getClass, slug)
 }
 
 case class Authority(
     var id: String = "",
     var django_ct: String = "",
-    var repository: String = "", // HACK!
-    var repository_slug: String = "", // HACK!
     var name: String = "",
     var slug: String = "",
     var history: String = "",
@@ -235,7 +229,7 @@ case class Authority(
     var publication_date: String = "", // FIXME: Should be a date
     var publication_status: Int = 0
  ) extends Description {
-    def this() = this("", "", "", "", "", "", "", "", Nil, "", "", "", 0)
+    def this() = this("", "", "", "", "", "", Nil, "", "", "", 0)
     override def toString = "<%s: %s>".format(getClass, slug)
 }
 
