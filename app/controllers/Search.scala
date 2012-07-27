@@ -52,48 +52,77 @@ object Search extends AuthController with ControllerHelpers {
   }
 
   def updateIndex = optionalUserAction { implicit maybeUser => implicit request =>
+    Ok(views.html.updateIndex(action=routes.Search.updateIndexPost))
+  }
+
+  def updateIndexPost = optionalUserAction { implicit maybeUser => implicit request =>
     import neo4j.query.Query
     import solr.SolrUpdater
 
-    val timeout = 100000L
-    val batch = 500
-    val ccount = models.Collection.query.count().await(timeout).get
-    val acount = models.Authority.query.count().await(timeout).get
-    val rcount = models.Repository.query.count().await(timeout).get
+    import play.api.data._
+    import play.api.data.Forms._
 
-    // TODO: Reduce this code dup and parallise!
-    println("Updating collection index")
-    for (range <- (0 to ccount).grouped(batch)) {
-      range.headOption.map { start =>
-        val end = range.lastOption.getOrElse(start)
-        var partials = models.Collection.query.slice(start, end).get().await(timeout).get
-        val plist = partials.map { item => models.Collection.fetchBySlug(item.slug.get) }
-        val full = Promise.sequence(plist).await(timeout).get
-        SolrUpdater.updateSolrModels(full)
-      }
-    }
-    println("Updating authority index")
-    for (range <- (0 to acount).grouped(batch)) {
-      range.headOption.map { start =>
-        val end = range.lastOption.getOrElse(start)
-        var partials = models.Authority.query.slice(start, end).get().await(timeout).get
-        val plist = partials.map { item => models.Authority.fetchBySlug(item.slug.get) }
-        val full = Promise.sequence(plist).await(timeout).get
-        SolrUpdater.updateSolrModels(full)
-      }
-    }
-    println("Updating repository index")
-    for (range <- (0 to rcount).grouped(batch)) {
-      range.headOption.map { start =>
-        val end = range.lastOption.getOrElse(start)
-        var partials = models.Repository.query.slice(start, end).get().await(timeout).get
-        val plist = partials.map { item => models.Repository.fetchBySlug(item.slug.get) }
-        val full = Promise.sequence(plist).await(timeout).get
-        SolrUpdater.updateSolrModels(full)
-      }
-    }
+    case class UpdateEntities(val collection: Boolean, val authority: Boolean, val repository: Boolean)
 
-    Ok("done")
+    Form(
+      mapping(
+        "collection" -> boolean,
+        "authority" -> boolean,
+        "repository" -> boolean
+      )(UpdateEntities.apply)(UpdateEntities.unapply)
+    ).bindFromRequest.fold(
+      errorForm => {
+        println(errorForm)
+        BadRequest(views.html.updateIndex(action=routes.Search.updateIndexPost))
+      },
+      entities => {
+
+        val timeout = 100000L
+        val batch = 500
+        val ccount = models.Collection.query.count().await(timeout).get
+        val acount = models.Authority.query.count().await(timeout).get
+        val rcount = models.Repository.query.count().await(timeout).get
+
+        // TODO: Reduce this code dup and parallise!
+        if (entities.collection) {
+          println("Updating collection index")
+          for (range <- (0 to ccount).grouped(batch)) {
+            range.headOption.map { start =>
+              val end = range.lastOption.getOrElse(start)
+              var partials = models.Collection.query.slice(start, end).get().await(timeout).get
+              val plist = partials.map { item => models.Collection.fetchBySlug(item.slug.get) }
+              val full = Promise.sequence(plist).await(timeout).get
+              SolrUpdater.updateSolrModels(full)
+            }
+          }
+        }
+        if (entities.authority) {
+          println("Updating authority index")
+          for (range <- (0 to acount).grouped(batch)) {
+            range.headOption.map { start =>
+              val end = range.lastOption.getOrElse(start)
+              var partials = models.Authority.query.slice(start, end).get().await(timeout).get
+              val plist = partials.map { item => models.Authority.fetchBySlug(item.slug.get) }
+              val full = Promise.sequence(plist).await(timeout).get
+              SolrUpdater.updateSolrModels(full)
+            }
+          }
+        }
+        if (entities.repository) {
+          println("Updating repository index")
+          for (range <- (0 to rcount).grouped(batch)) {
+            range.headOption.map { start =>
+              val end = range.lastOption.getOrElse(start)
+              var partials = models.Repository.query.slice(start, end).get().await(timeout).get
+              val plist = partials.map { item => models.Repository.fetchBySlug(item.slug.get) }
+              val full = Promise.sequence(plist).await(timeout).get
+              SolrUpdater.updateSolrModels(full)
+            }
+          }
+        }
+        Ok("done")
+      }
+    )
   }
 }
 
