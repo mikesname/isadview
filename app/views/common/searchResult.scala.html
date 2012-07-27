@@ -36,36 +36,11 @@
     }
 
     <div class="search-result-content">
-    @if(result.django_ct == "portal.repository") {
-        <h4><a href="@routes.Repositories.detail(slug=result.slug)">@result.name</a></h4>
-    } else {
-        @if(result.django_ct == "portal.collection") {
-        <h4>
-            <a href="@routes.Collections.detail(slug=result.slug)">@result.name</a>
-            <span class="collection-repo">
-                <a href="@routes.Repositories.detail(slug=result.repository_slug)">@result.repository</a>
-            </span>
-        </h4>
-        } else {
-        <h4><a href="@routes.Authorities.detail(slug=result.slug)">@result.name</a></h4>
-        }
-    }
-    @if(result.other_names.nonEmpty) {
-        <h5 class="alternate-names">@result.other_names.mkString(", ")</h5>
-    }
-    <p>
-        @if(result.publication_status == 0) {
-            <span class="label">@Messages("Draft")</span>
-        }
-        @{result.django_ct match {
-        case "portal.repository" =>
-            result.asInstanceOf[solr.models.Repository].description.slice(0, 200)
-        case "portal.authority" =>
-            result.asInstanceOf[solr.models.Authority].history.slice(0, 200)
-        case "portal.collection" =>
-            result.asInstanceOf[solr.models.Collection].description.slice(0, 200)
+        @{result match {
+            case r: solr.models.Repository => repository.searchResult(r)
+            case a: solr.models.Authority => authority.searchResult(a)
+            case c: solr.models.Collection => collection.searchResult(c)
         }}
-    </p>
     </div>
 </div>
 

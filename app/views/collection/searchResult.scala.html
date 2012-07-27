@@ -1,0 +1,20 @@
+@(result: solr.models.Collection)
+
+<h4>
+    <a href="@routes.Collections.detail(slug=result.slug)">@result.name</a>
+    <span class="collection-repo">
+        <a href="@routes.Repositories.detail(slug=result.repository_slug)">@result.repository</a>
+    </span>
+</h4>
+
+@if(result.other_names.nonEmpty) {
+    <h5 class="alternate-names">@result.other_names.mkString(", ")</h5>
+}
+<p>
+    @if(result.publication_status == 0) {
+        <span class="label">@Messages("Draft")</span>
+    }
+    @result.asInstanceOf[solr.models.Collection].description.slice(0, 200)
+</p>
+
+

@@ -1,0 +1,17 @@
+@(result: solr.models.Authority)
+
+<h4>
+    <a href="@routes.Authorities.detail(slug=result.slug)">@result.name</a>
+</h4>
+
+@if(result.other_names.nonEmpty) {
+    <h5 class="alternate-names">@result.other_names.mkString(", ")</h5>
+}
+<p>
+    @if(result.publication_status == 0) {
+        <span class="label">@Messages("Draft")</span>
+    }
+    @result.history.slice(0, 200)
+</p>
+
+
