@@ -61,6 +61,7 @@ object Search extends AuthController with ControllerHelpers {
 
     import play.api.data._
     import play.api.data.Forms._
+    import play.api.libs.iteratee.Enumerator
 
     case class UpdateEntities(val collection: Boolean, val authority: Boolean, val repository: Boolean)
 
@@ -78,49 +79,74 @@ object Search extends AuthController with ControllerHelpers {
       entities => {
 
         val timeout = 100000L
-        val batch = 500
-        val ccount = models.Collection.query.count().await(timeout).get
-        val acount = models.Authority.query.count().await(timeout).get
-        val rcount = models.Repository.query.count().await(timeout).get
+        val batch = 1000
 
         // TODO: Reduce this code dup and parallise!
-        if (entities.collection) {
-          println("Updating collection index")
-          for (range <- (0 to ccount).grouped(batch)) {
-            range.headOption.map { start =>
-              val end = range.lastOption.getOrElse(start)
-              var partials = models.Collection.query.slice(start, end).get().await(timeout).get
-              val plist = partials.map { item => models.Collection.fetchBySlug(item.slug.get) }
-              val full = Promise.sequence(plist).await(timeout).get
-              SolrUpdater.updateSolrModels(full)
+        val channel = Enumerator.pushee[String] { pushee =>
+          if (entities.collection) {
+            println("Updating collection index")
+            models.Collection.query.count().map { count =>
+              for (range <- (0 to count).grouped(batch)) {
+                range.headOption.map { start =>
+                  val end = range.lastOption.getOrElse(start)
+                  models.Collection.query.slice(start, end).get().map { partials =>
+                    val plist = partials.map { item => models.Collection.fetchBySlug(item.slug.get) }
+                    Promise.sequence(plist).map { full =>
+                      SolrUpdater.updateSolrModels(full).map { r =>
+                        val msg = "Updated Collections: %d to %d\n".format(start, end)
+                        print(msg)
+                        pushee.push(msg)
+                        r
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (entities.authority) {
+            println("Updating authority index")
+            models.Authority.query.count().map { count =>
+              for (range <- (0 to count).grouped(batch)) {
+                range.headOption.map { start =>
+                  val end = range.lastOption.getOrElse(start)
+                  models.Authority.query.slice(start, end).get().map { partials =>
+                    val plist = partials.map { item => models.Authority.fetchBySlug(item.slug.get) }
+                    Promise.sequence(plist).map { full =>
+                      SolrUpdater.updateSolrModels(full).map { r =>
+                        val msg = "Updated Authorities: %d to %d\n".format(start, end)
+                        print(msg)
+                        pushee.push(msg)
+                        r
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (entities.repository) {
+            println("Updating repository index")
+            models.Repository.query.count().map { count =>
+              for (range <- (0 to count).grouped(batch)) {
+                range.headOption.map { start =>
+                  val end = range.lastOption.getOrElse(start)
+                  models.Repository.query.slice(start, end).get().map { partials =>
+                    val plist = partials.map { item => models.Repository.fetchBySlug(item.slug.get) }
+                    val full = Promise.sequence(plist).await(timeout).get
+                    SolrUpdater.updateSolrModels(full).map { r =>
+                      val msg = "Updated Repositories: %d to %d\n".format(start, end)
+                      print(msg)
+                      pushee.push(msg)
+                      r
+                    }
+                  }
+                }
+              }
             }
           }
         }
-        if (entities.authority) {
-          println("Updating authority index")
-          for (range <- (0 to acount).grouped(batch)) {
-            range.headOption.map { start =>
-              val end = range.lastOption.getOrElse(start)
-              var partials = models.Authority.query.slice(start, end).get().await(timeout).get
-              val plist = partials.map { item => models.Authority.fetchBySlug(item.slug.get) }
-              val full = Promise.sequence(plist).await(timeout).get
-              SolrUpdater.updateSolrModels(full)
-            }
-          }
-        }
-        if (entities.repository) {
-          println("Updating repository index")
-          for (range <- (0 to rcount).grouped(batch)) {
-            range.headOption.map { start =>
-              val end = range.lastOption.getOrElse(start)
-              var partials = models.Repository.query.slice(start, end).get().await(timeout).get
-              val plist = partials.map { item => models.Repository.fetchBySlug(item.slug.get) }
-              val full = Promise.sequence(plist).await(timeout).get
-              SolrUpdater.updateSolrModels(full)
-            }
-          }
-        }
-        Ok("done")
+        Ok.stream(channel.andThen(Enumerator.eof))
       }
     )
   }
