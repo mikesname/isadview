@@ -40,7 +40,12 @@
         <h4><a href="@routes.Repositories.detail(slug=result.slug)">@result.name</a></h4>
     } else {
         @if(result.django_ct == "portal.collection") {
-        <h4><a href="@routes.Collections.detail(slug=result.slug)">@result.name</a></h4>
+        <h4>
+            <a href="@routes.Collections.detail(slug=result.slug)">@result.name</a>
+            <span class="collection-repo">
+                <a href="@routes.Repositories.detail(slug=result.repository_slug)">@result.repository</a>
+            </span>
+        </h4>
         } else {
         <h4><a href="@routes.Authorities.detail(slug=result.slug)">@result.name</a></h4>
         }

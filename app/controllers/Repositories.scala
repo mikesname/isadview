@@ -107,7 +107,7 @@ object Repositories extends AuthController with ControllerHelpers {
     }
   }
 
-  def updateIndex = authorizedAction(models.sql.Administrator) { user => implicit request =>
+  def updateIndex = optionalUserAction { implicit maybeUser => implicit request =>
     import neo4j.query.Query
     import solr.SolrUpdater
 

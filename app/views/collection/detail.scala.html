@@ -49,6 +49,24 @@
         @common.descriptionValue(c.control.rules, "Rules")
         @common.descriptionValue(c.control.sources, "Sources")
         <hr />
+
+        @if(cl.places.length > 0) {
+            <h4>@Messages("Places")</h4>
+            <p class="tag-list">
+            @cl.places.map { kw =>
+                <a href="@routes.Search.list(rtype="search")?tag=@kw.text">@kw.text</a> 
+            }
+            </p>
+        }
+
+        @if(cl.keywords.length > 0) {
+            <h4>@Messages("Keywords")</h4>
+            <p class="tag-list">
+            @cl.keywords.map { kw =>
+                <a href="@routes.Search.list(rtype="search")?tag=@kw.text">@kw.text</a> 
+            }
+            </p>
+        }
     </div>
 </div>
 }

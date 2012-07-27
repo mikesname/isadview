@@ -6,6 +6,8 @@ GET     /dbtest                         controllers.Application.dbtest()
 GET     /testq                          controllers.Application.testq()
 GET     /testsolr                       controllers.Application.testSolr()
 POST    /uploadtest                     controllers.Collections.uploadTest
+POST    /xmlToGeoff/:slug               controllers.Collections.xmlToGeoff(slug: String, in: String, out: String)
+POST    /importtest/:slug               controllers.Collections.importTest(slug: String)
 
 # Home page
 GET     /                               controllers.Search.home
@@ -42,6 +44,8 @@ POST     /profile/stash/:item/:vc       controllers.VirtualCollections.saveItemP
 # Searching
 GET     /$rtype<(collection|repository|authority|search)>     controllers.Search.list(rtype:String, page:Int ?= 0, s:Int ?= 2, q ?= "", field ?= "")
 GET     /$rtype<(collection|repository|authority|search)>/facets/:facet    controllers.Search.facets(facet:String, rtype:String, page:Int ?= 0, sort:String ?= "count", q ?= "", field ?= "")
+GET     /search/updateIndex         controllers.Search.updateIndex
+POST     /search/updateIndex        controllers.Search.updateIndexPost
 
 GET     /repository/updateIndex     controllers.Repositories.updateIndex
 GET     /repository/edit/:slug      controllers.Repositories.edit(slug: String)

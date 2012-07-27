@@ -65,7 +65,7 @@ object Collection extends Neo4jDataSource[Collection] {
       "index_name" -> indexName,
       "key" -> field,
       "query_string" -> value,
-      "inRels" -> List("locatesInTime"),
+      "inRels" -> List("locatesInTime", "locatesInSpace", "describes"),
       "outRels" -> List("heldBy", "createdBy")
     )
     gremlin("query_exact_index_with_related", params).map(response => {
@@ -77,6 +77,8 @@ object Collection extends Neo4jDataSource[Collection] {
               case FuzzyDate.indexName => c.withDate(FuzzyDate(json))
               case Repository.indexName => c.copy(repository=Some(Repository(json)))
               case Authority.indexName => c.withCreator(Authority(json))
+              case Keyword.indexName => c.withKeyword(Keyword(json))
+              case Place.indexName => c.withPlace(Place(json))
               case _ => c
             }
           }.getOrElse(c)
@@ -93,7 +95,9 @@ case class Collection(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val repository: Option[Repository] = None,
-  val creators: List[Authority] = Nil
+  val creators: List[Authority] = Nil,
+  val places: List[Place] = Nil,
+  val keywords: List[Keyword] = Nil
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   def summary = description.content.scopeAndContent
@@ -126,12 +130,13 @@ case class Collection(
   }
 
   def toSolrDoc = {
-    require(id > 0 && slug.isDefined)
+    require(id > 0 && slug.isDefined, "Item %d has no slug; cannot create Solr index!".format(id))
     Map(
       "id" -> id,
       "slug" -> slug,
       "django_ct" -> ("portal." + Collection.indexName), // Legacy!!!
       "name" -> name,
+      "tags_exact" -> keywords.map(_.text),
       "description" -> description.content.scopeAndContent,
       "repository" -> repository.map(_.name),
       "languages" -> description.conditions.languages.filterNot(_==""),
@@ -164,6 +169,8 @@ case class Collection(
   def withSlug(newSlug: String) = copy(slug=Some(newSlug))
   def withCreator(creator: Authority) = copy(creators = creators ++ List(creator))
   def withDate(date: FuzzyDate) = copy(description=description.withDate(date))
+  def withKeyword(kw: Keyword) = copy(keywords = keywords ++ List(kw))
+  def withPlace(place: Place) = copy(places = places ++ List(place))
 }
 
 case class CollectionDescription(

@@ -60,6 +60,48 @@ object Repository extends Neo4jDataSource[Repository] {
     )
   }
 
+  /* Function to import a set of Geoff statements into the Neo4j Geoff
+   * plugin, and return a Promise containing the output parameters.
+   */
+  def importGeoff(repo: Repository, geoff: List[String],
+      inparams: Map[String,Map[String,String]] = Map()): Promise[Map[String,Map[String,String]]] = {
+    import play.api.libs.ws.{WS,Response}
+    import com.codahale.jerkson.Json._
+    import play.api.Play.current
+
+    val geoffMerge = play.api.Play.configuration.getString("geoff.merge").getOrElse(
+        sys.error("The path to the Neo4j Geoff plugin is not specified in application.conf"))
+
+    val carried = inparams.getOrElse("params", Map[String,String]()).filter { case (k, v) =>
+      v match {
+        case s:String => !s.startsWith("/relationship")
+        case _ => true
+      }
+    }
+
+    val sent = carried ++ Map("(repo%s)".format(repo.id) -> "/node/%d".format(repo.id))
+    val params = Map("subgraph" -> geoff, "params" -> sent)
+    //println(generate(params))
+    WS.url(geoffMerge).withHeaders(headers.toList: _*).post(generate(params)).map { response =>
+      //println(response.body)
+      try {
+        val out = parse[Map[String,Map[String,String]]](fixEncoding(response.body))
+        // return a merged map 
+        val p1 = inparams.getOrElse("params", Map[String,String]())
+        val p2 = out.getOrElse("params", Map[String,String]())
+        inparams + ("params" -> (p1 ++ p2))
+      } catch {
+        case e => {
+          println("Exception handling import")
+          geoff.foreach(s => println(" - " + s))
+          println(generate(params))
+          println(response.body)
+          throw e
+        }
+      }
+    }
+  }
+
   override def fetchByFieldOption(field: String, value: String): Promise[Option[Repository]] = {
     val params = Map(
       "index_name" -> indexName,
