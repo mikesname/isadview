@@ -96,6 +96,7 @@ object USHMM {
     }.toList
 
     dates.flatMap { d =>
+      // We want individual dates per record, so scope them according to the ident.
       val desc = slugify("%s%s".format(d, ident)).replace("-", "")
       val entity = GeoffEntity(indexName=Some(FuzzyDate.indexName), descriptor=desc, data=d.toMap)
       entity.toStringList ::: GeoffRelationship("locatesInTime", desc, ident).toString :: Nil
@@ -172,9 +173,9 @@ object USHMM {
     places ++ topics ++ people ++ corps
   }
 
-  def getParents(ident: String, elem: NodeSeq): List[String] = {
+  def extractParents(ident: String, elem: NodeSeq): List[String] = {
     getField("assoc_parent_irn", elem).map(parent =>
-      List("(%s)-[%schildOf%s:isChildOf]->(%s)".format(ident, ident, parent, parent))
+      List(GeoffRelationship("isChildOf", ident, parent).toString)
     ).getOrElse(Nil)
   }
 
@@ -209,20 +210,16 @@ object USHMM {
 
   def docToGeoff(repoid: Long, elem: NodeSeq): List[String] = {
     getField("irn", elem).map { ident =>
-      val data = extractKeyValues(ident, elem)
-      val json = generate(data)
-      val parents = getParents(ident, elem)
+      val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=ident,
+          data=extractKeyValues(ident, elem))
+      val parents = extractParents(ident, elem)
       val subjects = extractSubjects(ident, elem)
       val creators = extractCreators(ident, elem)
       val dates = extractDates(ident, elem)
       val reporel = List(
-        "(%s)-[%sheldByrepo%d:heldBy]->(repo%d)".format(ident, ident, repoid, repoid)
+        GeoffRelationship("heldBy", ident, "repo%d".format(repoid)).toString
       )
-
-      filteredMap(data).map { case(k,v) =>
-        "(%s)<=|%s| %s".format(ident, Collection.indexName, generate(Map(k->v)))
-      }.toList ++ (List("(%s) %s".format(ident, json))
-       ++ dates ++ reporel ++ parents ++ subjects ++ creators)
+      entity.toStringList ++ dates ++ reporel ++ parents ++ subjects ++ creators
     }.getOrElse(Nil)
   }
 }
