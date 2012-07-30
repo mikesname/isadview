@@ -27,13 +27,21 @@ object FuzzyDate extends Neo4jDataSource[FuzzyDate] {
     )
   }
 
+
   // Another factory for FuzzyDate, this time created using
   // two integers representing start and end years
-  def apply(start: Int, end: Int) = new FuzzyDate(
+  def apply(start: Int, end: Int, precision: Option[String], circa: Option[Boolean]) = new FuzzyDate(
     -1L, new FuzzyDateDescription(
       startDate = Some(new DateTime(start, 1, 1, 0, 0, 0, 0)),
       endDate = Some(new DateTime(end, 12, 31, 0, 0, 0, 0)),
-      precision = Some("year")
+      precision = precision,
+      circa = circa
+    )
+  )
+  def apply(start: Int, end: Int): FuzzyDate = apply(start, end, Some("year"), Some(false))
+  def apply(start: Int): FuzzyDate = new FuzzyDate(
+    -1L, new FuzzyDateDescription(
+      startDate = Some(new DateTime(start, 1, 1, 0, 0, 0, 0))
     )
   )
 }
