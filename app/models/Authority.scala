@@ -16,7 +16,8 @@ object Authority extends Neo4jDataSource[Authority] {
       updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
       description = AuthorityDescription(
         identity = AuthorityIdentity(
-          typeOfEntity = (data \ "data" \ "type_of_entity").extractOpt[Int].getOrElse(0),
+          typeOfEntity = (data \ "data" \ "type_of_entity")
+              .extractOpt[AuthorityType.AuthorityType].getOrElse(AuthorityType.Person),
           identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
           name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
           otherFormsOfName = (data \ "data" \
@@ -60,7 +61,7 @@ object Authority extends Neo4jDataSource[Authority] {
     slug = Some(app.util.Helpers.slugify(name)),
     description = AuthorityDescription(
       identity = AuthorityIdentity(
-        typeOfEntity = atype.id,
+        typeOfEntity = atype,
         name = name
       ),
       description = AuthorityDetails(history=bio, generalContext=role),
@@ -101,7 +102,7 @@ case class Authority(
       "django_ct" -> ("portal." + Authority.indexName), // Legacy!!!
       "name" -> name,
       "history" -> description.description.history,
-      "type_of_entity" -> description.identity.typeOfEntity,
+      "type_of_entity" -> description.identity.typeOfEntity.id,
       "places" -> description.description.places,
       "functions" -> description.description.functions,
       "other_names" -> description.identity.otherFormsOfName.filterNot(_==""),
@@ -128,14 +129,14 @@ case class AuthorityDescription(
 }
 
 case class AuthorityIdentity(
-  val typeOfEntity: Int = AuthorityType.Person.id,
+  val typeOfEntity: AuthorityType.AuthorityType = AuthorityType.Person,
   val identifier: String = "",
   val name: String = "",
   val otherFormsOfName: List[String] = Nil
 ) {
   def otherNames = otherFormsOfName
   def toMap = Map(
-    "type_of_entity" -> typeOfEntity,
+    "type_of_entity" -> typeOfEntity.id,
     "identifier" -> identifier,
     "name" -> name,
     "other_forms_of_name" -> otherFormsOfName.filterNot(_.isEmpty).mkString(",,")
