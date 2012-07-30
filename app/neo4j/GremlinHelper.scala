@@ -11,8 +11,8 @@ import neo4j.json.{JsonBuilder,GremlinError}
  * Gremlin script/responses
  */
 trait GremlinHelper {
-  val scripts = new neo4j.ScriptSource()
-  val gremlinPath = play.api.Play.configuration.getString("gremlin").getOrElse(
+  lazy val scripts = new neo4j.ScriptSource()
+  lazy val gremlinPath = play.api.Play.configuration.getString("gremlin").getOrElse(
       sys.error("The path to the Neo4j Gremlin plugin is not specified in application.conf"))
 
   /**
