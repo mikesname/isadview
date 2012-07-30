@@ -84,14 +84,16 @@ object Search extends AuthController with ControllerHelpers {
         // TODO: Reduce this code dup and parallise!
         val channel = Enumerator.pushee[String] { pushee =>
           if (entities.collection) {
-            println("Updating collection index")
             models.Collection.query.count().map { count =>
+              println("Updating collection index: %d".format(count))
               for (range <- (0 to count).grouped(batch)) {
+                println("Dispatching %d to %d".format(range.headOption.getOrElse(-1), range.lastOption.getOrElse(-1)))
                 range.headOption.map { start =>
                   val end = range.lastOption.getOrElse(start)
                   models.Collection.query.slice(start, end).get().map { partials =>
                     val plist = partials.map { item => models.Collection.fetchBySlug(item.slug.get) }
                     Promise.sequence(plist).map { full =>
+                      println("Got details for collections: %d to %d\n".format(start, end))
                       SolrUpdater.updateSolrModels(full).map { r =>
                         val msg = "Updated Collections: %d to %d\n".format(start, end)
                         print(msg)

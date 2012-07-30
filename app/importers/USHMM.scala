@@ -2,53 +2,13 @@ package importers
 
 import scala.xml._
 import models._
-import neo4j.data.Neo4jModel
-import com.codahale.jerkson.Json.generate
 
 import app.util.Helpers.slugify
 
 /* Geoff extractor for USHMM Solr dumps, which look extactly
    like Solr 'add' documents. */
 
-object USHMM {
-  def filteredMap(m: Map[String,Any]) = m.flatMap { case (k, v) =>
-    v match {
-      case None => Nil
-      case Some("") => Nil
-      case "" => Nil
-      case _ => List((k, v))
-    }
-  }
-
-  case class GeoffRelationship(label: String, from: String, to: String) {
-    override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, label, to, label, to)
-  }
-
-  case class GeoffEntity(
-      val indexName: Option[String] = None,
-      val descriptor: String, val data: Map[String,Any]) {
-    def toStringList: List[String] = {
-      val idxs: List[String] = indexName match {
-        case Some(idx) => {
-          // We must have a unique index value at the front of the list of index key/pairs
-          // so that subsequent items creates in a merge do not overwrite the created node.
-          val idxkey = "(%s)<=|%s| %s".format(descriptor, idx, generate(Map("descriptor" -> descriptor)))
-          List(idxkey) ++ filteredMap(data).map { case (k, v) =>
-            "(%s)<=|%s| %s".format(descriptor, idx, generate(Map(k -> v)))
-          }.toList
-        }
-        case _ => Nil
-      }
-      idxs ::: "(%s) %s".format(descriptor, generate(data)) :: Nil
-    }
-  }
-
-  implicit val locale = java.util.Locale.getDefault
-
-  // Reverse lookup of language codes: English -> en
-  lazy val languageMap: Map[String,String] = java.util.Locale.getISOLanguages.map(
-      code => (app.util.Helpers.languageCodeToName(code), code)).toMap
-
+object USHMM extends Importer[NodeSeq] with XmlHelper {
   private val datePattern = ".+-- (\\d{4})-(\\d{4})\\.?$".r
 
   // Types of subject
@@ -60,23 +20,20 @@ object USHMM {
   // This isn't wise, perhaps...
   private val DEFAULT_SCRIPT = "Latn"
 
-
-  def optString(s: String) = if (s.trim.isEmpty) None else Some(s)
-
-  def attributeValueEquals(value: String)(node: Node) = {
+  private def attributeValueEquals(value: String)(node: Node) = {
     node.attributes.exists(_.value.text == value)
   }
 
-  def getFields(field: String, elem: NodeSeq): List[String] = {
+  private def getFields(field: String, elem: NodeSeq): List[String] = {
     (elem \ "field").filter(attributeValueEquals(field))
             .map(_.text).toList
   }
 
-  def getField(field: String, elem: NodeSeq): Option[String] = {
+  private def getField(field: String, elem: NodeSeq): Option[String] = {
     optString((elem \ "field").filter(attributeValueEquals(field)).text)
   }
 
-  def multiFields(fields: List[String], sep: String, elem: NodeSeq) = {
+  private def multiFields(fields: List[String], sep: String, elem: NodeSeq) = {
     optString(fields.map { fname =>
       (elem \ "field").filter(attributeValueEquals(fname)).text
     }.filter(_.trim.nonEmpty).mkString("\n"))
@@ -127,50 +84,59 @@ object USHMM {
       entity.toStringList ::: GeoffRelationship("createdBy", ident, desc).toString :: Nil
     }
   }
+    
+  private def isValid(item: (String,String), itemtype: String) = (!item._1.trim.isEmpty) && item._2 == itemtype
 
-  def extractSubjects(ident: String, elem: NodeSeq): List[String] = {
+  private def subjectTypeTuple(elem: NodeSeq): List[(String,String)] = {
     val names = getFields("subject_heading", elem).map(cleanupField)
     val types = getFields("subject_type", elem).map(cleanupField)
+    names.zip(types)
+  }
 
-    def isValid(item: (String,String), itemtype: String) = (!item._1.trim.isEmpty) && item._2 == itemtype
-
+  def extractPlaces(ident: String, elem: NodeSeq): List[String] = {
     // Places are relatively simple. Create a descriptor for each one and
     // relate it to the model
-    val places = names.zip(types).filter(t => isValid(t, PLACE)).zipWithIndex.flatMap { case (nametype, i) =>
+    subjectTypeTuple(elem).filter(t => isValid(t, PLACE)).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, stype) = nametype
       val item = Place(name)
       val desc = slugify(name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Place.indexName), descriptor=desc, data=item.toMap)
       entity.toStringList ::: GeoffRelationship("locatesInSpace", desc, ident).toString :: Nil
     }
+  }
 
+  def extractPeople(ident: String, elem: NodeSeq): List[String] = {
+    subjectTypeTuple(elem).filter(t => isValid(t, PERSON)).zipWithIndex.flatMap { case (nametype, i) =>
+      val (name, _) = nametype
+      createAuthority(ident, i, AuthorityType.Person, name, None, None)
+    }
+  }
+
+  def extractCorporateBodies(ident: String, elem: NodeSeq): List[String] = {
+    subjectTypeTuple(elem).filter(t => isValid(t, CORPORATION)).zipWithIndex.flatMap { case (nametype, i) =>
+      val (name, _) = nametype
+      createAuthority(ident, i, AuthorityType.CorporateBody, name, None, None)
+    }
+  }
+
+  def extractSubjects(ident: String, elem: NodeSeq): List[String] = {
     // Subjects are more complicated because they are listed like:
     // WWII -- Holocaust -- Estonia, so we need to make a descriptor
     // for each one.
     // First, get a unique list of topics
-    val keywords = names.zip(types).filter(t => isValid(t, TOPIC)).flatMap { case (name, _) =>
+    val keywords = subjectTypeTuple(elem).filter(t => isValid(t, TOPIC)).flatMap { case (name, _) =>
       name.split(" -- ").map(cleanupField).lastOption match {
         case Some(t) => List(t)
         case None => Nil
       }
     }.distinct.filterNot(_.isEmpty)
 
-    val topics = keywords.zipWithIndex.flatMap { case (keyword, i) =>
+    keywords.zipWithIndex.flatMap { case (keyword, i) =>
       val item = Keyword(keyword)
       val desc = slugify(keyword).replace("-","")
       val entity = GeoffEntity(indexName=Some(Keyword.indexName), descriptor=desc, data=item.toMap)
       entity.toStringList ::: GeoffRelationship("describes", desc, ident).toString :: Nil
     }
-
-    val people = names.zip(types).filter(t => isValid(t, PERSON)).zipWithIndex.flatMap { case (nametype, i) =>
-      val (name, _) = nametype
-      createAuthority(ident, i, AuthorityType.Person, name, None, None)
-    }
-    val corps = names.zip(types).filter(t => isValid(t, CORPORATION)).zipWithIndex.flatMap { case (nametype, i) =>
-      val (name, _) = nametype
-      createAuthority(ident, i, AuthorityType.CorporateBody, name, None, None)
-    }
-    places ++ topics ++ people ++ corps
   }
 
   def extractParents(ident: String, elem: NodeSeq): List[String] = {
@@ -179,47 +145,32 @@ object USHMM {
     ).getOrElse(Nil)
   }
 
-  def extractKeyValues(ident: String, elem: NodeSeq) = {
+  def extractScopedIdentifier(elem: NodeSeq): Option[String] = getField("irn", elem)
 
-    def getLanguage(displayNames: List[String]) = {
-      if (displayNames.isEmpty)
-        locale.getLanguage
-      else
-        displayNames.map(n => languageMap.getOrElse(n, n)).mkString(",")
-    }
+  def extractItems(ident: String, elem: NodeSeq) = {
 
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
 
-    Map(
+    val data = Map(
       "identifier"  -> ident,
       "element_type" -> Collection.indexName,
       "name"        -> getTitle(getField("title", elem).getOrElse("")),
       "slug"        -> getSlug(getField("title", elem).getOrElse(ident)),
       "source"  -> getFields("acq_source", elem).mkString(", "),
       "source"  -> getFields("provinence", elem).mkString(", "),
-      "languages" -> getLanguage(getFields("language", elem).toList),
+      "languages" -> getLanguageCodes(getFields("language", elem).toList).mkString(","),
       "scripts" -> DEFAULT_SCRIPT,
+      "languages_of_description" -> "en",
+      "scripts_of_description" -> "Latn",
       "scope_and_content"  -> getField("scope_content", elem),
       "extent_and_medium"  -> getFields("extent", elem).mkString("\n"),
       "legal_status"  -> getField("legal_status", elem),
       "created_on" -> Collection.nowDateTime,
       "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n", elem)
     )           
-  }
-
-  def docToGeoff(repoid: Long, elem: NodeSeq): List[String] = {
-    getField("irn", elem).map { ident =>
-      val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=ident,
-          data=extractKeyValues(ident, elem))
-      val parents = extractParents(ident, elem)
-      val subjects = extractSubjects(ident, elem)
-      val creators = extractCreators(ident, elem)
-      val dates = extractDates(ident, elem)
-      val reporel = List(
-        GeoffRelationship("heldBy", ident, "repo%d".format(repoid)).toString
-      )
-      entity.toStringList ++ dates ++ reporel ++ parents ++ subjects ++ creators
-    }.getOrElse(Nil)
+    GeoffEntity(indexName=Some(Collection.indexName),
+        descriptor=ident, data=data).toStringList
   }
 }
+
