@@ -182,9 +182,14 @@ object Collections extends AuthController with ControllerHelpers {
     
         import scalax.io._
         val output = Resource.fromFile(out)
-        output.truncate(0)
+        output.truncate(0)             
         processSource(Source.fromFile(in)) { doc =>
-          output.writeStrings(importers.USHMM.docToGeoff(repo.id, doc), separator="\n")(Codec.UTF8)
+          val importer = doc.head.label match {
+            case "doc" => importers.USHMM.docToGeoff _
+            case "ead" => importers.EAD.docToGeoff _
+            case s => throw sys.error("No importer for type: '%s'".format(s))
+          }
+          output.writeStrings(importer("repo%d".format(repo.id), doc), separator="\n")(Codec.UTF8)
         }
         Ok("done")
       }
@@ -212,14 +217,13 @@ object Collections extends AuthController with ControllerHelpers {
   def importPost(repo: String) = optionalUserAction(parse.temporaryFile) { implicit maybeUser => implicit request =>
     import play.api.libs.iteratee.Enumerator
 
+    def repoident(repoid: Long) = "repo%d".format(repoid)
+
     Async {
       Repository.fetchBySlug(repo).map { repository =>
-        val params = Map("(repo%s)".format(repository.id) -> "/node/%d".format(repository.id))
         processSource(Source.fromFile(request.body.file)) { elem =>
-          println(importers.USHMM.docToGeoff(repository.id, elem))
+          println(importers.USHMM.docToGeoff(repoident(repository.id), elem))
         }
-
-        //Ok(generate(Map("subgraph" -> List(descriptors.mkString("\n")), "params" -> params)))
         Ok("done")
       }
     }
