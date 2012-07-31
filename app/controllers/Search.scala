@@ -85,15 +85,13 @@ object Search extends AuthController with ControllerHelpers {
         val channel = Enumerator.pushee[String] { pushee =>
           if (entities.collection) {
             models.Collection.query.count().map { count =>
-              println("Updating collection index: %d".format(count))
+              println("Updating collection index (items: %d)".format(count))
               for (range <- (0 to count).grouped(batch)) {
-                println("Dispatching %d to %d".format(range.headOption.getOrElse(-1), range.lastOption.getOrElse(-1)))
                 range.headOption.map { start =>
                   val end = range.lastOption.getOrElse(start)
                   models.Collection.query.slice(start, end).get().map { partials =>
-                    val plist = partials.map { item => models.Collection.fetchBySlug(item.slug.get) }
+                    val plist = partials.flatMap(_.slug).map(models.Collection.fetchBySlug(_)) 
                     Promise.sequence(plist).map { full =>
-                      println("Got details for collections: %d to %d\n".format(start, end))
                       SolrUpdater.updateSolrModels(full).map { r =>
                         val msg = "Updated Collections: %d to %d\n".format(start, end)
                         print(msg)
@@ -107,13 +105,13 @@ object Search extends AuthController with ControllerHelpers {
             }
           }
           if (entities.authority) {
-            println("Updating authority index")
             models.Authority.query.count().map { count =>
+              println("Updating authority index (items: %d)".format(count))
               for (range <- (0 to count).grouped(batch)) {
                 range.headOption.map { start =>
                   val end = range.lastOption.getOrElse(start)
                   models.Authority.query.slice(start, end).get().map { partials =>
-                    val plist = partials.map { item => models.Authority.fetchBySlug(item.slug.get) }
+                    val plist = partials.flatMap(_.slug).map(models.Authority.fetchBySlug(_))
                     Promise.sequence(plist).map { full =>
                       SolrUpdater.updateSolrModels(full).map { r =>
                         val msg = "Updated Authorities: %d to %d\n".format(start, end)
@@ -128,13 +126,13 @@ object Search extends AuthController with ControllerHelpers {
             }
           }
           if (entities.repository) {
-            println("Updating repository index")
             models.Repository.query.count().map { count =>
+              println("Updating repository index (items: %d)".format(count))
               for (range <- (0 to count).grouped(batch)) {
                 range.headOption.map { start =>
                   val end = range.lastOption.getOrElse(start)
                   models.Repository.query.slice(start, end).get().map { partials =>
-                    val plist = partials.map { item => models.Repository.fetchBySlug(item.slug.get) }
+                    val plist = partials.flatMap(_.slug).map(models.Repository.fetchBySlug(_))
                     val full = Promise.sequence(plist).await(timeout).get
                     SolrUpdater.updateSolrModels(full).map { r =>
                       val msg = "Updated Repositories: %d to %d\n".format(start, end)
