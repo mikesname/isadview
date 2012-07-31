@@ -4,7 +4,9 @@ import java.util.Locale
 
 import play.api._
 import play.api.mvc._
+import play.api.libs.iteratee.{Concurrent,Enumerator}
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 
 import controllers._
 
@@ -61,7 +63,6 @@ object Search extends AuthController with ControllerHelpers {
 
     import play.api.data._
     import play.api.data.Forms._
-    import play.api.libs.iteratee.Enumerator
 
     case class UpdateEntities(val collection: Boolean, val authority: Boolean, val repository: Boolean)
 
@@ -78,18 +79,26 @@ object Search extends AuthController with ControllerHelpers {
       },
       entities => {
         // TODO: Reduce this code dup and parallise!
-        val channel = Enumerator.pushee[String] { pushee =>
-          if (entities.collection) {
-            solr.SolrUpdater.indexAll(models.Collection, pushee)
-          }
-          if (entities.authority) {
-            solr.SolrUpdater.indexAll(models.Authority, pushee)
-          }
-          if (entities.repository) {
-            solr.SolrUpdater.indexAll(models.Repository, pushee)
-          }
-        }
-        Ok.stream(channel.andThen(Enumerator.eof))
+        val cchannel = if (entities.collection) {
+          Some(Concurrent.unicast[String]( onStart = channel => {
+            solr.SolrUpdater.indexAll(models.Collection, channel)
+          }, onComplete = ()))
+        } else None
+        val achannel = if (entities.authority) {
+          Some(Concurrent.unicast[String]( onStart = channel => {
+            solr.SolrUpdater.indexAll(models.Authority, channel)
+          }, onComplete = ()))
+        } else None
+        val rchannel = if (entities.repository) {
+          Some(Concurrent.unicast[String](onStart = channel => {
+            solr.SolrUpdater.indexAll(models.Repository, channel)
+          }, onComplete = ()))
+        } else None
+        val chans = List(cchannel, achannel, rchannel).flatMap(s => s)
+        if (!chans.isEmpty)
+          Ok.stream(chans.reduceLeft((s, c) => s.interleave(c)).andThen(Enumerator.eof))
+        else
+          Ok("Nothing to do")
       }
     )
   }

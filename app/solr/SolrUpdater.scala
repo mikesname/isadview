@@ -3,7 +3,8 @@ package solr
 import com.codahale.jerkson.Json
 import play.api.libs.ws.{WS,Response}
 import play.api.libs.concurrent._
-import play.api.libs.iteratee._
+import play.api.libs.concurrent.execution.defaultContext
+import play.api.libs.iteratee.Concurrent
 import play.Play.application
 
 object SolrUpdater {
@@ -15,24 +16,39 @@ object SolrUpdater {
     "Content-Type" -> "application/json; charset=utf8"
   )
   
-  def indexAll[T <: solr.SolrModel](dao: neo4j.data.Neo4jDataSource[T], pushee: Enumerator.Pushee[String]) = {
+  /*
+   * Update all objects handled by the given data access object, sending
+   * progress back through the given channel enumerator.
+   * Updates are performed asyncronously in batches to prevent overloading
+   * the database.
+   */
+  def indexAll[T <: solr.SolrModel](dao: neo4j.data.Neo4jDataSource[T], channel: Concurrent.Channel[String]) = {
     dao.query.count().map { count =>
-      println("Updating %s index (items: %d)".format(dao.indexName, count))
-      for (range <- (0 to count).grouped(batchSize)) {
-        range.headOption.map { start =>
-          val end = range.lastOption.getOrElse(start)
-          dao.query.slice(start, end).get().map { partials =>
-            val plist = partials.flatMap(_.slug).map(dao.fetchBySlug(_)) 
-            Promise.sequence(plist).map { full =>
-              SolrUpdater.updateSolrModels(full).map { r =>
-                val msg = "Updated %ss: %d to %d\n".format(dao.indexName, start, end)
-                print(msg)
-                pushee.push(msg)
-                r
-              }
+      channel.push("Updating %s index (items: %d)\n".format(dao.indexName, count))
+      val batches: List[Promise[List[Response]]] = (0 until count).grouped(batchSize).toList.map { range =>
+        val start = range.head
+        val end = range.last
+        // FIXME: Get a list of models. This doesn't include related objects,
+        // so (currently) we need to requery for the complete item.
+        dao.query.slice(start, end).get().flatMap { partials =>
+          // Get a list of Promise[T]
+          channel.push("Fetching full data for %s: %d to %d\n".format(dao.indexName, start, end))
+          val plist = partials.flatMap(_.slug).map(dao.fetchBySlug(_)) 
+          // Turn it into a promise of List[T]
+          Promise.sequence(plist).flatMap { full =>
+            SolrUpdater.updateSolrModels(full).map { r =>
+              val msg = "DONE %s index: %d to %d\n".format(dao.indexName, start, end)
+              print(msg)
+              channel.push(msg)
+              r
             }
           }
         }
+      }
+      // Wait on all the batches to complete and when done,
+      // close the channel
+      Promise.sequence(batches).map { fini =>
+        channel.end()
       }
     }
   }
