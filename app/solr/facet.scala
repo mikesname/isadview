@@ -245,6 +245,11 @@ object FacetData {
         render=Helpers.languageCodeToName
       ),
       FieldFacetClass(
+        key="repository",
+        name="Repository",
+        param="repo"
+      ),
+      FieldFacetClass(
         key="tags_exact",
         name="Keywords",
         param="tag"
