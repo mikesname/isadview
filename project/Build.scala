@@ -9,8 +9,6 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
       "com.github.seratch" %% "scalikesolr" % "(3.6,)",
-      "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.0.0",
-      "net.databinder" %% "dispatch-http" % "0.8.7" withSources,
       "org.scala-tools.time" % "time_2.9.1" % "0.5",
       "net.liftweb" %% "lift-json-ext" % "2.4-M5",
       "org.codehaus.groovy" % "groovy-all" % "1.8.6",
