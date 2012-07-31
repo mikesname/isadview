@@ -155,8 +155,14 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   }
 
   def extractItems(ident: String, elem: NodeSeq) = {
+    def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
+    def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
+
 
     val data = Map(
+      "identifier" -> (elem \ "archdesc" \ "did" \ "unitid").text,
+      "name" -> getTitle((elem \ "archdesc" \ "did" \ "unittitle").text),
+      "slug" -> getSlug(getTitle((elem \ "archdesc" \ "did" \ "unittitle").text)),
       "element_type" -> Collection.indexName,
       "languages_of_description" -> "en",
       "scripts_of_description" -> "Latn",
