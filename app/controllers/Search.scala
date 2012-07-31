@@ -77,73 +77,16 @@ object Search extends AuthController with ControllerHelpers {
         BadRequest(views.html.updateIndex(action=routes.Search.updateIndexPost))
       },
       entities => {
-
-        val timeout = 100000L
-        val batch = 1000
-
         // TODO: Reduce this code dup and parallise!
         val channel = Enumerator.pushee[String] { pushee =>
           if (entities.collection) {
-            models.Collection.query.count().map { count =>
-              println("Updating collection index (items: %d)".format(count))
-              for (range <- (0 to count).grouped(batch)) {
-                range.headOption.map { start =>
-                  val end = range.lastOption.getOrElse(start)
-                  models.Collection.query.slice(start, end).get().map { partials =>
-                    val plist = partials.flatMap(_.slug).map(models.Collection.fetchBySlug(_)) 
-                    Promise.sequence(plist).map { full =>
-                      SolrUpdater.updateSolrModels(full).map { r =>
-                        val msg = "Updated Collections: %d to %d\n".format(start, end)
-                        print(msg)
-                        pushee.push(msg)
-                        r
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            solr.SolrUpdater.indexAll(models.Collection, pushee)
           }
           if (entities.authority) {
-            models.Authority.query.count().map { count =>
-              println("Updating authority index (items: %d)".format(count))
-              for (range <- (0 to count).grouped(batch)) {
-                range.headOption.map { start =>
-                  val end = range.lastOption.getOrElse(start)
-                  models.Authority.query.slice(start, end).get().map { partials =>
-                    val plist = partials.flatMap(_.slug).map(models.Authority.fetchBySlug(_))
-                    Promise.sequence(plist).map { full =>
-                      SolrUpdater.updateSolrModels(full).map { r =>
-                        val msg = "Updated Authorities: %d to %d\n".format(start, end)
-                        print(msg)
-                        pushee.push(msg)
-                        r
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            solr.SolrUpdater.indexAll(models.Authority, pushee)
           }
           if (entities.repository) {
-            models.Repository.query.count().map { count =>
-              println("Updating repository index (items: %d)".format(count))
-              for (range <- (0 to count).grouped(batch)) {
-                range.headOption.map { start =>
-                  val end = range.lastOption.getOrElse(start)
-                  models.Repository.query.slice(start, end).get().map { partials =>
-                    val plist = partials.flatMap(_.slug).map(models.Repository.fetchBySlug(_))
-                    val full = Promise.sequence(plist).await(timeout).get
-                    SolrUpdater.updateSolrModels(full).map { r =>
-                      val msg = "Updated Repositories: %d to %d\n".format(start, end)
-                      print(msg)
-                      pushee.push(msg)
-                      r
-                    }
-                  }
-                }
-              }
-            }
+            solr.SolrUpdater.indexAll(models.Repository, pushee)
           }
         }
         Ok.stream(channel.andThen(Enumerator.eof))
