@@ -14,7 +14,7 @@ object XMLtoGeoff {
 
   def getGeoff(repo: Repository, xmlfile: String) = {
     processSource(Source.fromFile(xmlfile)) { doc =>
-      USHMM.docToGeoff(repo.id, doc).map { geoffline =>
+      USHMM.docToGeoff("repo%d".format(repo.id), doc).map { geoffline =>
         println(geoffline)
       }
     }
