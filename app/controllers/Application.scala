@@ -6,6 +6,7 @@ import play.api.data._
 import play.api.i18n._
 import play.api.data.Forms._
 import play.api.libs.openid._
+import play.api.libs.concurrent.execution.defaultContext
 import play.api.libs.concurrent._
 
 import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
@@ -33,17 +34,18 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
         BadRequest(views.html.login(form=error, action=routes.Application.loginPost))
       },
       {
-        case (openid) => AsyncResult(
+        case (openid) => AsyncResult {
           OpenID.redirectURL(
             openid,
             routes.Application.openIDCallback.absoluteURL(),
             //Seq("email" -> "http://schema.openid.net/contact/email")
             Seq()
-          )
-            .extend( _.value match {
-                case Redeemed(url) => Redirect(url)
-                case Thrown(t) => Redirect(routes.Application.login).flashing("error" -> openidError)
-            }))
+          ).extend { _.value.get match {
+              case Right(url) => Redirect(url)
+              case Left(t) => Redirect(routes.Application.login).flashing("error" -> openidError)
+            }
+          }
+        }
       }
     )
   }
@@ -56,21 +58,22 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
   def openIDCallback = Action { implicit request =>
     import models.sql.Association
     AsyncResult(
-      OpenID.verifiedId.extend( _.value match {
-        case Redeemed(info) => {
-          // check if there's a user with the right id
-          Association.findByUrl(info.id) match {
-            case Some(assoc) =>
-              gotoLoginSucceeded(assoc.user.get.id)
-            case None => 
-              Redirect(routes.Application.signupComplete).withSession("openid" -> info.id)
+      OpenID.verifiedId.extend { _.value.get match {
+          case Right(info) => {
+            // check if there's a user with the right id
+            Association.findByUrl(info.id) match {
+              case Some(assoc) =>
+                gotoLoginSucceeded(assoc.user.get.id)
+              case None => 
+                Redirect(routes.Application.signupComplete).withSession("openid" -> info.id)
+            }
+          }
+          case Left(t) => {
+            // Here you should look at the error, and give feedback to the user
+            Redirect(routes.Application.login).flashing("error" -> openidError)
           }
         }
-        case Thrown(t) => {
-          // Here you should look at the error, and give feedback to the user
-          Redirect(routes.Application.login).flashing("error" -> openidError)
-        }
-      })
+      }
     )
   }
 
@@ -92,9 +95,9 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
             //Seq("email" -> "http://schema.openid.net/contact/email")
             Seq()
           )
-            .extend( _.value match {
-                case Redeemed(url) => Redirect(url)
-                case Thrown(t) => Redirect(routes.Application.signup).flashing("error" -> openidError)
+            .extend( _.value.get match {
+                case Right(url) => Redirect(url)
+                case Left(t) => Redirect(routes.Application.signup).flashing("error" -> openidError)
             }))
       }
     )

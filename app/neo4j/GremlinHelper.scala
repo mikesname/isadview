@@ -6,6 +6,8 @@ import play.api.libs.concurrent.Promise
 import play.api.Play.current
 import neo4j.json.{JsonBuilder,GremlinError}
 
+import play.api.libs.concurrent.execution.defaultContext
+
 /*
  * Trait containing methods related to posting and decoding 
  * Gremlin script/responses
@@ -56,7 +58,7 @@ trait GremlinHelper {
       case other => throw other
     }
   }
-
+  import play.api.libs.concurrent.execution.defaultContext
   def gremlin(scriptName: String, params: AnyRef): Promise[Response] = {
     scripts.loadScript("groovy/gremlin.groovy")
     val scriptBody = scripts.get(scriptName)

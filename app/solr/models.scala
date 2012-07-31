@@ -8,6 +8,7 @@ import com.github.seratch.scalikesolr.request.query.highlighting.{
 
 import play.api.i18n
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 import play.api.libs.ws.{WS,Response}
 
 import solr.facet.{FacetData,FacetClass,FieldFacetClass,QueryFacetClass,Facet}

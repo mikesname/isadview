@@ -4,6 +4,7 @@ import play.api._
 import play.api.mvc._
 import jp.t2v.lab.play20.auth.{Auth,LoginLogout}
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 
 
 /*
@@ -32,21 +33,6 @@ trait AuthController extends Controller with Auth with Authorizer {
         models.UserProfile.fetchByUserID(user.id).map { profileopt =>
           f(user.withProfile(profileopt))(request)
         }
-      }
-    }
-  }
-}
-
-/*
- * Possible way to start refactoring common patterns in controllers, using delegation
- */
-trait Crud {
-  self: AuthController =>
-  def crudDetail[T](finder: (String => Promise[T]), view: (T => templates.Html), slug: String) = optionalUserProfileAction { 
-      implicit maybeUser => implicit request =>
-    Async {
-      finder(slug).map { item =>
-        Ok(view(item))
       }
     }
   }

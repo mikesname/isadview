@@ -3,6 +3,7 @@ package models
 import solr._
 import neo4j.data._
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 

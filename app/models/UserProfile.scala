@@ -2,6 +2,7 @@ package models
 
 import org.joda.time.DateTime
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
 import net.liftweb.json.JsonAST.{JObject,JValue}

@@ -6,6 +6,7 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.ws.{WS,Response}
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 
 import net.liftweb.json
 
@@ -207,11 +208,17 @@ object Collections extends AuthController with ControllerHelpers {
     // Let's crash the JVM...
     val lines = Source.fromFile(file).getLines
     val init = Map[String,Map[String,String]]()
-    val repository = Repository.fetchBySlug(slug).await.get
-    val out = lines.grouped(size).map(_.toList).foldLeft(init) { case(params, lineList) =>
-      Repository.importGeoff(repository, lineList, params).await(timeout).get
+    Async {
+      models.Repository.fetchBySlug(slug).map { repository =>
+        val out = lines.grouped(size).map(_.toList).foldLeft(init) { case(params, lineList) =>
+          models.Repository.importGeoff(repository, lineList, params).value.get match {
+            case Left(throwable) => throw throwable
+            case Right(m) => m
+          }
+        }
+        Ok(generate(out))
+      }
     }
-    Ok(generate(out))
   }
 
   def importPost(repo: String) = optionalUserAction(parse.temporaryFile) { implicit maybeUser => implicit request =>

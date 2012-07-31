@@ -6,6 +6,7 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.ws.{WS,Response}
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 
 import net.liftweb.json
 import jp.t2v.lab.play20.auth.{Auth,LoginLogout}

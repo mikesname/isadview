@@ -9,6 +9,7 @@ package neo4j.query
 import neo4j.GremlinHelper
 
 import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 import net.liftweb.json.JsonAST.JValue
 import com.codahale.jerkson.Json.parse
 

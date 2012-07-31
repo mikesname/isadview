@@ -2,12 +2,13 @@ package neo4j.data
 
 import org.joda.time.{DateTime,DateTimeZone}
 import org.joda.time.format.ISODateTimeFormat
-import play.api.libs.concurrent.Promise
 
 import neo4j.json.{JsonBuilder,GremlinError}
 import play.api.PlayException
 import play.api.Play.current
 import com.codahale.jerkson.Json._
+import play.api.libs.concurrent.execution.defaultContext
+import play.api.libs.concurrent.Promise
 
 import neo4j.query._
 import neo4j.GremlinHelper
