@@ -1,4 +1,4 @@
-@(page: solr.models.FacetPage, sort: String)(implicit maybeUser: Option[models.sql.User], req: RequestHeader)
+@(page: solr.models.FacetPage[solr.facet.Facet], sort: String)(implicit maybeUser: Option[models.sql.User], req: RequestHeader)
 
 @main("Facets") {
     <h1>@page.fc.name</h1>

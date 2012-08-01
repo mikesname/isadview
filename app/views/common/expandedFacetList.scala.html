@@ -1,4 +1,4 @@
-@(currentPage: solr.models.FacetPage, sort: String)(implicit req: RequestHeader)
+@(currentPage: solr.models.FacetPage[solr.facet.Facet], sort: String)(implicit req: RequestHeader)
 
 @import solr.facet.Utils
 
@@ -20,7 +20,7 @@
 </div>
 <table class="table table-striped table-bordered table-condensed">
 <tbody>
-    @currentPage.facets.map{ f =>        
+    @currentPage.items.map{ f =>        
     <tr>
         <td>
             @if(f.applied) {
@@ -41,29 +41,4 @@
 </tbody>
 </table>
 
-<div id="pagination" class="pagination">
-    <ul>
-        @currentPage.prev.map { page =>
-            <li class="prev">
-                <a href="@Utils.joinPath(req.path, req.queryString.updated("page", Seq(page.toString)))">&larr; Previous</a>
-            </li> 
-        }.getOrElse {
-            <li class="prev disabled">
-                <a>&larr; Previous</a>
-            </li>
-        }
-        <li class="current">
-            <a>Displaying @(currentPage.offset + 1) to @(currentPage.offset + currentPage.facets.size) of @currentPage.total</a>
-        </li>
-        @currentPage.next.map { page =>
-            <li class="next">
-                <a href="@Utils.joinPath(req.path, req.queryString.updated("page", Seq(page.toString)))">Next &rarr;</a>
-            </li> 
-        }.getOrElse {
-            <li class="next disabled">
-                <a>Next &rarr;</a>
-            </li>
-        }
-    </ul>
-</div>
-
+@common.paginate(currentPage)(req)

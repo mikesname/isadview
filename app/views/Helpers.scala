@@ -39,17 +39,29 @@ package object Helpers {
     }
   }
 
-  def paginationArray(lastPage: Int, maxNums: Int, current: Int, window: Int = 3): List[Range] = {
+  /*
+   * Helper to provide Digg-style pagination, like:
+   *    1, 2 ... 18, 19, 20, 21, 22 ... 55, 56
+   * Logic borrowed from here:
+   *   http://www.strangerstudios.com/sandbox/pagination/diggstyle_code.txt
+   */
+  def paginationRanges(page: Int, lastPage: Int, adjacents: Int = 3): List[Range] = {
+    val window = adjacents * 2
     lastPage match {
-      case x if x < maxNums => List(1 to lastPage)
-      case x => {
-        // This is WIP and doesn't currently work...
-        val full = (1 to lastPage)
-        val before = full.takeWhile(_ < (current - window))
-        val after = full.dropWhile(_ > (current + window))
-        val middle = full.takeWhile(_ < (current - window)).dropWhile(_ > (current + window))
-        List(before, middle, after)
-      }
+      // Last page is the same as single page... no ranges
+      case lp if lp <= 1 => Nil
+      // Not enough pages to bother hiding any...
+      case lp if lp < 7 + window =>  
+        List((1 to lp))
+      // Close to start, so only hide later pages
+      case lp if lp > 5 + window && page < 1 + window =>
+        List(1 until (4 + window), ((lp - 1) to lp))  
+      // Around the middle, hide both start and end pages
+      case lp if lp - window > page && page > window =>
+        List((1 to 2), ((page - adjacents) to (page + adjacents)), ((lp - 1) to lp))
+      // Close to end, hide beginning pages...
+      case lp =>
+        List((1 to 2), ((lp - (2 + window)) to lp))
     }
   }
 }

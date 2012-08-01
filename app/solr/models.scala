@@ -17,15 +17,23 @@ import com.github.seratch.scalikesolr.request.query.facet.{FacetParams,FacetPara
 /**
  * Helper for pagination.
  */
-case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long, facets: List[FacetClass]) {
+
+trait ItemPage[A] {
+  val total: Long
+  val page: Int
+  val offset: Long
+  val pageSize: Int
+  val items: Seq[A]
+  def numPages = total / pageSize
   lazy val prev = Option(page - 1).filter(_ >= 0)
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
 
-case class FacetPage(fc: FacetClass, facets: List[Facet], page: Int, offset: Long, total: Long) {
-  lazy val prev = Option(page - 1).filter(_ >= 0)
-  lazy val next = Option(page + 1).filter(_ => (offset + facets.size) < total)
-}
+case class Page[A](
+  items: Seq[A], page: Int, offset: Long, pageSize:Int, total: Long, facets: List[FacetClass]) extends ItemPage[A]
+
+case class FacetPage[A](
+  fc: FacetClass, items: Seq[A], page: Int, offset: Long, pageSize: Int, total: Long) extends ItemPage[A]
 
 object SolrHelper {
 
@@ -147,7 +155,7 @@ object Description {
           case "portal.authority" => List(d.bind(classOf[Authority]))
           case _ => Nil
         }
-      }), page, offset, resp.response.numFound, fclasses)
+      }), page, offset, pageSize, resp.response.numFound, fclasses)
     }
   }
   
@@ -161,7 +169,7 @@ object Description {
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
-  ): Promise[FacetPage] = {
+  ): Promise[FacetPage[Facet]] = {
     val offset = page * pageSize
 
     // create a response returning 0 documents - we don't
@@ -182,7 +190,7 @@ object Description {
         case "name" => fclass.sortedByName.slice(offset, offset + pageSize)
         case _ => fclass.sortedByCount.slice(offset, offset + pageSize)
       }
-      FacetPage(fclass, flist, page, offset, fclass.count)
+      FacetPage(fclass, flist, page, offset, pageSize, fclass.count)
     }
   }
 }

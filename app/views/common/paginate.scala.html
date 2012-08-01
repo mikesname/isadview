@@ -1,45 +1,20 @@
-@(resource: String, items: Seq[solr.models.Description], currentPage: solr.models.Page[solr.models.Description], currentOrderBy: Int, currentFilter:String)
+@(currentPage: solr.models.ItemPage[_])(implicit req: RequestHeader) 
 
-@link(newPage: Int, newOrderBy: Option[Int] = None) = @{
-    routes.Search.list(resource, newPage, newOrderBy.map { orderBy =>
-        if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
-    }.getOrElse(currentOrderBy), currentFilter)
-}
+@import solr.facet.Utils
 
 <div id="pagination" class="pagination">
     <ul>
-        @currentPage.prev.map { page =>
-            <li class="first">
-                <a href="@link(0)">&larr; First</a>
-            </li> 
-            <li class="prev">
-                <a href="@link(page)">&larr; Previous</a>
-            </li> 
-        }.getOrElse {
-            <li class="first disabled">
-                <a>&larr; First</a>
-            </li>
-            <li class="prev disabled">
-                <a>&larr; Previous</a>
-            </li>
-        }
-        <li class="current">
-            <a>Displaying @(currentPage.offset + 1) to @(currentPage.offset + items.size) of @currentPage.total</a>
-        </li>
-        @currentPage.next.map { page =>
-            <li class="next">
-                <a href="@link(page)">Next &rarr;</a>
-            </li> 
-            <li class="last">
-                <a href="@link((currentPage.total / items.size).toInt)">Last &rarr;</a>
-            </li> 
-        }.getOrElse {
-            <li class="next disabled">
-                <a>Next &rarr;</a>
-            </li>
-            <li class="last disabled">
-                <a>Last &rarr;</a>
-            </li>
+        @views.Helpers.paginationRanges(currentPage.page.toInt, currentPage.numPages.toInt).map { range =>
+            @range.map { page =>
+                @if(page == currentPage.page) {
+                    <li class="disabled"><a>@page</a></li>
+                } else {
+                    <li><a href="@Utils.joinPath(req.path, req.queryString.updated("page", Seq(page.toString)))">@page</a></li>
+                }
+            }
+            @if(range.last != currentPage.numPages) {
+            <li class="disabled"><a>...</a></li>
+            }
         }
     </ul>
 </div>
