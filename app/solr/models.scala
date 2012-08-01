@@ -72,14 +72,15 @@ object SolrHelper {
   }
   
   def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: Int,
-        field: String, query: String, facets: Map[String, Seq[String]]): QueryRequest = {
+        field: Option[String], query: String, facets: Map[String, Seq[String]]): QueryRequest = {
 
     // Solr 3.6 seems to break querying with *:<query> style
     // http://bit.ly/MBKghG
     //val queryString = "%s:%s".format(
     //  if (field.trim == "") "*" else field,
     //  if (query.trim == "") "*" else query)
-    val queryString = if (query.trim == "") "*" else query.trim
+    val selector = field.getOrElse("*")
+    val queryString = "%s:%s".format(selector, if (query.trim.isEmpty) "*" else query.trim)
 
     val req = new QueryRequest(query=Query(queryString))
     req.setFacet(new FacetParams(
@@ -123,7 +124,7 @@ object Description {
     page: Int = 0,
     pageSize: Int = 20,
     orderBy: Int = 1,
-    field: String = "",
+    field: Option[String] = None,
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
@@ -156,7 +157,7 @@ object Description {
     page: Int = 0,
     pageSize: Int = 20,
     sort: String = "name",
-    field: String = "",
+    field: Option[String] = None,
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   

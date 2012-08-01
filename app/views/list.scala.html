@@ -1,6 +1,9 @@
 @(rtype: String, currentPage: solr.models.Page[solr.models.Description],
-currentOrderBy: Int, currentFilter: String
+currentOrderBy: Int, currentFilter: String,
+currentField: Option[String]
 )(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
+
+@import views.Helpers._
 
 @main("Descriptions", body_class=rtype) {
     @defining(maybeUser.flatMap(_.profile.map(_.virtualCollections.flatMap(_.items).map(_.item.id))).getOrElse(Nil)) { savedItemList =>
@@ -19,16 +22,33 @@ currentOrderBy: Int, currentFilter: String
                     <div class="span9 columns">
                         <form id="search-form form-horizontal" method="get">
                             <div class="control-group">                            
-                                    <div class="input-append">
+                                <div class="input-append">
                                         <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
+                                        <select name="field" id="id_field" class="span2">
+                                            @List("all" -> "All Fields", "name" -> "Title Only").map { case(value,name) =>
+                                            <option value="@value" @if(value==currentField.getOrElse("")){selected}>@Messages(name)</option>
+                                            }
+                                        </select>
                                         <input class="btn" type="submit" value="@Messages("Search")" />
                                     </div>
                             </div>
                             <!-- facets go here -->
-                            @* include "_selected_facets.html" *@
                             @common.selectedFacets(currentPage)
                         </form>
-                        <h3 id="result-summary"><!-- TODO: Summary --></h3>
+                        <h3 id="result-summary">
+                        @if(currentPage.total > 0) {
+                            <span>@currentPage.total</span> @Messages("Result" + currentPage.total.pluralize)
+                            @if(!currentFilter.trim.isEmpty) {
+                                &nbsp;for <i>@currentFilter</i>
+                            }
+                        } else {
+                            @if(!currentFilter.trim.isEmpty) {
+                                @Messages("Nothing found for") <i id="result-query">@currentFilter</i>
+                                @* TODO: Insert spelling suggestions. *@
+                            }
+                        }
+                        </h3>
+
                         @if(currentPage.items) {
                             <div class="result-list">
                                 @currentPage.items.map{result =>
