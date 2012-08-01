@@ -78,7 +78,6 @@ object Search extends AuthController with ControllerHelpers {
         BadRequest(views.html.updateIndex(action=routes.Search.updateIndexPost))
       },
       entities => {
-        // TODO: Reduce this code dup and parallise!
         val cchannel = if (entities.collection) {
           Some(Concurrent.unicast[String]( onStart = channel => {
             solr.SolrUpdater.indexAll(models.Collection, channel)
