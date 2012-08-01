@@ -16,7 +16,7 @@
                 <h4><a href="@c.item.detailUrl">@c.item.name</a></h4>
                 @c.edge.createdOn.map { date =>
                 <div class="stash-item-info">
-                    @Messages("Stashed on"): @{new java.text.SimpleDateFormat() format date.toDate}
+                    @Messages("Stashed") @views.Helpers.prettyDate(date)
                 </div>
                 }
                 <p>@c.item.summary</p>
@@ -31,7 +31,7 @@
         <div class="sidebar">
             <div class="well">
                 <h4>@Messages("Stash Details")</h4>
-                Last updated: @vc.updatedOn
+                Last updated: @views.Helpers.prettyDate(vc.updatedOn)
             </div>
             <div class="admin-actions well">
                 <ul class="unstyled">
