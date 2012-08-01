@@ -13,7 +13,8 @@ object ApplicationBuild extends Build {
       "net.liftweb" %% "lift-json-ext" % "2.4-M5",
       "org.codehaus.groovy" % "groovy-all" % "1.8.6",
       "postgresql" % "postgresql" % "9.1-901.jdbc4",
-      "jp.t2v" %% "play20.auth" % "0.3-SNAPSHOT"
+      "jp.t2v" %% "play20.auth" % "0.3-SNAPSHOT",
+      "org.ocpsoft.prettytime" % "prettytime" % "1.0.8.Final"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
