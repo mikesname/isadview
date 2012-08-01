@@ -1,5 +1,6 @@
 package views
 
+import java.util.Locale
 
 import views.html.helper.FieldConstructor
 
@@ -21,14 +22,13 @@ package object Helpers {
   class PimpedTraversable[A](col: Traversable[A]) {
     def pluralize = if (col.size == 1) "" else "s"
   }
-
   implicit def pimpInt(int: Int) = new PimpedInt(int)
   implicit def pimpLong(long: Long) = new PimpedLong(long)
   implicit def pimpTraversable[A](col: Traversable[A]) = new PimpedTraversable(col)
 
 
   def prettyDate(d: java.util.Date): String = {
-    val p = new PrettyTime() // TODO: Locale awareness...
+    val p = new PrettyTime() // TODO: Locale awareness, but not sure how to handle this centrally yet
     p.format(d)
   }
   def prettyDate(d: org.joda.time.DateTime): String = prettyDate(d.toDate)
