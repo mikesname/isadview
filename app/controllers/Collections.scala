@@ -153,6 +153,39 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
+  // Testing an asyncronous XML parser...
+  def aaltoTest() = {
+    import com.fasterxml.aalto.{AsyncXMLStreamReader,AsyncInputFeeder}
+    import com.fasterxml.aalto.stax.InputFactoryImpl
+    import javax.xml.stream.XMLStreamConstants._
+
+    val buf: Array[Byte] = "<html>Very <b>simple</b> input document!</html>".getBytes
+    val reader: AsyncXMLStreamReader = new InputFactoryImpl().createAsyncXMLStreamReader
+    val feeder: AsyncInputFeeder = reader.getInputFeeder
+    var inputPtr = 0 // as we feed byte at a time
+    var etype = 0
+
+    do {
+      // May need to feed multiple "segments"
+      etype = reader.next()
+      while (etype == AsyncXMLStreamReader.EVENT_INCOMPLETE) {
+        feeder.feedInput(buf, inputPtr, 1)
+        inputPtr += 1
+        if (inputPtr >= buf.length) { // to indicate end-of-content (important for error handling)
+          feeder.endOfInput()
+        }
+        etype = reader.next()
+      }
+      // and once we have full event, we just dump out event type (for now)
+      println("Got event of type: " + etype)
+      if (List(START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE).contains(etype))
+        println(reader.getLocalName)
+      // could also just copy event as is, using Stax, or do any other normal non-blocking handling:
+      // xmlStreamWriter.copyEventFromReader(asyncReader, false);
+    } while (etype != END_DOCUMENT)
+    reader.close()
+  }
+
   import play.api.libs.iteratee.{Iteratee,Enumerator}
 
   def uploadTest = Action(parse.raw) {  request =>
