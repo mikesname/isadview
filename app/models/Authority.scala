@@ -1,6 +1,8 @@
 package models
 
 import solr.SolrModel
+import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent.execution.defaultContext
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import neo4j.data._
@@ -52,6 +54,29 @@ object Authority extends Neo4jDataSource[Authority] {
     )
   }
 
+  override def fetchByFieldOption(field: String, value: String): Promise[Option[Authority]] = {
+    val params = Map(
+      "index_name" -> indexName,
+      "key" -> field,
+      "query_string" -> value,
+      "inRels" -> List("createdBy"),
+      "outRels" -> List("mentionedIn")
+    )
+    println(params)
+
+    gremlin("query_exact_index_with_related1", params).map(response => {
+      val data = getJson(response)
+      var auth = apply((data \ "data"))
+      auth = (data \ "createdBy").children.foldLeft(auth) { (c, json) =>
+        c.withCreated(Collection(json))
+      }
+      auth = (data \ "mentionedIn").children.foldLeft(auth) { (c, json) =>
+        c.withMentionedIn(Collection(json))
+      }
+      Some(auth)
+    })
+  }
+
   // Shortcut function for generating authorities from just a name
   // FIXME: This also sets a slug but makes no guarantees of
   // uniqueness!
@@ -77,7 +102,9 @@ case class Authority(
   val slug: Option[String] = None,
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
-  val description: AuthorityDescription
+  val description: AuthorityDescription,
+  val collectionsCreatedBy: List[Collection] = Nil,
+  val collectionsMentionedIn: List[Collection] = Nil
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   def summary = description.description.history
@@ -112,6 +139,10 @@ case class Authority(
     )
   }
   def withSlug(slug: String) = copy(slug=Some(slug))
+  def withCreated(collection: Collection) = 
+      copy(collectionsCreatedBy = collectionsCreatedBy ++ List(collection))
+  def withMentionedIn(collection: Collection) =
+      copy(collectionsMentionedIn = collectionsMentionedIn ++ List(collection))
 }
 
 case class AuthorityDescription(

@@ -426,6 +426,24 @@ def query_exact_index_with_related(index_name, key, query_string, outRels, inRel
   ).exhaustMerge() 
 }
 
+// Fetch relations as well as queried objects
+def query_exact_index_with_related1(index_name, key, query_string, outRels, inRels) {
+  // Neo4jTokens.QUERY_HEADER = "%query%"
+  pipe = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)
+  if (!pipe.hasNext())
+    return null
+  if ((outRels.size == 0 && inRels.size == 0))
+    return ["item": pipe.next()]
+
+  def item = pipe.next()
+  def mapping = ["item": ["id": item.id, "data": item.map()]]
+  for (inr in inRels)
+    mapping[inr] = item.in(inr)
+  for (outr in outRels)
+    mapping[outr] = item.out(outr)
+  return mapping
+}
+
 // Metadata
 
 def get_metadata(key, default_value) {

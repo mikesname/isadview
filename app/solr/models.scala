@@ -184,8 +184,7 @@ object Description {
       val resp = new QueryResponse(writerType=queryreq.writerType, rawBody=response.body)
       val fclasses = SolrHelper.extract(resp, index, facets)
     
-      val fclass = fclasses.find(_.param==facet).getOrElse(
-          throw new Exception("Unknown facet: " + facet))
+      val fclass = fclasses.find(_.param==facet).getOrElse(sys.error("Unknown facet: " + facet))
       val flist = sort match {
         case "name" => fclass.sortedByName.slice(offset, offset + pageSize)
         case _ => fclass.sortedByCount.slice(offset, offset + pageSize)
