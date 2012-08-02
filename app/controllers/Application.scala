@@ -145,37 +145,23 @@ object Application extends Controller with Auth with LoginLogout with Authorizer
     ).as("text/javascript")
   }
 
-  def testSolr = Action { implicit request =>
-    import neo4j.query.Query
-    import solr.SolrUpdater
-
-    var query = request.queryString.getOrElse("q", Seq()).headOption
-    var field = request.queryString.getOrElse("field", Seq()).headOption.getOrElse("name")
-    var op = request.queryString.getOrElse("op", Seq()).headOption.getOrElse("exact")
-    
-    var q = Query(models.Collection.apply _, models.Collection.indexName)
-    query.map { qstr =>
-      q = q.filter("%s__%s".format(field, op) -> qstr)
+  // DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER!
+  // NB: THIS METHOD IS A MASSIVE SECURITY HOLE AND SHOULD NOT BE EXPOSED TO THE WORLD!!!
+  // DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER! DANGER!            
+  def gremlinProxy(method: String) = optionalUserAction { implicit maybeUser => implicit request =>
+    // Naively convert params into a more gremlin-like representation
+    // If the Map[String,Seq] only has one item in it, convert it to
+    // a Map[String,Any] using that first item.
+    val params: Map[String,Any] = request.queryString.map { case (key, value) =>
+      value match {
+        case Seq(item) => (key, item)
+        case _ => (key, value)
+      }
     }
 
-    // Holy moly does this get confusing...
     Async {
-      // First, take the initial async list of objects and get their
-      // full representations, including relations
-      val clist: Promise[List[Promise[models.Collection]]] = q.get().map { list =>
-        list.map(c => models.Collection.fetchBySlug(c.slug.get))
-      }
-      clist.map { cp =>
-        Async {
-          // Now take the List of Promises and convert them into
-          // a Promise[List[models.Collection]] using the sequence
-          // function.
-          Promise.sequence(cp).flatMap { items =>
-            SolrUpdater.updateSolrModels(items).map { alldone =>
-              Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
-            }
-          }
-        }
+      neo4j.GremlinHelper.gremlin(method, params).map { response =>
+        Status(response.status)(response.body)
       }
     }
   }

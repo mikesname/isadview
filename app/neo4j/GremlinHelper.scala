@@ -60,6 +60,7 @@ trait GremlinHelper {
   }
   import play.api.libs.concurrent.execution.defaultContext
   def gremlin(scriptName: String, params: AnyRef): Promise[Response] = {
+    println("Dispatching with: " + params)
     scripts.loadScript("groovy/gremlin.groovy")
     val scriptBody = scripts.get(scriptName)
     val data = Map("script" -> scriptBody, "params" -> params)
@@ -67,6 +68,6 @@ trait GremlinHelper {
   }
 }
 
-
+object GremlinHelper extends GremlinHelper
 
 // vim: set ts=4 sw=4 et:

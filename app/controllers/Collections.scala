@@ -1,6 +1,7 @@
 package controllers
 
 import scala.reflect.Manifest
+import scalax.io.{Resource,Codec => IOCodec}
 
 import play.api._
 import play.api.mvc._
@@ -153,35 +154,9 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  import play.api.libs.iteratee.{Iteratee,Enumerator}
-
-  def uploadTest = Action(parse.raw) {  request =>
-    //val processor = processSource(Source.fromFile(request.body.file)) _
-    //val channel = Enumerator.pushee[NodeSeq] ( onStart = pushee =>
-    //  processor(node => pushee.push(node)) 
-    //)
-    //SimpleResult(
-    //  header=ResponseHeader(200),
-    //  body=channel
-    //)
-
-    //val enumerator = Enumerator.fromStream(request.body)
-    ////val iter = Iteratee.foreach[Array[Byte]](s => s)
-    ////val iter2 = enumerator(iter)
-
-    //SimpleResult(
-    //  header=ResponseHeader(200),
-    //  body=enumerator
-    //)
-    Ok("done")
-  }
-
   def xmlToGeoff(slug: String, in: String, out: String) = optionalUserAction { implicit maybeUser => implicit request =>
-    
     Async {
       Repository.fetchBySlug(slug).map { repo =>
-    
-        import scalax.io._
         val output = Resource.fromFile(out)
         output.truncate(0)             
         processSource(Source.fromFile(in)) { doc =>
@@ -190,22 +165,25 @@ object Collections extends AuthController with ControllerHelpers {
             case "ead" => importers.EAD.docToGeoff _
             case s => throw sys.error("No importer for type: '%s'".format(s))
           }
-          output.writeStrings(importer("repo%d".format(repo.id), doc), separator="\n")(Codec.UTF8)
+          output.writeStrings(importer("repo%d".format(repo.id), doc), separator="\n")(IOCodec.UTF8)
         }
         Ok("done")
       }
     }
   }
 
-  def importTest(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
-
+  /*
+   * Temporary hack way of getting a Geoff file into Neo4j. The `f` parameter refers
+   * to a file path relative to the app pwd.
+   */
+  def importGeoff(slug: String) = optionalUserAction { implicit maybeUser => implicit request =>
     var file = request.queryString.getOrElse("f", Seq()).headOption.getOrElse(
           throw sys.error("No Geoff file supplied."))
     val size = 100000
     val timeout = 100000L
 
-    import scala.io.Source
     // Let's crash the JVM...
+    // The lines are an iterator, not all in memory at once...
     val lines = Source.fromFile(file).getLines
     val init = Map[String,Map[String,String]]()
     Async {
@@ -232,30 +210,6 @@ object Collections extends AuthController with ControllerHelpers {
           println(importers.USHMM.docToGeoff(repoident(repository.id), elem))
         }
         Ok("done")
-      }
-    }
-  }
-
-  def updateIndex = optionalUserAction { implicit maybeUser => implicit request =>
-    import neo4j.query.Query
-    import solr.SolrUpdater
-
-    // Holy moly does this get confusing...
-    Async {
-      // First, take the initial async list of objects and get their
-      // full representations, including relations
-      val clist = Collection.query.get().map { list =>
-        list.map(c => Collection.fetchBySlug(c.slug.get))
-      }
-      clist.flatMap { cp =>
-        // Now take the List of Promises and convert them into
-        // a Promise[List[models.Collection]] using the sequence
-        // function.
-        Promise.sequence(cp).flatMap { items =>
-          SolrUpdater.updateSolrModels(items).map { alldone =>
-            Ok("%s".format(alldone.map(r => "%s\n".format(r.body))))  
-          }
-        }
       }
     }
   }

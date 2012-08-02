@@ -426,6 +426,12 @@ def query_exact_index_with_related(index_name, key, query_string, outRels, inRel
   ).exhaustMerge() 
 }
 
+def get_authority_by_slug(slug) {
+  // This won't work until the blueprints 2.00 upgrade which introduced trees.
+  def t = new Tree()
+  return g.V.filter{it.slug==slug}.optimize(false).as("item").outE("mentionedIn").inV.back("item").inE("createdBy").outV.tree(t).cap
+}
+
 // Metadata
 
 def get_metadata(key, default_value) {
