@@ -21,8 +21,10 @@ import forms.RepositoryForm
 object Repositories extends AuthController with ControllerHelpers {
   def detail(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
-      Repository.fetchBySlug(slug).map { repo =>
-        Ok(views.html.repository.detail(repo=repo, repo.description))
+      Repository.fetchBySlug(slug).flatMap { repo =>
+        Contact.findRelatedTo(repo, Contact.Direction.In, "addressOf").map { contacts => 
+          Ok(views.html.repository.detail(repo=repo, repo.description.withContacts(contacts)))
+        }
       }
     }
   }
