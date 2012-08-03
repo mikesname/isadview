@@ -30,7 +30,7 @@ object AuthorityForm {
     override val format = Some("format.numeric", Nil)
     def bind(key: String, data: Map[String,String]) = 
       parsing(s => AuthorityType(s.toInt), "error.number", Nil)(key, data)
-    def unbind(key: String, value: AuthorityType.AuthorityType) = Map(key -> value.toString)
+    def unbind(key: String, value: AuthorityType.AuthorityType) = Map(key -> value.id.toString)
   }
 
 
