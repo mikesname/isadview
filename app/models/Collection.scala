@@ -66,25 +66,28 @@ object Collection extends Neo4jDataSource[Collection] {
       "index_name" -> indexName,
       "key" -> field,
       "query_string" -> value,
-      "inRels" -> List("locatesInTime", "locatesInSpace", "describes"),
+      "inRels" -> List("describes", "locatesInTime", "locatesInSpace"),
       "outRels" -> List("heldBy", "createdBy")
     )
-    gremlin("query_exact_index_with_related", params).map(response => {
-      val items = getJson(response).children
-      items.headOption.map(apply(_)).map { collection =>
-        items.tail.foldLeft(collection) { (c: Collection, json: net.liftweb.json.JsonAST.JValue) =>
-          (json \ "data" \ TypeKey).extractOpt[String].map { eletype =>
-            eletype match {
-              case FuzzyDate.indexName => c.withDate(FuzzyDate(json))
-              case Repository.indexName => c.copy(repository=Some(Repository(json)))
-              case Authority.indexName => c.withCreator(Authority(json))
-              case Keyword.indexName => c.withKeyword(Keyword(json))
-              case Place.indexName => c.withPlace(Place(json))
-              case _ => c
-            }
-          }.getOrElse(c)
-        }
+    gremlin("query_exact_index_with_related1", params).map(response => {
+      val items = getJson(response)
+      var collection = apply(items \ "item")
+      collection = (items \ "describes").children.foldLeft(collection) { (c, json) =>
+        c.withKeyword(Keyword(json))
       }
+      collection = (items \\ "createdBy").children.foldLeft(collection) { (c, json) =>
+        c.withCreator(Authority(json))
+      }
+      collection = (items \\ "locatesInTime").children.foldLeft(collection) { (c, json) =>
+        c.withDate(FuzzyDate(json))
+      }
+      collection = (items \\ "locatesInSpace").children.foldLeft(collection) { (c, json) =>
+        c.withPlace(Place(json))
+      }
+      collection = (items \\ "heldBy").children.foldLeft(collection) { (c, json) =>
+        c.copy(repository=Some(Repository(json)))
+      }
+      Some(collection)
     })
   }
 }

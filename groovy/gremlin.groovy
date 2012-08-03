@@ -426,6 +426,23 @@ def query_exact_index_with_related(index_name, key, query_string, outRels, inRel
   ).exhaustMerge() 
 }
 
+// Fetch relations as well as queried objects but return them as a map
+def query_exact_index_with_related1(index_name, key, query_string, outRels, inRels) {
+  // Neo4jTokens.QUERY_HEADER = "%query%"
+  def pipe = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)._()
+  //if (!pipe.hasNext() || (outRels.size == 0 && inRels.size == 0))
+  //  return pipe
+  def map = new HashMap()
+  pipe._().groupBy(map){"item"}{it._()}.iterate()
+  for (inr in inRels) {
+    g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)._().in(inr).groupBy(map){inr}{it._()}.iterate()
+  }
+  for (outr in outRels) {
+    g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)._().out(outr).groupBy(map){outr}{it._()}.iterate()
+  }
+  return map
+}
+
 def get_authority_by_slug(slug) {
   // This won't work until the blueprints 2.00 upgrade which introduced trees.
   def t = new Tree()
