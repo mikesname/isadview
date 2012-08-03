@@ -26,9 +26,17 @@ object LevelOfDetail extends Enumeration(
   val Minimal, Partial, Complete = Value
 }
 
+/*
+ * Levels of description defined in the EAD schema. Also
+ * note that there is much confusion around what these 
+ * terms actually mean!
+ */
 object LevelOfDescription extends Enumeration(
-    "Collection", "File", "Fonds", "Subfonds", "Series", "Subseries", "Item") {
-  type LevelOfDescription = Value
-  val Collection, File, Fonds, Subfonds, Series, Subseries, Item = Value
+    "class", "collection", "file", "fonds", "item", "otherlevel", "recordgrp",
+    "series", "subfonds", "subgrp", "subseries") {
+  type Level = Value
+  val `class`, collection, file, fonds, item, otherlevel,
+      recordgrp, series, subfonds, subgrp, subseries = Value
 }
+
 
