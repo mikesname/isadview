@@ -24,7 +24,7 @@ trait ItemPage[A] {
   val offset: Long
   val pageSize: Int
   val items: Seq[A]
-  def numPages = total / pageSize
+  def numPages = (total / pageSize) + (total % pageSize).min(1)
   lazy val prev = Option(page - 1).filter(_ >= 0)
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
@@ -129,7 +129,7 @@ object SolrHelper {
 object Description {
   def list(
     index: Option[String] = None,
-    page: Int = 0,
+    page: Int = 1,
     pageSize: Int = 20,
     orderBy: Int = 1,
     field: Option[String] = None,
@@ -137,7 +137,7 @@ object Description {
     facets: Map[String, Seq[String]] = Map()
   
   ): Promise[Page[Description]] = {
-    val offset = page * pageSize
+    val offset = (page - 1) * pageSize
 
     val queryreq = SolrHelper.buildQuery(
           index, offset, pageSize, orderBy, field, query, facets)
@@ -162,7 +162,7 @@ object Description {
   def facet(
     facet: String,
     index: Option[String] = None,
-    page: Int = 0,
+    page: Int = 1,
     pageSize: Int = 20,
     sort: String = "name",
     field: Option[String] = None,
@@ -170,7 +170,7 @@ object Description {
     facets: Map[String, Seq[String]] = Map()
   
   ): Promise[FacetPage[Facet]] = {
-    val offset = page * pageSize
+    val offset = (page - 1) * pageSize
 
     // create a response returning 0 documents - we don't
     // actually care about the documents, so even this is

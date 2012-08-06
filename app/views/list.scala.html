@@ -55,8 +55,8 @@ currentField: Option[String]
                                 @currentPage.items.map{result =>
                                     @common.searchResult(result, maybeUser, savedItemList)
                                 }
-                                @common.paginate(currentPage)(request)
                             </div>
+                            @common.paginate(currentPage)(request)
                         } else {
                             &nbsp;
                         }
