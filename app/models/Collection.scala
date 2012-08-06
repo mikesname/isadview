@@ -13,7 +13,7 @@ object Collection extends Neo4jDataSource[Collection] {
 
   // JSON Constructor...
   def apply(data: net.liftweb.json.JsonAST.JValue): Collection = {
-    Collection(
+    new Collection(
       // adjust these as appropriate!
       id = idFromUrl((data \ "self").extractOpt[String]),
       slug = (data \ "data" \ "slug").extractOpt[String],
@@ -87,9 +87,35 @@ object Collection extends Neo4jDataSource[Collection] {
       collection = (items \\ "heldBy").children.foldLeft(collection) { (c, json) =>
         c.copy(repository=Some(Repository(json)))
       }
+      collection = (items \\ "parents").children.foldLeft(collection) { (c, json) =>
+        c.copy(parents = c.parents ++ List(Collection(json)))
+      }
+      collection = (items \\ "children").children.foldLeft(collection) { (c, json) =>
+        c.copy(children = c.children ++ List(Collection(json)))
+      }
       Some(collection)
     })
   }
+
+  // Bare minimum factory constructor
+  def apply(identifier: String, slug: String, name: String): Collection = new Collection(
+    slug = Some(slug),
+    createdOn = Some(new DateTime()),
+    description = CollectionDescription(
+      identity = CollectionIdentity(
+        name = name,
+        identifier = identifier
+      ),
+      context = CollectionContext(),
+      content = CollectionContent(),
+      conditions = CollectionConditions(),
+      materials = CollectionMaterials(),
+      control = CollectionControl(),
+      admin = CollectionAdmin(
+        publicationStatus = 0
+      )
+    )
+  )
 }
 
 case class Collection(
@@ -101,7 +127,9 @@ case class Collection(
   val repository: Option[Repository] = None,
   val creators: List[Authority] = Nil,
   val places: List[Place] = Nil,
-  val keywords: List[Keyword] = Nil
+  val keywords: List[Keyword] = Nil,
+  val parents: List[Collection] = Nil, // parent :: grandparent :: greatgrandparent :: _* :: Nil
+  val children: List[Collection] = Nil
 ) extends Neo4jSlugModel with CrudUrls with SolrModel {
   def name = description.identity.name
   def summary = description.content.scopeAndContent

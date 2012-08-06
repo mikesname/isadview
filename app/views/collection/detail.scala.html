@@ -2,6 +2,19 @@
 
 @main(c.identity.name, body_class="collection") {
 <div class="row">
+    <ul class="breadcrumb">
+        @cl.repository.map { repo =>
+            <li>
+                <a href="@routes.Repositories.detail(repo.slug.getOrElse(""))">@repo.name</a>
+            </li>
+        }
+        @cl.parents.reverse.map { parent =>
+            <li>
+                <span class="divider">/</span>
+                <a href="@routes.Collections.detail(parent.slug.getOrElse(""))">@parent.name</a>
+            </li>
+        }
+    </ul>
     <div class="span3 columns">
         <div class="sidebar">
             @cl.repository.map { repo =>
@@ -66,6 +79,17 @@
                 <a href="@routes.Search.list(rtype="search")?tag=@kw.text">@kw.text</a> 
             }
             </p>
+        }
+
+        @if(cl.children.length > 0) {
+            <h4>@Messages("Child Items")</h4>
+            <ul class="unstyled">
+            @cl.children.map { child =>
+                <li>
+                    <a href="@routes.Collections.detail(child.slug.getOrElse(""))">@child.name</a>
+                </li>    
+            }
+            </ul>
         }
     </div>
 </div>

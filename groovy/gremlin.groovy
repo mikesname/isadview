@@ -440,6 +440,10 @@ def query_exact_index_with_related1(index_name, key, query_string, outRels, inRe
   for (outr in outRels) {
     g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)._().out(outr).groupBy(map){outr}{it._()}.iterate()
   }
+  map["parents"] = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)._()
+    .as("n").out("isChildOf").loop("n"){it.loops < 12}{true}.toList().unique()._()
+  map["children"] = g.idx(index_name).get(key, Neo4jTokens.QUERY_HEADER + query_string)._()
+    .as("n").in("isChildOf").toList().unique{a, b -> a.slug <=> b.slug}._()
   return map
 }
 
