@@ -44,7 +44,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
 
   /* Extract date fields, which in the USHMM dump format are
   the last YYYY-YYYY field on keyword access fields. */
-  def extractDates(ident: String, elem: NodeSeq): List[String] = {
+  def extractDates(repoident: String, ident: String, elem: NodeSeq): List[String] = {
     val dates = (elem \ "field").filter(attributeValueEquals("subject_heading")).flatMap { f =>
       f.text match {
         case datePattern(start, end) => List(FuzzyDate(start.toInt, end.toInt))
@@ -68,7 +68,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
     entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
   }
 
-  def extractCreators(ident: String, elem: NodeSeq): List[String] = {
+  def extractCreators(repoident: String, ident: String, elem: NodeSeq): List[String] = {
     val names = getFields("creator_name", elem).map(cleanupField)
     val roles = getFields("creator_role", elem).map(cleanupField)
     val bios = getFields("creator_bio", elem).map(cleanupField)
@@ -93,7 +93,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
     names.zip(types)
   }
 
-  def extractPlaces(ident: String, elem: NodeSeq): List[String] = {
+  def extractPlaces(repoident: String, ident: String, elem: NodeSeq): List[String] = {
     // Places are relatively simple. Create a descriptor for each one and
     // relate it to the model
     subjectTypeTuple(elem).filter(t => isValid(t, PLACE)).zipWithIndex.flatMap { case (nametype, i) =>
@@ -105,21 +105,21 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractPeople(ident: String, elem: NodeSeq): List[String] = {
+  def extractPeople(repoident: String, ident: String, elem: NodeSeq): List[String] = {
     subjectTypeTuple(elem).filter(t => isValid(t, PERSON)).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, _) = nametype
       createAuthority(ident, i, AuthorityType.Person, name, None, None)
     }
   }
 
-  def extractCorporateBodies(ident: String, elem: NodeSeq): List[String] = {
+  def extractCorporateBodies(repoident: String, ident: String, elem: NodeSeq): List[String] = {
     subjectTypeTuple(elem).filter(t => isValid(t, CORPORATION)).zipWithIndex.flatMap { case (nametype, i) =>
       val (name, _) = nametype
       createAuthority(ident, i, AuthorityType.CorporateBody, name, None, None)
     }
   }
 
-  def extractSubjects(ident: String, elem: NodeSeq): List[String] = {
+  def extractSubjects(repoident: String, ident: String, elem: NodeSeq): List[String] = {
     // Subjects are more complicated because they are listed like:
     // WWII -- Holocaust -- Estonia, so we need to make a descriptor
     // for each one.
@@ -139,15 +139,22 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractParents(ident: String, elem: NodeSeq): List[String] = {
-    getField("assoc_parent_irn", elem).map(parent =>
-      List(GeoffRelationship("isChildOf", ident, parent).toString)
-    ).getOrElse(Nil)
+  def extractParents(repoident: String, ident: String, elem: NodeSeq): List[String] = {
+    val pirn = getFields("assoc_parent_irn", elem).map(cleanupField)
+    val pobj = getFields("assoc_parent_object", elem).map(cleanupField)
+    pirn.zip(pobj).flatMap { case (irn, name) =>
+      val slug = slugify(name)
+      val item = Collection(irn, slug, name)
+      val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=irn, data=item.toMap)
+      val parentRel = GeoffRelationship("isChildOf", ident, irn).toString
+      val parentRepo = GeoffRelationship("heldBy", irn, repoident).toString
+      entity.toStringList ::: parentRepo :: parentRel :: Nil
+    }
   }
 
   def extractScopedIdentifier(elem: NodeSeq): Option[String] = getField("irn", elem)
 
-  def extractItems(ident: String, elem: NodeSeq) = {
+  def extractItems(repoident: String, ident: String, elem: NodeSeq) = {
 
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
@@ -169,8 +176,8 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       "created_on" -> Collection.nowDateTime,
       "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n", elem)
     )           
-    GeoffEntity(indexName=Some(Collection.indexName),
-        descriptor=ident, data=data).toStringList
+    val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=ident, data=data)
+    entity.toStringList ::: GeoffRelationship("heldBy", ident, repoident).toString :: Nil
   }
 }
 

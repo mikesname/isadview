@@ -85,7 +85,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   private val unitDatePattern5 = "(\\d{4})".r
   private val unitDatePattern6 = "(\\d{2})th century".r
 
-  def extractDates(ident: String, elem: NodeSeq) = {
+  def extractDates(repoident: String, ident: String, elem: NodeSeq) = {
     val dates = (elem \\ "origination" \ "unitdate").toList.map(_.text).flatMap { text =>
       text match {
         case unitDatePattern1(start, end) => Some(FuzzyDate(start.toInt, end.toInt))
@@ -104,7 +104,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractCreators(ident: String, elem: NodeSeq) = {
+  def extractCreators(repoident: String, ident: String, elem: NodeSeq) = {
     val auths = (elem \\ "origination" \ "persname").toList.map(_.text).filterNot(_.trim.isEmpty).flatMap(parsePersonString(_))
     auths.flatMap { item =>
       val desc = slugify(item.name).replace("-","")
@@ -113,7 +113,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractSubjects(ident: String, elem: NodeSeq) = {
+  def extractSubjects(repoident: String, ident: String, elem: NodeSeq) = {
     val kwds = (elem \\ "controlaccess" \ "subject").toList.map(_.text).filterNot(_.trim.isEmpty).map(Keyword(_))
     kwds.flatMap { item =>
       val desc = slugify(item.text).replace("-", "")
@@ -122,7 +122,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractPeople(ident: String, elem: NodeSeq) = {
+  def extractPeople(repoident: String, ident: String, elem: NodeSeq) = {
     val auths = (elem \\ "controlaccess" \ "persname").toList.map(_.text).filterNot(_.trim.isEmpty).flatMap(parsePersonString(_))
     auths.flatMap { item =>
       val desc = slugify(item.name).replace("-","")
@@ -131,7 +131,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractCorporateBodies(ident: String, elem: NodeSeq) = {
+  def extractCorporateBodies(repoident: String, ident: String, elem: NodeSeq) = {
     val corps = (elem \\ "controlaccess" \ "corpname").toList.map(_.text).flatMap(parseCorporateBodyString(_))
     corps.flatMap { item =>
       val desc = slugify(item.name).replace("-","")
@@ -140,7 +140,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractPlaces(ident: String, elem: NodeSeq) = {
+  def extractPlaces(repoident: String, ident: String, elem: NodeSeq) = {
     val kwds = (elem \\ "controlaccess" \ "geogname").toList.map(_.text).filterNot(_.trim.isEmpty).map(Place(_))
     kwds.flatMap { item =>
       val desc = slugify(item.text).replace("-", "")
@@ -149,12 +149,12 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     }
   }
 
-  def extractParents(ident: String, elem: NodeSeq) = {
+  def extractParents(repoident: String, ident: String, elem: NodeSeq) = {
     // TODO: Fix this when importer supports EAD hierarchies
     Nil
   }
 
-  def extractItems(ident: String, elem: NodeSeq) = {
+  def extractItems(repoident: String, ident: String, elem: NodeSeq) = {
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
 

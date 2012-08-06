@@ -67,44 +67,44 @@ trait Importer[T] {
   /*
    * Extract from `T` the core collection information.
    */
-  def extractItems(ident: String, elem: T): List[String]
+  def extractItems(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract from `T` Geoff statements relating this collection
    * to others in a heirachical manner.
    */
-  def extractParents(ident: String, elem: T): List[String]
+  def extractParents(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract place information.
    */
-  def extractPlaces(ident: String, elem: T): List[String]
+  def extractPlaces(repoident: String, ident: String, elem: T): List[String]
 
   /* 
    * Extract people referenced as subject access points
    */
-  def extractPeople(ident: String, elem: T): List[String]
+  def extractPeople(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract corporate bodies as subject access points
    */
-  def extractCorporateBodies(ident: String, elem: T): List[String]
+  def extractCorporateBodies(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract information about subject access points references
    * in this collection.
    */
-  def extractSubjects(ident: String, elem: T): List[String]
+  def extractSubjects(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract information about the creators of this collection.
    */
-  def extractCreators(ident: String, elem: T): List[String]
+  def extractCreators(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract information about the dates of this collection.
    */
-  def extractDates(ident: String, elem: T): List[String]
+  def extractDates(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Get this document's local identifier, scoped to its
@@ -118,18 +118,15 @@ trait Importer[T] {
    */
   def docToGeoff(repoident: String, elem: T): List[String] = {
     extractScopedIdentifier(elem).map { ident =>
-      val collection = extractItems(ident, elem)
-      val parents = extractParents(ident, elem)
-      val places = extractPlaces(ident, elem)
-      val people = extractPeople(ident, elem)
-      val corps = extractCorporateBodies(ident, elem)
-      val subjects = extractSubjects(ident, elem)
-      val creators = extractCreators(ident, elem)
-      val dates = extractDates(ident, elem)
-      val reporel = List(
-        GeoffRelationship("heldBy", ident, repoident).toString
-      )
-      collection ++ dates ++ reporel ++ parents ++ places ++ people ++ corps ++ subjects ++ creators
+      val collection = extractItems(repoident, ident, elem)
+      val parents = extractParents(repoident, ident, elem)
+      val places = extractPlaces(repoident, ident, elem)
+      val people = extractPeople(repoident, ident, elem)
+      val corps = extractCorporateBodies(repoident, ident, elem)
+      val subjects = extractSubjects(repoident, ident, elem)
+      val creators = extractCreators(repoident, ident, elem)
+      val dates = extractDates(repoident, ident, elem)
+      collection ++ dates ++ parents ++ places ++ people ++ corps ++ subjects ++ creators
     }.getOrElse(Nil)
   }
 }
