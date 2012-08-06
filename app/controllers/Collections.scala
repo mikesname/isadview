@@ -189,10 +189,7 @@ object Collections extends AuthController with ControllerHelpers {
     Async {
       models.Repository.fetchBySlug(slug).map { repository =>
         val out = lines.grouped(size).map(_.toList).foldLeft(init) { case(params, lineList) =>
-          models.Repository.importGeoff(repository, lineList, params).value.get match {
-            case Left(throwable) => throw throwable
-            case Right(m) => m
-          }
+          models.Repository.importGeoff(repository, lineList, params).await(timeout).get
         }
         Ok(generate(out))
       }

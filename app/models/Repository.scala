@@ -65,7 +65,7 @@ object Repository extends Neo4jDataSource[Repository] {
    * plugin, and return a Promise containing the output parameters.
    */
   def importGeoff(repo: Repository, geoff: List[String],
-      inparams: Map[String,Map[String,String]] = Map()): Promise[Map[String,Map[String,String]]] = {
+      inparams: Map[String,Map[String,String]] = Map()): play.api.libs.concurrent.PlayPromise[Map[String,Map[String,String]]] = {
     import play.api.libs.ws.{WS,Response}
     import com.codahale.jerkson.Json._
     import play.api.Play.current
