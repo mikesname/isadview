@@ -115,57 +115,22 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  def importForm(repo: String) = authorizedAction(models.sql.Administrator) { user => implicit request =>
-    Ok(views.html.importForm(user, routes.Collections.importPost(repo)))
-  }
-
-
-  import scala.io.Source
-  import scala.xml.XML._
-  import scala.xml.pull._
-  import scala.xml._
-
-  // Pinched from:
-  // http://stackoverflow.com/questions/8525675/how-to-get-a-streaming-iteratornode-from-a-large-xml-document
-  def processSource[T](input: Source)(f: scala.xml.NodeSeq => T) {
-    new scala.xml.parsing.ConstructingParser(input, false) {
-      var depth = 0 // track depth
-      nextch // initialize per documentation
-      document // trigger parsing by requesting document
-
-      override def elemStart(pos: Int, pre: String, label: String,
-          attrs: MetaData, scope: NamespaceBinding) {
-        super.elemStart(pos, pre, label, attrs, scope)
-        depth += 1
-      }
-      override def elemEnd(pos: Int, pre: String, label: String) {
-        depth -= 1
-        super.elemEnd(pos, pre, label)
-      }
-      override def elem(pos: Int, pre: String, label: String, attrs: MetaData,
-          pscope: NamespaceBinding, nodes: NodeSeq): NodeSeq = {
-        val node = super.elem(pos, pre, label, attrs, pscope, nodes)
-        depth match {
-          case 1 => <dummy/> // dummy final roll up
-          case 2 => f(node); NodeSeq.Empty // process and discard employee nodes
-          case _ => node // roll up other nodes
-        }
-      }
-    }
-  }
+  import importers.XMLPullParser
 
   def xmlToGeoff(slug: String, in: String, out: String) = optionalUserAction { implicit maybeUser => implicit request =>
+    var format = request.queryString.getOrElse("format", Seq()).headOption.getOrElse(
+          throw sys.error("No XML format argument supplied."))
     Async {
       Repository.fetchBySlug(slug).map { repo =>
         val output = Resource.fromFile(out)
-        output.truncate(0)             
-        processSource(Source.fromFile(in)) { doc =>
-          val importer = doc.head.label match {
-            case "doc" => importers.USHMM.docToGeoff _
-            case "ead" => importers.EAD.docToGeoff _
-            case s => throw sys.error("No importer for type: '%s'".format(s))
-          }
-          output.writeStrings(importer("repo%d".format(repo.id), doc), separator="\n")(IOCodec.UTF8)
+        output.truncate(0)
+        val importer: importers.Importer[xml.NodeSeq] = format match {
+          case "doc" => importers.USHMM
+          case "ead" => importers.EAD
+          case x => sys.error("Unknown importer format: %s".format(x))
+        }
+        XMLPullParser.processSource(format, io.Source.fromFile(in)) { doc =>
+          output.writeStrings(importer.docToGeoff("repo%d".format(repo.id), doc), separator="\n")(IOCodec.UTF8)
         }
         Ok("done")
       }
@@ -184,7 +149,7 @@ object Collections extends AuthController with ControllerHelpers {
 
     // Let's crash the JVM...
     // The lines are an iterator, not all in memory at once...
-    val lines = Source.fromFile(file).getLines
+    val lines = io.Source.fromFile(file).getLines
     val init = Map[String,Map[String,String]]()
     Async {
       models.Repository.fetchBySlug(slug).map { repository =>
@@ -192,21 +157,6 @@ object Collections extends AuthController with ControllerHelpers {
           models.Repository.importGeoff(repository, lineList, params).await(timeout).get
         }
         Ok(generate(out))
-      }
-    }
-  }
-
-  def importPost(repo: String) = optionalUserAction(parse.temporaryFile) { implicit maybeUser => implicit request =>
-    import play.api.libs.iteratee.Enumerator
-
-    def repoident(repoid: Long) = "repo%d".format(repoid)
-
-    Async {
-      Repository.fetchBySlug(repo).map { repository =>
-        processSource(Source.fromFile(request.body.file)) { elem =>
-          println(importers.USHMM.docToGeoff(repoident(repository.id), elem))
-        }
-        Ok("done")
       }
     }
   }
