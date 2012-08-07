@@ -14,8 +14,12 @@ import play.api.libs.concurrent.execution.defaultContext
  */
 trait GremlinHelper {
   lazy val scripts = new neo4j.ScriptSource()
-  lazy val gremlinPath = play.api.Play.configuration.getString("gremlin").getOrElse(
-      sys.error("The path to the Neo4j Gremlin plugin is not specified in application.conf"))
+  // NB: Gremlin path defined in code for development, since accessing
+  // configuration depends on a running application, which makes testing
+  // in the console difficult
+  //lazy val gremlinPath = play.api.Play.configuration.getString("gremlin").getOrElse(
+  //    sys.error("The path to the Neo4j Gremlin plugin is not specified in application.conf"))
+  lazy val gremlinPath = "http://localhost:7474/db/data/ext/GremlinPlugin/graphdb/execute_script" 
 
   /**
    *  For as-yet-undetermined reasons that data coming back from Neo4j seems
@@ -60,7 +64,6 @@ trait GremlinHelper {
   }
   import play.api.libs.concurrent.execution.defaultContext
   def gremlin(scriptName: String, params: AnyRef): Promise[Response] = {
-    println("Dispatching with: " + params)
     scripts.loadScript("groovy/gremlin.groovy")
     val scriptBody = scripts.get(scriptName)
     val data = Map("script" -> scriptBody, "params" -> params)
