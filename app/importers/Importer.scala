@@ -61,13 +61,20 @@ trait Importer[T] {
   }
 
   /*
+   * Locate the part in the given document from which to start
+   * parsing. In, say, an EAD document with nested sections, this
+   * may not be the same as the top-level doc.
+   */
+  def getEntryPoints(elem: T): List[T] = List(elem)
+
+  /*
    * Abstract data extraction functions.
    */
 
   /*
    * Extract from `T` the core collection information.
    */
-  def extractItems(repoident: String, ident: String, elem: T): List[String]
+  def extractItem(repoident: String, ident: String, elem: T): List[String]
 
   /*
    * Extract from `T` Geoff statements relating this collection
@@ -113,20 +120,30 @@ trait Importer[T] {
   def extractScopedIdentifier(elem: T): Option[String]
 
   /*
+   * Extract and combine all the component parts of an item
+   */
+  def extractDetails(repoident: String, ident: String, elem: T): List[String] = {
+    val collection = extractItem(repoident, ident, elem)
+    val parents = extractParents(repoident, ident, elem)
+    val places = extractPlaces(repoident, ident, elem)
+    val people = extractPeople(repoident, ident, elem)
+    val corps = extractCorporateBodies(repoident, ident, elem)
+    val subjects = extractSubjects(repoident, ident, elem)
+    val creators = extractCreators(repoident, ident, elem)
+    val dates = extractDates(repoident, ident, elem)
+    collection ++ dates ++ parents ++ places ++ people ++ corps ++ subjects ++ creators
+  }
+
+
+  /*
    * Main entry point. Takes an element of type `T` and returns
    * a set of Geoff statements describing the item.
    */
-  def docToGeoff(repoident: String, elem: T): List[String] = {
-    extractScopedIdentifier(elem).map { ident =>
-      val collection = extractItems(repoident, ident, elem)
-      val parents = extractParents(repoident, ident, elem)
-      val places = extractPlaces(repoident, ident, elem)
-      val people = extractPeople(repoident, ident, elem)
-      val corps = extractCorporateBodies(repoident, ident, elem)
-      val subjects = extractSubjects(repoident, ident, elem)
-      val creators = extractCreators(repoident, ident, elem)
-      val dates = extractDates(repoident, ident, elem)
-      collection ++ dates ++ parents ++ places ++ people ++ corps ++ subjects ++ creators
-    }.getOrElse(Nil)
+  def docToGeoff(repoident: String, doc: T): List[String] = {
+    getEntryPoints(doc).flatMap { elem =>
+      extractScopedIdentifier(elem).map { ident =>
+        extractDetails(repoident, ident, elem)
+      }.getOrElse(Nil)
+    }
   }
 }

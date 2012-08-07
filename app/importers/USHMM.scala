@@ -154,7 +154,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
 
   def extractScopedIdentifier(elem: NodeSeq): Option[String] = getField("irn", elem)
 
-  def extractItems(repoident: String, ident: String, elem: NodeSeq) = {
+  def extractItem(repoident: String, ident: String, elem: NodeSeq) = {
 
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
@@ -165,16 +165,16 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       "name"        -> getTitle(getField("title", elem).getOrElse("")),
       "slug"        -> getSlug(getField("title", elem).getOrElse(ident)),
       "source"  -> getFields("acq_source", elem).mkString(", "),
-      "source"  -> getFields("provinence", elem).mkString(", "),
+      "administrative_history"  -> getFields("provenance", elem).mkString("\n\n"),
       "languages" -> getLanguageCodes(getFields("language", elem).toList).mkString(","),
       "scripts" -> DEFAULT_SCRIPT,
       "languages_of_description" -> "en",
       "scripts_of_description" -> "Latn",
       "scope_and_content"  -> getField("scope_content", elem),
-      "extent_and_medium"  -> getFields("extent", elem).mkString("\n"),
+      "extent_and_medium"  -> getFields("extent", elem).mkString("\n\n"),
       "legal_status"  -> getField("legal_status", elem),
       "created_on" -> Collection.nowDateTime,
-      "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n", elem)
+      "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n\n", elem)
     )           
     val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=ident, data=data)
     entity.toStringList ::: GeoffRelationship("heldBy", ident, repoident).toString :: Nil
