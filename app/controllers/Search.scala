@@ -75,7 +75,6 @@ object Search extends AuthController with ControllerHelpers {
       )(UpdateEntities.apply)(UpdateEntities.unapply)
     ).bindFromRequest.fold(
       errorForm => {
-        println(errorForm)
         BadRequest(views.html.updateIndex(action=routes.Search.updateIndexPost))
       },
       entities => {

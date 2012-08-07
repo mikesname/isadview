@@ -67,8 +67,8 @@ case class VirtualCollection(
   def name = description.name
   def summary = description.description
   val detailUrl = controllers.routes.VirtualCollections.detail(id=id)
-  val editUrl = controllers.routes.VirtualCollections.edit(id=id)
-  val deleteUrl = controllers.routes.VirtualCollections.confirmDelete(id=id)
+  val editUrl = controllers.routes.VirtualCollections.update(id=id)
+  val deleteUrl = controllers.routes.VirtualCollections.delete(id=id)
 
 
   def toMap = Map(

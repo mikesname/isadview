@@ -22,14 +22,14 @@ object Users extends AuthController with ControllerHelpers {
     Ok(views.html.user.detail(user, profile))
   }
 
-  def edit = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+  def update = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
     val profile = user.profile.map(_.data).getOrElse(new ProfileData())
     val form = UserForm.profileForm.fill(profile)
-    val action = routes.Users.editPost
+    val action = routes.Users.updatePost
     Ok(views.html.user.form(user, form, action, profile))
   }
 
-  def editPost = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+  def updatePost = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "languages"
@@ -37,7 +37,7 @@ object Users extends AuthController with ControllerHelpers {
 
     val profile = user.profile.map(_.data).getOrElse(new ProfileData())
     UserForm.profileForm.bindFromRequest(formData).fold(
-      errorForm => BadRequest(views.html.user.form(user, errorForm, routes.Users.editPost, profile)),
+      errorForm => BadRequest(views.html.user.form(user, errorForm, routes.Users.updatePost, profile)),
       profiledata => {
         user.profile match {
           case Some(profile) => {

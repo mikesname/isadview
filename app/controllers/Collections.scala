@@ -100,7 +100,7 @@ object Collections extends AuthController with ControllerHelpers {
   def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
-        val action = routes.Collections.delete(slug)
+        val action = routes.Collections.deletePost(slug)
         Ok(views.html.basedelete(c=collection, action=action))
       }
     }

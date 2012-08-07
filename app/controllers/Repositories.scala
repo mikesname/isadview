@@ -95,7 +95,7 @@ object Repositories extends AuthController with ControllerHelpers {
   def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).map { repository =>
-        val action = routes.Repositories.delete(slug)
+        val action = routes.Repositories.deletePost(slug)
         Ok(views.html.basedelete(c=repository, action=action))
       }
     }

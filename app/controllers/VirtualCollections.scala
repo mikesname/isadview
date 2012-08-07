@@ -23,18 +23,18 @@ object VirtualCollections extends AuthController with ControllerHelpers {
     }.getOrElse(authorizationFailed(request))
   }
 
-  def edit(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
+  def update(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
     user.profile.flatMap(_.virtualCollections.find(_.id==id)).map { vc =>
       val form = UserForm.virtualCollection.fill(vc.description)
-      val action = routes.VirtualCollections.save(id)
+      val action = routes.VirtualCollections.updatePost(id)
       Ok(views.html.user.vcform(user, form, action))
     }.getOrElse(authorizationFailed(request))
   }
 
-  def save(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
+  def updatePost(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
     assert(user.profile.map(_.virtualCollections.map(_.id).contains(id)).getOrElse(false))
     user.profile.flatMap(_.virtualCollections.find(_.id==id)).map { vc =>
-      val action = routes.VirtualCollections.save(id)
+      val action = routes.VirtualCollections.updatePost(id)
       UserForm.virtualCollection.bindFromRequest.fold(
         errorForm => BadRequest(views.html.user.vcform(user, errorForm, action)),
         vcdesc => {
@@ -48,14 +48,14 @@ object VirtualCollections extends AuthController with ControllerHelpers {
     }.getOrElse(authorizationFailed(request))
   }
 
-  def confirmDelete(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
+  def delete(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
     user.profile.flatMap(_.virtualCollections.find(_.id==id)).map { vc =>
-      val action = routes.VirtualCollections.delete(id)
+      val action = routes.VirtualCollections.deletePost(id)
       Ok(views.html.basedelete(c=vc, action=action)(Some(user), request))
     }.getOrElse(authorizationFailed(request))
   }
 
-  def delete(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
+  def deletePost(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
     assert(user.profile.map(_.virtualCollections.map(_.id).contains(id)).getOrElse(false))
     Async {
       VirtualCollection.delete(id).map { res =>
@@ -64,15 +64,15 @@ object VirtualCollections extends AuthController with ControllerHelpers {
     }
   }
 
-  def new_ = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
+  def create = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
     Ok(views.html.user.vcform(
-        user, UserForm.virtualCollection, routes.VirtualCollections.create))
+        user, UserForm.virtualCollection, routes.VirtualCollections.createPost))
   }
 
-  def create = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request => 
+  def createPost = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request => 
     UserForm.virtualCollection.bindFromRequest.fold(
       errorForm => BadRequest(views.html.user.vcform(
-          user, errorForm, routes.VirtualCollections.create)),
+          user, errorForm, routes.VirtualCollections.createPost)),
       newvc => {
         // if we don't already have a profile, create one
         user.profile match {
