@@ -28,6 +28,7 @@ object Collection extends Neo4jDataSource[Collection] {
         ),
         context = CollectionContext(
           archivalHistory = (data \ "data" \ "archival_history").extractOpt[String],
+          administrativeHistory = (data \ "data" \ "administrative_history").extractOpt[String],
           acquisition = (data \ "data" \ "acquisition").extractOpt[String]
         ),
         content = CollectionContent(
@@ -247,6 +248,7 @@ case class CollectionIdentity(
 
 case class CollectionContext(
   val archivalHistory: Option[String] = None,
+  val administrativeHistory: Option[String] = None,
   val acquisition: Option[String] = None
 ) {
   def toMap = Map(

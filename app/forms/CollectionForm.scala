@@ -23,6 +23,7 @@ object CollectionForm {
       )(CollectionIdentity.apply)(CollectionIdentity.unapply),
       "context" -> mapping(
         "archivalHistory" -> optional(text),
+        "administrativeHistory" -> optional(text),
         "acquisition" -> optional(text)
       )(CollectionContext.apply)(CollectionContext.unapply),
       "content" -> mapping(
