@@ -84,7 +84,34 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinH
    */
   val TypeKey = "element_type"
 
+  object Callbacks extends Enumeration("create", "update", "delete") {
+    type Callback = Value
+    val create, update, delete = Value
+  }
 
+  // Callback functions take a T and don't return anything.
+  type CbFunc = T => Unit
+
+  private var listeners = scala.collection.mutable.Map[Callbacks.Callback, List[CbFunc]]()
+
+  def addListener(cb: Callbacks.Callback)(f: CbFunc) = listeners.get(cb) match {
+    case None => listeners(cb) = List(f)
+    case Some(list) => listeners(cb) = (list ++ List(f)).distinct // ensure no duplicates
+  }
+
+  def addListeners(cbs: Callbacks.Callback*)(f: CbFunc) = 
+    cbs.map(addListener(_)(f))
+
+  private def callCallbacks(cb: Callbacks.Callback, item: T) = {
+    for (f <- listeners.getOrElse(cb, Nil))
+      f(item)
+  }
+
+  private def withCallback(cb: Callbacks.Callback)(item: T) = {
+    callCallbacks(cb, item)
+    item
+  }
+  
   /**
    *  The headers that get sent to the Neo4j Gremlin plugin for a
    *  JSON request/response.
@@ -100,7 +127,9 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinH
     // FIXME: Make this asyncronous somehow by composing this Promise and
     // the parent one.
     gremlin("create_indexed_vertex_with_subordinates", params).map { resp =>
-      apply(getJson(resp))
+      withCallback(Callbacks.create) {
+        apply(getJson(resp))
+      }
     }
   }
 
@@ -127,12 +156,15 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinH
     )
     gremlin("update_indexed_vertex_with_subordinates", params).map { resp =>
       // TODO: Handle error if this doesn't work!
-      apply(getJson(resp))
+      withCallback(Callbacks.update) {
+        apply(getJson(resp))
+      }
     }
   }
   
   def delete(nodeId: Long): Promise[Boolean] = {
     gremlin("delete_vertex", Map("_id" -> nodeId)).map(response => {
+      // FIXME: Wrap with Delete callback!
       true
     })
   }
@@ -144,6 +176,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinH
       "outRels" -> item.getOutgoingSubordinateRelations
     )
     gremlin("delete_vertex_with_related", params).map(response => {
+      // FIXME: Wrap with Delete callback!
       true
     })
   }

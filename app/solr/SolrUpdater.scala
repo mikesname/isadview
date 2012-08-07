@@ -66,6 +66,8 @@ object SolrUpdater {
     }
   }
 
+  def updateSolrModel(item: SolrModel) = updateSolrModels(List(item))
+
  /* Update a single batch of solr models.
   */ 
   def updateBatch(items: List[SolrModel]): Promise[Response] = {

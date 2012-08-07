@@ -27,6 +27,17 @@ object Global extends GlobalSettings {
     relationships.AddressOf.initialize()
     relationships.MentionedIn.initialize()
     relationships.CreatedBy.initialize()
+
+    // Wire up callback to update Solr models
+    Collection.addListeners(Collection.Callbacks.create, Collection.Callbacks.update) { item =>
+      solr.SolrUpdater.updateSolrModel(item.asInstanceOf[solr.SolrModel])  
+    }
+    Authority.addListeners(Authority.Callbacks.create, Authority.Callbacks.update) { item =>
+      solr.SolrUpdater.updateSolrModel(item.asInstanceOf[solr.SolrModel])  
+    }
+    Repository.addListeners(Repository.Callbacks.create, Repository.Callbacks.update) { item =>
+      solr.SolrUpdater.updateSolrModel(item.asInstanceOf[solr.SolrModel])  
+    }
   }
 }
 
