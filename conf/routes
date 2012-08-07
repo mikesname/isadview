@@ -45,26 +45,26 @@ GET     /$rtype<(collection|repository|authority|search)>/facets/:facet    contr
 GET     /search/updateIndex         controllers.Search.updateIndex
 POST     /search/updateIndex        controllers.Search.updateIndexPost
 
-GET     /repository/edit/:slug      controllers.Repositories.edit(slug: String)
-POST    /repository/edit/:slug      controllers.Repositories.save(slug: String)
-GET     /repository/create          controllers.Repositories.new_
-POST    /repository/create          controllers.Repositories.create
-GET     /repository/delete/:slug    controllers.Repositories.confirmDelete(slug: String)
-POST    /repository/delete/:slug    controllers.Repositories.delete(slug: String)
+GET     /repository/edit/:slug      controllers.Repositories.update(slug: String)
+POST    /repository/edit/:slug      controllers.Repositories.updatePost(slug: String)
+GET     /repository/create          controllers.Repositories.create
+POST    /repository/create          controllers.Repositories.createPost
+GET     /repository/delete/:slug    controllers.Repositories.delete(slug: String)
+POST    /repository/delete/:slug    controllers.Repositories.deletePost(slug: String)
 GET     /repository/:slug           controllers.Repositories.detail(slug:String)
 
-GET     /authority/edit/:slug       controllers.Authorities.edit(slug: String)
-POST    /authority/edit/:slug       controllers.Authorities.save(slug: String)
-GET     /authority/delete/:slug     controllers.Authorities.confirmDelete(slug: String)
-POST    /authority/delete/:slug     controllers.Authorities.delete(slug: String)
-GET     /authority/create           controllers.Authorities.new_
-POST    /authority/create           controllers.Authorities.create
+GET     /authority/edit/:slug       controllers.Authorities.update(slug: String)
+POST    /authority/edit/:slug       controllers.Authorities.updatePost(slug: String)
+GET     /authority/delete/:slug     controllers.Authorities.delete(slug: String)
+POST    /authority/delete/:slug     controllers.Authorities.deletePost(slug: String)
+GET     /authority/create           controllers.Authorities.create
+POST    /authority/create           controllers.Authorities.createPost
 GET     /authority/:slug            controllers.Authorities.detail(slug:String)
 
-GET     /collection/edit/:slug      controllers.Collections.edit(slug: String)
-POST    /collection/edit/:slug      controllers.Collections.save(slug: String)
-GET     /collection/delete/:slug    controllers.Collections.confirmDelete(slug: String)
-POST    /collection/delete/:slug    controllers.Collections.delete(slug: String)
+GET     /collection/edit/:slug      controllers.Collections.update(slug: String)
+POST    /collection/edit/:slug      controllers.Collections.updatePost(slug: String)
+GET     /collection/delete/:slug    controllers.Collections.delete(slug: String)
+POST    /collection/delete/:slug    controllers.Collections.deletePost(slug: String)
 GET     /collection/:slug/create    controllers.Collections.create(slug: String)
 POST    /collection/:slug/create    controllers.Collections.createPost(slug: String)
 GET     /collection/:slug           controllers.Collections.detail(slug:String)

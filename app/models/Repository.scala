@@ -137,8 +137,8 @@ case class Repository(
   def name = description.identity.name
   def summary = description.description.geoculturalContext
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))
-  val editUrl = controllers.routes.Repositories.edit(slug=slug.getOrElse(""))
-  val deleteUrl = controllers.routes.Repositories.confirmDelete(slug=slug.getOrElse(""))
+  val editUrl = controllers.routes.Repositories.update(slug=slug.getOrElse(""))
+  val deleteUrl = controllers.routes.Repositories.delete(slug=slug.getOrElse(""))
 
   override def toString = "<Repository: %s (%d)>".format(name, id)
 

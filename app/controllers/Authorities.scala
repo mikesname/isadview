@@ -34,11 +34,11 @@ object Authorities extends AuthController with ControllerHelpers {
     }
   }
 
-  def new_ = optionalUserProfileAction { implicit maybeUser => implicit request =>
-    Ok(views.html.authority.form(f=AuthorityForm.form, action=routes.Authorities.create))
+  def create = optionalUserProfileAction { implicit maybeUser => implicit request =>
+    Ok(views.html.authority.form(f=AuthorityForm.form, action=routes.Authorities.createPost))
   }
 
-  def create = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def createPost = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -48,7 +48,7 @@ object Authorities extends AuthController with ControllerHelpers {
     AuthorityForm.form.bindFromRequest(formData).fold(
       errorForm => {
         BadRequest(
-          views.html.authority.form(f=errorForm, action=routes.Authorities.create))
+          views.html.authority.form(f=errorForm, action=routes.Authorities.createPost))
       },
       data => {
         Async {
@@ -60,17 +60,17 @@ object Authorities extends AuthController with ControllerHelpers {
     )
   }
 
-  def edit(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def update(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       AuthFile.fetchBySlug(slug).map { authority =>
         val form = AuthorityForm.form.fill(authority.description)
-        val action = routes.Authorities.save(slug)
+        val action = routes.Authorities.updatePost(slug)
         Ok(views.html.authority.form(f=form, action=action, r=Some(authority)))
       }
     }
   }
 
-  def save(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def updatePost(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "control.languagesOfDescription",
@@ -83,7 +83,7 @@ object Authorities extends AuthController with ControllerHelpers {
           errorForm => {
             BadRequest(
             views.html.authority.form(f=errorForm,
-            action=routes.Authorities.save(slug), r=Some(authority)))
+            action=routes.Authorities.updatePost(slug), r=Some(authority)))
           },
           data => {
             Async {
@@ -98,16 +98,16 @@ object Authorities extends AuthController with ControllerHelpers {
     }
   }
 
-  def confirmDelete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       AuthFile.fetchBySlug(slug).map { authority =>
-        val action = routes.Authorities.delete(slug)
+        val action = routes.Authorities.deletePost(slug)
         Ok(views.html.basedelete(c=authority, action=action))
       }
     }
   }
 
-  def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def deletePost(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       AuthFile.fetchBySlug(slug).map { authority =>
         AuthFile.delete(authority.id, authority)

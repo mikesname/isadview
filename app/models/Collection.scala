@@ -135,8 +135,8 @@ case class Collection(
   def name = description.identity.name
   def summary = description.content.scopeAndContent
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))
-  val editUrl = controllers.routes.Collections.edit(slug=slug.getOrElse(""))
-  val deleteUrl = controllers.routes.Collections.confirmDelete(slug=slug.getOrElse(""))
+  val editUrl = controllers.routes.Collections.update(slug=slug.getOrElse(""))
+  val deleteUrl = controllers.routes.Collections.delete(slug=slug.getOrElse(""))
 
   // FIXME: This is really ugly and reqires knowing way too much about the
   // details of persistance. Ideally we'd just pass a Map of relationship

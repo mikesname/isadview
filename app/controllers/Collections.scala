@@ -58,17 +58,17 @@ object Collections extends AuthController with ControllerHelpers {
     )
   }
 
-  def edit(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def update(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         val form = CollectionForm.form.fill(collection.description)
-        val action = routes.Collections.save(slug)
+        val action = routes.Collections.updatePost(slug)
         Ok(views.html.collection.form(f=form, action=action, c=Some(collection)))
       }
     }
   }
 
-  def save(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def updatePost(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     // transform input for multiselects
     val formData = transformMultiSelects(request.body.asFormUrlEncoded, List(
       "conditions.languages",
@@ -83,7 +83,7 @@ object Collections extends AuthController with ControllerHelpers {
           errorForm => {
             BadRequest(
             views.html.collection.form(f=errorForm,
-            action=routes.Collections.save(slug), c=Some(collection)))
+            action=routes.Collections.updatePost(slug), c=Some(collection)))
           },
           data => {
             Async {
@@ -97,7 +97,7 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
   
-  def confirmDelete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         val action = routes.Collections.delete(slug)
@@ -106,7 +106,7 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
-  def delete(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
+  def deletePost(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Collection.fetchBySlug(slug).map { collection =>
         Collection.delete(collection.id, collection)
