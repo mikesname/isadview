@@ -56,12 +56,13 @@ object VirtualCollections extends AuthController with ControllerHelpers {
   }
 
   def deletePost(id: Long) = authorizedUserProfileAction(models.sql.NormalUser) { implicit user => implicit request =>
-    assert(user.profile.map(_.virtualCollections.map(_.id).contains(id)).getOrElse(false))
-    Async {
-      VirtualCollection.delete(id).map { res =>
-        Redirect(routes.Users.profile)
+    user.profile.flatMap(_.virtualCollections.find(_.id==id)).map { vc =>
+      Async {
+        VirtualCollection.delete(id, vc).map { res =>
+          Redirect(routes.Users.profile)
+        }
       }
-    }
+    }.getOrElse(authorizationFailed(request)) 
   }
 
   def create = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>

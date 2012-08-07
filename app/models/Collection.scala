@@ -131,7 +131,7 @@ case class Collection(
   val keywords: List[Keyword] = Nil,
   val parents: List[Collection] = Nil, // parent :: grandparent :: greatgrandparent :: _* :: Nil
   val children: List[Collection] = Nil
-) extends Neo4jSlugModel with CrudUrls with SolrModel {
+) extends Neo4jSlugModel with CrudUrls with SolrIndexable {
   def name = description.identity.name
   def summary = description.content.scopeAndContent
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))

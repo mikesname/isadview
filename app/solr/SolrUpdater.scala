@@ -5,24 +5,16 @@ import play.api.libs.ws.{WS,Response}
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.defaultContext
 import play.api.libs.iteratee.Concurrent
-import play.Play.application
 
-object SolrUpdater {
-  val batchSize = application.configuration.getInt("solr.update.batchSize")
-  val solrBasePath = application.configuration.getString("solr.path")
-  val updatePath = solrBasePath + "/update/json?wt=json&commit=true"
-  val headers = Map(
-    "Accept" -> "application/json",
-    "Content-Type" -> "application/json; charset=utf8"
-  )
-  
+
+object SolrUpdater extends SolrHelper {
   /*
    * Update all objects handled by the given data access object, sending
    * progress back through the given channel enumerator.
    * Updates are performed asyncronously in batches to prevent overloading
    * the database.
    */
-  def indexAll[T <: solr.SolrModel](dao: neo4j.data.Neo4jDataSource[T], channel: Concurrent.Channel[String]) = {
+  def indexAll[T <: neo4j.data.SolrIndexable](dao: neo4j.data.Neo4jDataSource[T], channel: Concurrent.Channel[String]) = {
     dao.query.count().map { count =>
       channel.push("Updating %s index (items: %d)\n".format(dao.indexName, count))
       val batches: List[Promise[List[Response]]] = (0 until count).grouped(batchSize).toList.map { range =>

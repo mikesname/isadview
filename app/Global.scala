@@ -38,6 +38,15 @@ object Global extends GlobalSettings {
     Repository.addListeners(Repository.Callbacks.create, Repository.Callbacks.update) { item =>
       solr.SolrUpdater.updateSolrModel(item.asInstanceOf[solr.SolrModel])  
     }
+    Collection.addListeners(Collection.Callbacks.delete) { item =>
+      solr.SolrDeleter.deleteSolrModel(item.asInstanceOf[solr.SolrModel])  
+    }
+    Authority.addListeners(Authority.Callbacks.delete) { item =>
+      solr.SolrDeleter.deleteSolrModel(item.asInstanceOf[solr.SolrModel])  
+    }
+    Repository.addListeners(Repository.Callbacks.delete) { item =>
+      solr.SolrDeleter.deleteSolrModel(item.asInstanceOf[solr.SolrModel])  
+    }
   }
 }
 

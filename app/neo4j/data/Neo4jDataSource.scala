@@ -74,10 +74,13 @@ trait IndexedEdge extends IndexedEntity {
   }
 }
 
+trait SolrIndexable extends solr.SolrModel with Neo4jModel
+
+
 trait Neo4jRelationship extends IndexedEdge with GremlinHelper
 
 
-trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
+trait Neo4jDataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
   /*
    * The name of the (mandatory) neo4j property that marks
    * denotes the type of a node.
@@ -146,7 +149,7 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinH
     }
   }
 
-  def persist(nodeId: Long, item: Neo4jModel): Promise[T] = {
+  def persist(nodeId: Long, item: T): Promise[T] = {
     val params = Map(
       "index_name" -> indexName,
       "_id" -> nodeId,
@@ -162,21 +165,14 @@ trait Neo4jDataSource[T] extends JsonBuilder[T] with IndexedVertex with GremlinH
     }
   }
   
-  def delete(nodeId: Long): Promise[Boolean] = {
-    gremlin("delete_vertex", Map("_id" -> nodeId)).map(response => {
-      // FIXME: Wrap with Delete callback!
-      true
-    })
-  }
-
-  def delete(nodeId: Long, item: Neo4jModel): Promise[Boolean] = {
+  def delete(nodeId: Long, item: T): Promise[Boolean] = {
     val params = Map(
       "_id" -> nodeId,
       "inRels" -> item.getIncomingSubordinateRelations,
       "outRels" -> item.getOutgoingSubordinateRelations
     )
     gremlin("delete_vertex_with_related", params).map(response => {
-      // FIXME: Wrap with Delete callback!
+      withCallback(Callbacks.delete)(item)
       true
     })
   }
