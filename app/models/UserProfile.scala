@@ -14,7 +14,7 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
   def apply(data: net.liftweb.json.JsonAST.JValue): UserProfile = {
     new UserProfile(
       id = idFromUrl((data \ "self").extractOpt[String]),
-      userId = (data \ "data" \ "user_id").extractOpt[Long].getOrElse(-1L),
+      userId = (data \ "data" \ "user_id").extract[Long],
       createdOn = (data \ "data" \ "created_on").extractOpt[String].map(new DateTime(_)),
       updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
       data = ProfileData(
@@ -62,7 +62,7 @@ object UserProfile extends Neo4jDataSource[UserProfile] {
   }
 
   def fetchByUserID(id: Long): Promise[Option[UserProfile]] = {
-    val params = Map("user_id" -> id.toString)
+    val params = Map("user_id" -> id)
 
     gremlin("get_user_profile_data", params).map(response => {
       val data = getJson(response)

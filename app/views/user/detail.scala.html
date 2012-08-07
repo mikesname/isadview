@@ -15,7 +15,11 @@
     </div>
     <div class="span9 columns">
         <h2>@profile.data.name</h2>
-        <hr />
+        @profile.data.about.map { about =>
+            <hr />
+            <p>@about</p>
+        }
+        <hr>
 
         <h3>@Messages("Virtual Collections")</h3>
         <p>
