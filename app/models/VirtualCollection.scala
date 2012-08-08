@@ -79,6 +79,9 @@ case class VirtualCollection(
   ) ++ description.toMap
   def withSlug(slug: String) = copy(slug=Some(slug))
   def withItem(item: ItemPointer) = copy(items = items ++ List(item))
+
+  private lazy val itemIds: List[Long] = items.map(_.item.id)
+  def hasItem(id: Long): Boolean = itemIds.contains(id)
 }
 
 case class VirtualCollectionDescription(
