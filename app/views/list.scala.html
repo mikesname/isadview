@@ -1,6 +1,5 @@
 @(rtype: String, currentPage: solr.models.Page[solr.models.Description],
-currentOrderBy: Int, currentFilter: String,
-currentField: Option[String]
+query: String, order: solr.models.SearchOrder.Order, field: solr.models.SearchField.Field
 )(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
 
 @import views.Helpers._
@@ -23,10 +22,17 @@ currentField: Option[String]
                         <form id="search-form form-horizontal" method="get">
                             <div class="control-group">                            
                                 <div class="input-append">
-                                        <input type="text" name="q" id="id_q" value="@currentFilter" class="span5" />
+                                        <input type="text" name="q" id="id_q" value="@query" class="span5" />
                                         <select name="field" id="id_field" class="span2">
-                                            @List("all" -> "All Fields", "name" -> "Title Only").map { case(value,name) =>
-                                            <option value="@value" @if(value==currentField.getOrElse("")){selected}>@Messages(name)</option>
+                                            @solr.models.SearchField.values.toList.map { value =>
+                                            <option value="@value.id"
+                                            @if(value==field){selected}>@Messages(value.toString.capitalize)</option>
+                                            }
+                                        </select>
+                                        <select name="order" id="id_order" class="span2">
+                                            @solr.models.SearchOrder.values.toList.map { value =>
+                                            <option value="@value.id"
+                                                @if(value==order){selected}>@Messages(value.toString.capitalize)</option>
                                             }
                                         </select>
                                         <input class="btn" type="submit" value="@Messages("Search")" />
@@ -39,12 +45,12 @@ currentField: Option[String]
                         <h3 id="result-summary">
                         @if(currentPage.total > 0) {
                             <span>@currentPage.total</span> @Messages("Result" + currentPage.total.pluralize)
-                            @if(!currentFilter.trim.isEmpty) {
-                                &nbsp;for <i>@currentFilter</i>
+                            @if(!query.trim.isEmpty) {
+                                &nbsp;for <i>@query</i>
                             }
                         } else {
-                            @if(!currentFilter.trim.isEmpty) {
-                                @Messages("Nothing found for") <i id="result-query">@currentFilter</i>
+                            @if(!query.trim.isEmpty) {
+                                @Messages("Nothing found for") <i id="result-query">@query</i>
                                 @* TODO: Insert spelling suggestions. *@
                             }
                         }

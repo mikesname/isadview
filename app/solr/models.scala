@@ -2,7 +2,7 @@ package solr.models
 
 import com.github.seratch.scalikesolr._
 import com.github.seratch.scalikesolr.response.QueryResponse
-import com.github.seratch.scalikesolr.request.query.{Query, FilterQuery, QueryParserType}
+import com.github.seratch.scalikesolr.request.query.{Query, FilterQuery, QueryParserType, Sort}
 import com.github.seratch.scalikesolr.request.query.highlighting.{
     IsPhraseHighlighterEnabled, HighlightingParams}
 
@@ -17,6 +17,17 @@ import com.github.seratch.scalikesolr.request.query.facet.{FacetParams,FacetPara
 /**
  * Helper for pagination.
  */
+
+object SearchField extends Enumeration("all", "name", "creator") {
+  type Field = Value
+  val all, title, creator = Value
+}
+
+object SearchOrder extends Enumeration("Relevance", "Publication Date", "Title") {
+  type Order = Value
+  val relevance, date, title = Value
+}
+
 
 trait ItemPage[A] {
   val total: Long
@@ -79,15 +90,18 @@ object SolrHelper {
     FacetData.getForIndex(rtype).map(_.populateFromSolr(rawData, appliedFacets))
   }
   
-  def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: Int,
-        field: Option[String], query: String, facets: Map[String, Seq[String]]): QueryRequest = {
+  def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: SearchOrder.Order,
+        field: SearchField.Field, query: String, facets: Map[String, Seq[String]]): QueryRequest = {
 
     // Solr 3.6 seems to break querying with *:<query> style
     // http://bit.ly/MBKghG
     //val queryString = "%s:%s".format(
     //  if (field.trim == "") "*" else field,
     //  if (query.trim == "") "*" else query)
-    val selector = field.getOrElse("*")
+    val selector = field match {
+      case SearchField.all => "*"
+      case _ => field.toString
+    }
     val queryString = "%s:%s".format(selector, if (query.trim.isEmpty) "*" else query.trim)
 
     val req = new QueryRequest(query=Query(queryString))
@@ -99,6 +113,14 @@ object SolrHelper {
     req.setHighlighting(HighlightingParams(
         enabled=true,
         isPhraseHighlighterEnabled=IsPhraseHighlighterEnabled(true)))
+
+    orderBy match {
+      case SearchOrder.relevance => // This is the default!
+      // TODO: Define these options more succinctly
+      case SearchOrder.title => req.setSort(Sort("title asc"))
+      case SearchOrder.date => req.setSort(Sort("publication_date desc"))
+      case _ => req.setSort(Sort("%s asc".format(orderBy)))
+    }
 
     // Facet the request accordingly
     SolrHelper.constrain(req, index, facets)
@@ -131,8 +153,8 @@ object Description {
     index: Option[String] = None,
     page: Int = 1,
     pageSize: Int = 20,
-    orderBy: Int = 1,
-    field: Option[String] = None,
+    orderBy: SearchOrder.Order = SearchOrder.relevance,
+    field: SearchField.Field = SearchField.all,
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
@@ -165,7 +187,7 @@ object Description {
     page: Int = 1,
     pageSize: Int = 20,
     sort: String = "name",
-    field: Option[String] = None,
+    field: SearchField.Field = SearchField.all,
     query: String = "",
     facets: Map[String, Seq[String]] = Map()
   
@@ -177,7 +199,7 @@ object Description {
     // not strictly necessary... we also don't care about the
     // ordering.
     val queryreq = SolrHelper.buildQuery(
-          index=index, offset=0, pageSize=0, orderBy=0,
+          index=index, offset=0, pageSize=0, orderBy=SearchOrder.relevance,
           field=field, query=query, facets=facets)
     
     WS.url(SolrHelper.buildSearchUrl(queryreq)).get.map { response =>

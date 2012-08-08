@@ -40,8 +40,8 @@ POST    /profile/stash/:item/:vc        controllers.VirtualCollections.saveItemP
 
 
 # Searching
-GET     /$rtype<(collection|repository|authority|search)>     controllers.Search.list(rtype:String, page:Int ?= 1, s:Int ?= 2, q ?= "", field ?= "all")
-GET     /$rtype<(collection|repository|authority|search)>/facets/:facet    controllers.Search.facets(facet:String, rtype:String, page:Int ?= 1, sort:String ?= "count", q ?= "", field ?= "all")
+GET     /$rtype<(collection|repository|authority|search)>     controllers.Search.list(rtype:String, page:Int ?= 1, order:Int ?= solr.models.SearchOrder.relevance.id, q ?= "", field:Int ?= solr.models.SearchField.all.id)
+GET     /$rtype<(collection|repository|authority|search)>/facets/:facet    controllers.Search.facets(facet:String, rtype:String, page:Int ?= 1, sort:String ?= "count", q ?= "", field:Int ?= solr.models.SearchField.all.id)
 GET     /search/updateIndex         controllers.Search.updateIndex
 POST     /search/updateIndex        controllers.Search.updateIndexPost
 

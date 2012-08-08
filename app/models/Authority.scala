@@ -110,6 +110,7 @@ case class Authority(
       "other_names" -> description.identity.otherFormsOfName.filterNot(_==""),
       "tags" -> List(),
       "publication_status" -> description.admin.publicationStatus,
+      "publication_date" -> publicationDate.map(formatSolrDate(_)),
       "text" -> views.txt.search.authority(description).toString.replaceAll("\n{2,}", "\n\n")
     )
   }

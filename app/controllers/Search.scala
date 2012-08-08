@@ -10,40 +10,56 @@ import play.api.libs.concurrent.execution.defaultContext
 
 import controllers._
 
+import solr.models.{SearchField,SearchOrder}
 
 object Search extends AuthController with ControllerHelpers {
 
   val ALL_SEARCH = "search"
-  val ALL_FIELDS = "all"
 
   // FIXME: Work out out to get the preferred lang
   // from the application context somehow
   implicit val locale: Locale = Locale.getDefault
+  def searchField(field: Int) = {
+    try {
+      SearchField(field)
+    } catch {
+      case e: NoSuchElementException => SearchField.all
+    }
+  }
+
+  def searchOrder(order: Int) = {
+    try {
+      SearchOrder(order)
+    } catch {
+      case e: NoSuchElementException => SearchOrder.relevance
+    }
+  }
 
   def home = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Ok(views.html.home(routes.Search.list(ALL_SEARCH)))
   }
 
-  def list(rtype: String, page: Int, orderBy: Int, filter:String, field:String) = optionalUserProfileAction { implicit
+  // TODO: Ensure enum fields are within range by handling NoSuchElement exception
+
+  def list(rtype: String, page: Int, orderBy: Int, filter:String, field: Int) = optionalUserProfileAction { implicit
       maybeUser => implicit request =>
     val index = if (rtype == ALL_SEARCH) None else Some(rtype)
-    val searchField = if (field == ALL_FIELDS) None else Some(field)
     val listpromise = solr.models.Description.list(index=index, page=page, pageSize=20,
-          orderBy=orderBy, field=searchField, query=filter, facets=request.queryString)
+          orderBy=searchOrder(orderBy), field=searchField(field), query=filter, facets=request.queryString)
     Async {
       listpromise.map { page =>
-        Ok(views.html.list(rtype, page, currentOrderBy=orderBy, currentFilter=filter, currentField=searchField))
+        Ok(views.html.list(rtype, page, order=searchOrder(orderBy), query=filter, field=searchField(field)))
       }
     }
   }
 
-  def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:String) = optionalUserProfileAction {
+  def facets(facet:String, rtype: String, page: Int, sort: String, filter:String, field:Int) = optionalUserProfileAction {
       implicit maybeUser => implicit request =>
 
     val index = if (rtype == ALL_SEARCH) None else Some(rtype)
-    val searchField = if (field == ALL_FIELDS) None else Some(field)
     var fpagepromise = solr.models.Description.facet(
-      facet=facet, index=index, page=page, sort=sort, query=filter, field=searchField, facets=request.queryString)
+      facet=facet, index=index, page=page, sort=sort, query=filter,
+      field=searchField(field), facets=request.queryString)
     Async {
       fpagepromise.map { fpage =>
         if(isAjaxRequest(request))

@@ -31,9 +31,13 @@ trait Neo4jModel {
 trait Neo4jSlugModel extends Neo4jModel with GremlinHelper {
   self: Neo4jModel with models.CrudUrls =>
   def name: String
+  def createdOn: Option[DateTime]
+  def updatedOn: Option[DateTime]
   def withSlug(slug: String): Neo4jModel
   def summary: Option[String]
   def details: Map[String, Any] = Map()
+
+  def publicationDate = if (updatedOn.isDefined) updatedOn else createdOn
 
   // FIXME: These are only here because we need to somehow combine
   // SlugModel and the CrudUrls model, and the self type isn't working

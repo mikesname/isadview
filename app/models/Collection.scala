@@ -171,7 +171,10 @@ case class Collection(
       "name" -> name,
       "tags_exact" -> keywords.map(_.text),
       "description" -> description.content.scopeAndContent,
+      "creator" -> creators.map(_.name),
+      "creator_slug" -> creators.map(_.slug),
       "repository" -> repository.map(_.name),
+      "repository_slug" -> repository.map(_.slug),
       "languages" -> description.conditions.languages.filterNot(_==""),
       "languages_of_description" -> description.control.languagesOfDescription.filterNot(_==""),
       "location_of_materials" -> repository.flatMap(_.countryCode).filterNot(_==""),
@@ -179,9 +182,9 @@ case class Collection(
       "end_date" -> description.identity.dates.lastOption.map(d =>
           d.endDate.map(formatSolrDate(_)).getOrElse(d.startDate.map(formatSolrDate(_)))),
       "years" -> yearRange,
-      "repository_slug" -> repository.map(_.slug),
       "tags" -> List(),
       "publication_status" -> description.admin.publicationStatus,
+      "publication_date" -> publicationDate.map(formatSolrDate(_)),
       "text" -> views.txt.search.collection(description).toString.replaceAll("\n{2,}", "\n\n")
     )
   }
