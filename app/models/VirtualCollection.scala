@@ -70,6 +70,7 @@ case class VirtualCollection(
   val editUrl = controllers.routes.VirtualCollections.update(id=id)
   val deleteUrl = controllers.routes.VirtualCollections.delete(id=id)
 
+  def lastUpdated = if (updatedOn.isDefined) updatedOn else createdOn
 
   def toMap = Map(
     VirtualCollection.TypeKey -> VirtualCollection.indexName,
