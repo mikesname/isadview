@@ -30,6 +30,7 @@ trait Neo4jModel {
 
 trait Neo4jSlugModel extends Neo4jModel with GremlinHelper {
   self: Neo4jModel with models.CrudUrls =>
+  def slug: Option[String]
   def name: String
   def createdOn: Option[DateTime]
   def updatedOn: Option[DateTime]
