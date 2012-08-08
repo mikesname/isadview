@@ -55,9 +55,11 @@ jQuery(function($) {
         var $elem = $(elem);
         $.post($elem.attr("href"), function(data) {
             if (data && data.ok) {
+                
                 $elem.closest(".save-item-list")
                     .hide(200)
                     .prev("a").find("i").attr("class", "icon-star");
+                $elem.replaceWith("<span class='saved-item'>" + $elem.text() + "</span><i class='icon-thumbs-up'></i>")
             }
         }, "json");
     }

@@ -19,7 +19,11 @@
                 <ul>
                     @profile.virtualCollections.map { vc =>
                     <li>
-                        <a class="save-item" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
+                        @if(vc.hasItem(result.id.toLong)) {
+                            <span class="saved-item">@vc.name</span><i class="icon-thumbs-up"></i>
+                        } else {
+                            <a class="save-item" href="@routes.VirtualCollections.saveItem(result.id.toLong, vc.id)">@vc.name</a>
+                        }
                     </li>
                     }   
                 </ul>

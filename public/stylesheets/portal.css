@@ -235,7 +235,7 @@ a.show-save-item-list:hover {
     -webkit-box-shadow: 2px 2px 5px rgba(50, 50, 50, 0.75);
     -moz-box-shadow:    2px 2px 5px rgba(50, 50, 50, 0.75);
     box-shadow:         2px 2px 5px rgba(50, 50, 50, 0.75);
-    border: 2px solid #000;
+    border: 2px solid #111;
     padding: 5px;
 }
 
@@ -253,6 +253,10 @@ a.show-save-item-list:hover {
 
 .save-item-list ul li a:hover {
     background-color: #FBFBFB;
+}
+
+span.saved-item {
+    padding-right: 0.2em;    
 }
 
 .search-result:hover {
