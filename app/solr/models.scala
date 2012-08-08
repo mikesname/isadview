@@ -28,6 +28,11 @@ object SearchOrder extends Enumeration("Relevance", "Publication Date", "Title")
   val relevance, date, title = Value
 }
 
+object SearchType extends Enumeration("search", "collection", "authority", "repository") {
+  type Type = Value
+  val all, collection, authority, repository = Value
+}
+
 
 trait ItemPage[A] {
   val total: Long
@@ -79,18 +84,18 @@ object SolrHelper {
     request.setFilterQuery(FilterQuery(fqstring))
   }
 
-  def constrain(request: QueryRequest, rtype: Option[String], appliedFacets: Map[String,Seq[String]]): Unit = {
+  def constrain(request: QueryRequest, rtype: SearchType.Type, appliedFacets: Map[String,Seq[String]]): Unit = {
     val flist = FacetData.getForIndex(rtype)
     setRequestFacets(request, flist)
     setRequestFilters(request, flist, appliedFacets)
   }
 
-  def extract(response: QueryResponse, rtype: Option[String], appliedFacets: Map[String,Seq[String]]): List[FacetClass] = {
+  def extract(response: QueryResponse, rtype: SearchType.Type, appliedFacets: Map[String,Seq[String]]): List[FacetClass] = {
     val rawData = xml.XML.loadString(response.rawBody)
     FacetData.getForIndex(rtype).map(_.populateFromSolr(rawData, appliedFacets))
   }
   
-  def buildQuery(index: Option[String], offset: Int, pageSize: Int, orderBy: SearchOrder.Order,
+  def buildQuery(index: SearchType.Type, offset: Int, pageSize: Int, orderBy: SearchOrder.Order,
         field: SearchField.Field, query: String, facets: Map[String, Seq[String]]): QueryRequest = {
 
     // Solr 3.6 seems to break querying with *:<query> style
@@ -127,10 +132,10 @@ object SolrHelper {
 
     // if we're using a specific index, constrain on that as well
     index match {
-      case Some(rt) =>
+      case SearchType.all =>
+      case st =>
           req.setFilterQuery(
-            FilterQuery(req.filterQuery.fq + " +django_ct:portal." + rt))
-      case None => 
+            FilterQuery(req.filterQuery.fq + " +django_ct:portal." + st.toString))
     }
 
     // Setup start and number of objects returned
@@ -150,7 +155,7 @@ object SolrHelper {
 
 object Description {
   def list(
-    index: Option[String] = None,
+    index: SearchType.Type = SearchType.all,
     page: Int = 1,
     pageSize: Int = 20,
     orderBy: SearchOrder.Order = SearchOrder.relevance,
@@ -183,7 +188,7 @@ object Description {
   
   def facet(
     facet: String,
-    index: Option[String] = None,
+    index: SearchType.Type = SearchType.all,
     page: Int = 1,
     pageSize: Int = 20,
     sort: String = "name",

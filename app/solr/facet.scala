@@ -273,10 +273,10 @@ object FacetData {
     )
   )
 
-  def getForIndex(rtype: Option[String]) = {
+  def getForIndex(rtype: solr.models.SearchType.Type) = {
     rtype match {
-      case None => facets.flatMap { case(k, l) => l }.toList
-      case Some(index) => facets.get(index).getOrElse(Nil)
+      case solr.models.SearchType.all => facets.flatMap { case(k, l) => l }.toList
+      case index => facets.get(index.toString).getOrElse(Nil)
     }
   }
 }
