@@ -54,11 +54,22 @@ trait Importer[T] {
       code => (app.util.Helpers.languageCodeToName(code), code)).toMap
 
   def getLanguageCodes(displayNames: List[String]): List[String] = {
-    if (displayNames.isEmpty)
-      List(locale.getLanguage)
-    else
-      displayNames.map(n => languageMap.getOrElse(n, n))
+    displayNames.map(n => languageMap.getOrElse(n, n))
   }
+  
+  // FIXME: All hail the temporary solution! Obvs. this should be
+  // done in a more rigourous way (or perhaps not at all?)
+  val langsToScripts = Map(
+    "Latn" -> List("en", "de", "fr", "pl", "sk", "cs", "nl", "it", "hr", "hu", "es", "yi"),
+    "Cyrl" -> List("uk", "ru", "sr", "bg", "ro"),
+    "Hebr" -> List("he")
+  )
+
+  def getScriptCodes(langcodes: List[String]) = langcodes.flatMap { code =>
+    langsToScripts.flatMap { case (scode, langs) =>
+      if (langs.contains(code)) List(scode) else Nil
+    }
+  }.distinct
 
   /*
    * Locate the part in the given document from which to start
@@ -147,3 +158,5 @@ trait Importer[T] {
     }
   }
 }
+
+

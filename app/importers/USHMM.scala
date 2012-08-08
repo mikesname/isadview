@@ -159,6 +159,8 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
 
+    val languages = getLanguageCodes(getFields("language", elem).toList)
+
     val data = Map(
       "identifier"  -> ident,
       "element_type" -> Collection.indexName,
@@ -166,8 +168,8 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       "slug"        -> getSlug(getField("title", elem).getOrElse(ident)),
       "source"  -> getFields("acq_source", elem).mkString(", "),
       "administrative_history"  -> getFields("provenance", elem).mkString("\n\n"),
-      "languages" -> getLanguageCodes(getFields("language", elem).toList).mkString(","),
-      "scripts" -> DEFAULT_SCRIPT,
+      "languages" -> languages.mkString(","),
+      "scripts" -> getScriptCodes(languages).mkString(","),
       "languages_of_description" -> "en",
       "scripts_of_description" -> "Latn",
       "scope_and_content"  -> getField("scope_content", elem),

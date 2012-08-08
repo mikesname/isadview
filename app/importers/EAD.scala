@@ -162,13 +162,18 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   def extractItem(repoident: String, ident: String, elem: NodeSeq) = {
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
+
+    val languages = getLanguageCodes((elem \ "did" \ "langmaterial" \ "language").map(_.text).toList)
+
     val data = Map(
       "identifier" -> (elem \ "did" \ "unitid").text,
       "name" -> getTitle((elem \ "did" \ "unittitle").text),
       "slug" -> getSlug(getTitle((elem \ "did" \ "unittitle").text)),
       "element_type" -> Collection.indexName,
-      "languages_of_description" -> "en",
-      "scripts_of_description" -> "Latn",
+      "languages_of_description" -> "en", // FIXME
+      "scripts_of_description" -> "Latn", // FIXME
+      "languages" -> languages.mkString(","),
+      "scripts" -> getScriptCodes(languages).mkString(","),
       "created_on" -> Collection.nowDateTime,
       "accruals" -> getElementText(elem, "accruals"),
       "acquisition" -> getElementText(elem, "acqinfo"),
@@ -176,7 +181,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
       "archival_history" -> getElementText(elem, "custodhist"),
       "conditions_of_access" -> getElementText(elem, "accessrestrict"),
       "conditions_of_reproduction" -> getElementText(elem, "userestrict"),
-      "extent_and_medium" -> getElementText((elem \ "physdesc"), "extent"), // Should be more nuanced!
+      "extent_and_medium" -> getElementText((elem \ "did" \ "physdesc"), "extent"), // Should be more nuanced!
       "finding_aids" -> getElementText(elem, "otherfindaid"),
       "location_of_copies" -> getElementText(elem, "altformavail"),
       "location_of_originals" -> getElementText(elem, "originalsloc"),
