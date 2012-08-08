@@ -8,7 +8,7 @@ Seq[models.Collection])(implicit maybeUser: Option[models.sql.User], request: Re
         <div class="sidebar">
             @authority.sidebarDetails(d)
             @common.exportActions(auth)
-            @common.adminActions(auth)
+            @common.adminActions(auth)(maybeUser, request)
         </div>
     </div>
     <div class="span9 columns">

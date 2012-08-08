@@ -26,7 +26,7 @@
             }
             @collection.sidebarDetails(c)
             @common.exportActions(cl)
-            @common.adminActions(cl)
+            @common.adminActions(cl)(maybeUser, request)
         </div>
     </div>
     <div class="span9 columns">

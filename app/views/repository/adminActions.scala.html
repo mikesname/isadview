@@ -1,5 +1,6 @@
-@(entity: {def slug: Option[String]; def id: Long; def deleteUrl: Call; def editUrl: Call})(implicit req: RequestHeader)
+@(entity: {def slug: Option[String]; def id: Long; def deleteUrl: Call; def editUrl: Call})(implicit maybeUser: Option[models.sql.User], req: RequestHeader)
 
+@maybeUser.map { user =>
 <div class="admin-actions well">
     <h4>@Messages("Administration Actions")</h4>
     <ul class="unstyled">
@@ -12,4 +13,4 @@
         <li><a class="btn btn-danger" href="@entity.deleteUrl">@Messages("Delete")</a></li>
     </ul>
 </div>
-
+}
