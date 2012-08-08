@@ -18,8 +18,8 @@ object Authority extends Neo4jDataSource[Authority] {
       updatedOn = (data \ "data" \ "updated_on").extractOpt[String].map(new DateTime(_)),
       description = AuthorityDescription(
         identity = AuthorityIdentity(
-          typeOfEntity = (data \ "data" \ "type_of_entity")
-              .extractOpt[AuthorityType.AuthorityType].getOrElse(AuthorityType.Person),
+          typeOfEntity = AuthorityType((data \ "data" \ "type_of_entity")
+              .extractOpt[Int].getOrElse(AuthorityType.Person.id)),
           identifier = (data \ "data" \ "identifier").extractOpt[String].getOrElse(""),
           name = (data \ "data" \ "name").extractOpt[String].getOrElse(""),
           otherFormsOfName = (data \ "data" \
