@@ -14,8 +14,7 @@ object Helpers {
   )
 
   def localeFromRequest(request: play.api.mvc.RequestHeader): Locale = {
-    request.acceptLanguages.headOption.map(_.toLocale).getOrElse(
-      new Locale("en", "GB"))
+    request.acceptLanguages.headOption.map(_.toLocale).getOrElse(Locale.getDefault)
   }
 
   def languageCodeToName(code: String)(implicit locale: Locale): String = {
