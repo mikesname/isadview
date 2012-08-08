@@ -12,7 +12,7 @@ import app.util.Helpers.slugify
  */
 
 object EAD extends Importer[NodeSeq] with XmlHelper {
-  private val datePattern = "\\s*(\\d{4})-(\\d{4})\\s*".r
+  private val datePattern = "\\s*(\\d{4})\\s?-\\s?(\\d{4})\\s*".r
   private val familyPattern = "\\s*(\\w+ family)\\s*".r
   // detect patterns: fl. 1937, 1910-1945, b 1934, fl 1935-1938
   private val authDates = "\\s*((?:fl\\.?|b|c)?\\s*\\d{4}(?:-\\d{4})?)\\s*".r
@@ -80,7 +80,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   }
 
   // Brute force... enumerate all the different ways dates are repesented
-  private val unitDatePattern1 = "(\\d{4})-(\\d{4})".r
+  private val unitDatePattern1 = "(\\d{4})\\s?-\\s?(\\d{4})".r
   private val unitDatePattern2 = "(\\d{4})-\\[(\\d{4})\\]".r
   private val unitDatePattern3 = "(\\d{4}s)-\\[(\\d{4}s)\\]".r
   private val unitDatePattern4 = "\\[(\\d{4})\\]".r
@@ -88,7 +88,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   private val unitDatePattern6 = "(\\d{2})th century".r
 
   def extractDates(repoident: String, ident: String, elem: NodeSeq) = {
-    val dates = (elem \ "did" \ "origination" \ "unitdate").toList.map(_.text).flatMap { text =>
+    val dates = (elem \ "did" \ "unitdate").toList.map(_.text).flatMap { text =>
       text match {
         case unitDatePattern1(start, end) => Some(FuzzyDate(start.toInt, end.toInt))
         case unitDatePattern2(start, end) => Some(FuzzyDate(start.toInt, end.toInt))
@@ -107,8 +107,11 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   }
 
   def extractCreators(repoident: String, ident: String, elem: NodeSeq) = {
-    val auths = (elem \ "did" \ "origination" \ "persname").toList.map(_.text).filterNot(_.trim.isEmpty).flatMap(parsePersonString(_))
-    auths.flatMap { item =>
+    val persons = (elem \ "did" \ "origination" \ "persname").toList.map(_.text)
+        .filterNot(_.trim.isEmpty).flatMap(parsePersonString(_))
+    val corps = (elem \ "did" \ "origination" \ "corpname").toList.map(_.text)
+        .filterNot(_.trim.isEmpty).flatMap(parseCorporateBodyString(_))
+    (persons ++ corps).flatMap { item =>
       val desc = slugify(item.name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
       entity.toStringList ::: GeoffRelationship("createdBy", ident, desc).toString :: Nil
@@ -159,7 +162,6 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
   def extractItem(repoident: String, ident: String, elem: NodeSeq) = {
     def getTitle(str: String) = if (!str.trim.isEmpty) str.trim else "Untitled Item " + ident
     def getSlug(str: String) = app.util.Helpers.slugify(str).replaceFirst("^-", "")
-
     val data = Map(
       "identifier" -> (elem \ "did" \ "unitid").text,
       "name" -> getTitle((elem \ "did" \ "unittitle").text),
