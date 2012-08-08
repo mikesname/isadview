@@ -269,3 +269,8 @@ a.show-save-item-list:hover {
     margin-top: 0.3em;
     margin-bottom: 0.3em;
 }
+
+table.attributes-table {
+    table-layout: fixed;
+    word-wrap: break-word;
+}

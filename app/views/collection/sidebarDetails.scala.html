@@ -3,7 +3,7 @@
 @import app.util.Helpers
 @implicitlocale = @{Helpers.localeFromRequest(req)}
 
-<table class="table table-striped well">
+<table class="table table-striped well attributes-table">
     @if(!c.identity.identifier.isEmpty) {
         <tr>
             <td>
@@ -27,7 +27,7 @@
     @if(c.conditions.languages.length > 0) {
         <tr>
             <td colspan="2">
-                <h5>@Messages("Languages:")</h5>
+                <h5>@Messages("Languages")</h5>
                 @c.conditions.languages.map(Helpers.languageCodeToName(_)).sorted.map { lang =>
                     <br />
                     @lang
@@ -38,7 +38,7 @@
     @if(c.conditions.scripts.length > 0) {
         <tr>
             <td colspan="2">
-                <h5>@Messages("Scripts:")</h5>
+                <h5>@Messages("Scripts")</h5>
                 @c.conditions.scripts.map(Helpers.scriptCodeToName(_)).sorted.map { script =>
                     <br />
                     @script
@@ -49,7 +49,7 @@
     @if(!c.identity.extentAndMedium.getOrElse("").isEmpty) {
         <tr>
             <td>
-                <h5>@Messages("Extent:")</h5>
+                <h5>@Messages("Extent")</h5>
             </td>
             <td>@c.identity.extentAndMedium.getOrElse("")</td>
         </tr>
