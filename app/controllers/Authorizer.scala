@@ -51,7 +51,7 @@ trait Authorizer extends Results with AuthConfig {
    * A redirect target after a successful user login.
    */
   def loginSucceeded[A](request: Request[A]): PlainResult = {
-    val uri = request.session.get("access_uri").getOrElse(routes.Search.home.url)
+    val uri = request.session.get("access_uri").getOrElse(routes.Users.profile.url)
     request.session - "access_uri"
     Redirect(uri)
   }
