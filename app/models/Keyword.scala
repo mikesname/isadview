@@ -1,8 +1,7 @@
 package models
 
-import neo4j.data._
 
-object Keyword extends Neo4jDataSource[Keyword] {
+object Keyword extends neo4j.DataSource[Keyword] {
   val indexName = "keyword"
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Keyword = {
@@ -23,7 +22,7 @@ case class Keyword(
   val standard: Option[String] = None,
   val note: Option[String] = None,
   val parent: Option[Keyword] = None
-) extends Neo4jModel {
+) extends neo4j.Neo4jModel {
   def toMap = Map(
     Keyword.TypeKey -> Keyword.indexName,
     "text" -> text,

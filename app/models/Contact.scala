@@ -1,9 +1,8 @@
 package models
 
-import neo4j.data._
 import java.util.Locale
 
-object Contact extends Neo4jDataSource[Contact] {
+object Contact extends neo4j.DataSource[Contact] {
   val indexName = "contact"
   
   def apply(data: net.liftweb.json.JsonAST.JValue): Contact = {
@@ -30,7 +29,7 @@ object Contact extends Neo4jDataSource[Contact] {
 case class Contact(
   val id: Long = -1,
   val description: ContactDescription
-) extends Neo4jModel {
+) extends neo4j.Neo4jModel {
   def toMap = Map(
     Contact.TypeKey -> Contact.indexName
   ) ++ description.toMap

@@ -1,41 +1,40 @@
 package models.relationships
 
 import models._
-import neo4j.data._
 
-case object Describes extends Neo4jRelationship {
+case object Describes extends neo4j.Relationship {
       val indexName = "describes"
 }
 
-case object LocatesInTime extends Neo4jRelationship {
+case object LocatesInTime extends neo4j.Relationship {
       val indexName = "locatesInTime"
 }
 
-case object LocatesInSpace extends Neo4jRelationship {
+case object LocatesInSpace extends neo4j.Relationship {
   val indexName = "locatesInSpace"
 }
 
-case object HeldBy extends Neo4jRelationship {
+case object HeldBy extends neo4j.Relationship {
   val indexName = "heldBy"
 }
 
-case object HasCollection extends Neo4jRelationship {
+case object HasCollection extends neo4j.Relationship {
   val indexName = "hasCollection"
 }
 
-case object Contains extends Neo4jRelationship {
+case object Contains extends neo4j.Relationship {
   val indexName = "contains"
 }
 
-case object AddressOf extends Neo4jRelationship {
+case object AddressOf extends neo4j.Relationship {
   val indexName = "addressOf"
 }
 
-case object MentionedIn extends Neo4jRelationship {
+case object MentionedIn extends neo4j.Relationship {
   val indexName = "mentionedIn"
 }
 
-case object CreatedBy extends Neo4jRelationship {
+case object CreatedBy extends neo4j.Relationship {
   val indexName = "createdBy"
 }
 

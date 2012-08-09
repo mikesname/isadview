@@ -14,7 +14,7 @@ object SolrUpdater extends SolrHelper {
    * Updates are performed asyncronously in batches to prevent overloading
    * the database.
    */
-  def indexAll[T <: neo4j.data.SolrIndexable](dao: neo4j.data.Neo4jDataSource[T], channel: Concurrent.Channel[String]) = {
+  def indexAll[T <: neo4j.SolrIndexable](dao: neo4j.DataSource[T], channel: Concurrent.Channel[String]) = {
     dao.query.count().map { count =>
       channel.push("Updating %s index (items: %d)\n".format(dao.indexName, count))
       val batches: List[Promise[List[Response]]] = (0 until count).grouped(batchSize).toList.map { range =>

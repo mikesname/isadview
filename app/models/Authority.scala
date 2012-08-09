@@ -5,9 +5,8 @@ import play.api.libs.concurrent.Promise
 import play.api.libs.concurrent.execution.defaultContext
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import neo4j.data._
 
-object Authority extends Neo4jDataSource[Authority] {
+object Authority extends neo4j.DataSource[Authority] {
   val indexName = "authority"
 
   def apply(data: net.liftweb.json.JsonAST.JValue): Authority = {
@@ -80,7 +79,7 @@ case class Authority(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val description: AuthorityDescription
-) extends Neo4jSlugModel with CrudUrls with SolrIndexable {
+) extends neo4j.Neo4jSlugModel with CrudUrls with neo4j.SolrIndexable {
   def name = description.identity.name
   def summary = description.description.history
   val detailUrl = controllers.routes.Authorities.detail(slug=slug.getOrElse(""))

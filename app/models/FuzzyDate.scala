@@ -1,6 +1,5 @@
 package models
 
-import neo4j.data._
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -12,7 +11,7 @@ import org.joda.time.format.ISODateTimeFormat
   does conversions to and from the form.
 */
 
-object FuzzyDate extends Neo4jDataSource[FuzzyDate] {
+object FuzzyDate extends neo4j.DataSource[FuzzyDate] {
   val indexName = "fuzzydate"
 
   def apply(data: net.liftweb.json.JsonAST.JValue): FuzzyDate = {
@@ -49,7 +48,7 @@ object FuzzyDate extends Neo4jDataSource[FuzzyDate] {
 case class FuzzyDate(
   val id: Long = -1,
   val description: FuzzyDateDescription
-) extends Neo4jModel {
+) extends neo4j.Neo4jModel {
   def toMap = Map(
     FuzzyDate.TypeKey -> FuzzyDate.indexName
   ) ++ description.toMap

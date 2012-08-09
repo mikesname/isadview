@@ -1,15 +1,22 @@
 package models
 
 import solr.SolrModel
-import neo4j.data._
 import org.joda.time.DateTime
 import play.api.libs.concurrent.execution.defaultContext
 import play.api.libs.concurrent.Promise
 import org.joda.time.format.ISODateTimeFormat
 import collection.JavaConversions._
 
-object Repository extends Neo4jDataSource[Repository] {
+object Repository extends neo4j.DataSource[Repository] {
   val indexName = "repository"
+
+  case object Holds extends neo4j.Relationship {
+    val indexName = "holds"
+  }
+
+  case object HasAddress extends neo4j.Relationship {
+    val indexName = "hasAddress"
+  }
 
   def apply(data: net.liftweb.json.JsonAST.JValue): Repository = {
     Repository(
@@ -133,7 +140,7 @@ case class Repository(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val description: RepositoryDescription
-) extends Neo4jSlugModel with CrudUrls with SolrIndexable {
+) extends neo4j.Neo4jSlugModel with CrudUrls with neo4j.SolrIndexable {
   def name = description.identity.name
   def summary = description.description.geoculturalContext
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))

@@ -1,13 +1,12 @@
 package models
 
 import solr._
-import neo4j.data._
 import play.api.libs.concurrent.Promise
 import play.api.libs.concurrent.execution.defaultContext
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
-object Collection extends Neo4jDataSource[Collection] {
+object Collection extends neo4j.DataSource[Collection] {
 
   val indexName = "collection" 
 
@@ -131,7 +130,7 @@ case class Collection(
   val keywords: List[Keyword] = Nil,
   val parents: List[Collection] = Nil, // parent :: grandparent :: greatgrandparent :: _* :: Nil
   val children: List[Collection] = Nil
-) extends Neo4jSlugModel with CrudUrls with SolrIndexable {
+) extends neo4j.Neo4jSlugModel with CrudUrls with neo4j.SolrIndexable {
   def name = description.identity.name
   def summary = description.content.scopeAndContent
   val detailUrl = controllers.routes.Collections.detail(slug=slug.getOrElse(""))

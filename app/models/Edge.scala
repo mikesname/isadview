@@ -1,6 +1,5 @@
 package models
 
-import neo4j.data._
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat

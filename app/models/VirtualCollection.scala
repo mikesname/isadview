@@ -1,13 +1,12 @@
 package models
 
-import neo4j.data._
 import java.util.Date
 import play.api.libs.concurrent.Promise
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 
-object VirtualCollection extends Neo4jDataSource[VirtualCollection] {
+object VirtualCollection extends neo4j.DataSource[VirtualCollection] {
   val indexName = "virtualcollection"
 
   def apply(data: net.liftweb.json.JsonAST.JValue): VirtualCollection = {
@@ -52,7 +51,7 @@ object VirtualCollection extends Neo4jDataSource[VirtualCollection] {
 
 case class ItemPointer(
   val edge: Edge,
-  val item: Neo4jSlugModel
+  val item: neo4j.Neo4jSlugModel
 )
 
 
@@ -63,7 +62,7 @@ case class VirtualCollection(
   val updatedOn: Option[DateTime] = None,
   val items: List[ItemPointer] = Nil,
   val description: VirtualCollectionDescription
-) extends Neo4jSlugModel with CrudUrls {
+) extends neo4j.Neo4jSlugModel with CrudUrls {
   def name = description.name
   def summary = description.description
   val detailUrl = controllers.routes.VirtualCollections.detail(id=id)

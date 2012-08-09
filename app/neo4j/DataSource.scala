@@ -1,4 +1,4 @@
-package neo4j.data
+package neo4j
 
 import org.joda.time.{DateTime,DateTimeZone}
 import org.joda.time.format.ISODateTimeFormat
@@ -11,7 +11,6 @@ import play.api.libs.concurrent.execution.defaultContext
 import play.api.libs.concurrent.Promise
 
 import neo4j.query._
-import neo4j.GremlinHelper
 
 case class NoResultsFound(err: String = "") extends PlayException("NoResultsFound", err)
 case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
@@ -79,13 +78,10 @@ trait IndexedEdge extends IndexedEntity {
   }
 }
 
-trait SolrIndexable extends solr.SolrModel with Neo4jModel
+trait Relationship extends IndexedEdge with GremlinHelper
 
 
-trait Neo4jRelationship extends IndexedEdge with GremlinHelper
-
-
-trait Neo4jDataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
+trait DataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
   /*
    * The name of the (mandatory) neo4j property that marks
    * denotes the type of a node.

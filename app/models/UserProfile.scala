@@ -4,11 +4,10 @@ import org.joda.time.DateTime
 import play.api.libs.concurrent.Promise
 import play.api.libs.concurrent.execution.defaultContext
 import org.joda.time.format.ISODateTimeFormat
-import neo4j.data._
 import net.liftweb.json.JsonAST.{JObject,JValue}
 import net.liftweb.json.Serialization.write
 
-object UserProfile extends Neo4jDataSource[UserProfile] {
+object UserProfile extends neo4j.DataSource[UserProfile] {
   val indexName = "userprofile"
 
   def apply(data: net.liftweb.json.JsonAST.JValue): UserProfile = {
@@ -100,7 +99,7 @@ case class UserProfile(
   val updatedOn: Option[DateTime] = None,
   val virtualCollections: List[VirtualCollection] = Nil,
   val data: ProfileData
-) extends Neo4jModel {
+) extends neo4j.Neo4jModel {
   def name = data.name.getOrElse("")
   //val detailUrl = controllers.routes.Users.detail(slug=auth.username.getOrElse(""))
   //val editUrl =  controllers.routes.Users.edit(slug=auth.username.getOrElse(""))
