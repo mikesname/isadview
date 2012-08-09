@@ -41,7 +41,6 @@ jQuery(function($) {
         });
         var $elem = $(this);
         var $div = $elem.next("div");
-        console.log($div.width());
         $div.click(function(event) {
             event.stopPropagation();
         }).show().css({
@@ -55,17 +54,23 @@ jQuery(function($) {
         var $elem = $(elem);
         $.post($elem.attr("href"), function(data) {
             if (data && data.ok) {
-                
-                $elem.closest(".save-item-list")
-                    .hide(200)
-                    .prev("a").find("i").attr("class", "icon-star");
-                $elem.replaceWith("<span class='saved-item'>" + $elem.text() + "</span><i class='icon-thumbs-up'></i>")
+                itemSaved($elem);
+                $elem.replaceWith(bookmarkSpan($elem.text()))
             }
         }, "json");
     }
+    
+    // close the item list and change the icon to a star...
+    function itemSaved($elem) {
+        $elem.closest(".save-item-list")
+            .hide(200)
+            .prev("a").find("i").attr("class", "icon-star");
+    }
 
+    function bookmarkSpan(text) {
+        return "<span class='saved-item'>" + text + "</span><i class='icon-thumbs-up'></i>"
+    }
 
-    //$("body").on("click", "a.save-item", function(event) {
     $("a.save-item").click(function(event) {
         handleSaveLinkClick(this, event);
     });
@@ -76,23 +81,37 @@ jQuery(function($) {
         // of the newly created collection, which we can use to insert into
         // the other lists...
         var $elem = $(this);
+        // get a reference to the current container item we're dealing with
+        var holderElem = $elem.closest(".bookmark-controls").get(0);
+
+        // Post the form, which should return JSON containing the slug and id of the new collection
         $.post($(this).attr("action"), $(this).formSerialize(), function(data) {
             if (data && data.ok) {
+                // if it checks out, add a new link to all the items on the page so we can save
+                // them to this collection
                 $(".bookmark-controls").each(function(i, item) {
                     var itemid = $(item).data("item");
                     var url = jsRoutes.controllers.VirtualCollections.saveItem(itemid, data.id).url;
-                    // Add a link for adding subsequent items to this collection
-                    var $link = $("<a></a>").attr("href", url).addClass("save-item").text(data.name);
+                    // Add a link for adding subsequent items to this collection, or if it's the current
+                    // collection, a placeholder.
+                    var $ctrl = null;
+                    if (holderElem != item) {
+                        $ctrl = $("<a></a>").attr("href", url).addClass("save-item").text(data.name);
+                        // BAH! Should be able to do this with live events, but because
+                        // the element is initially hidden it doesn't seem to work...
+                        $ctrl.click(function(event) {
+                            handleSaveLinkClick(this, event);
+                        });
+                    } else {
+                        $ctrl = $(bookmarkSpan(data.name))
+                    }
 
-                    // BAH! Should be able to do this with live events, but because
-                    // the element is initially hidden it doesn't seem to work...
-                    $link.click(function(event) {
-                        handleSaveLinkClick(this, event);
-                    });
-                    $(item).find("ul").append($("<li></li>").append($link));
-                    $elem.closest(".save-item-list")
-                        .hide(200)
-                        .prev("a").find("i").attr("class", "icon-star");
+                    // Add the control to the item's bookmark section
+                    $(item).find("ul").append($("<li></li>").append($ctrl));
+
+                    // clear the existing text value
+                    $elem.find("input[name='name']").val("");
+                    itemSaved($elem);
                 });
             }
         }, "json");
