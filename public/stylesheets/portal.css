@@ -19,6 +19,10 @@ h1.banner {
     padding-bottom: 0.5em;
 }
 
+input.home-search {
+    font-size: 1.3em;
+}
+
 .tag-list a, .selected-facet {
     display: inline-block;
     color: #3E6D8E;
