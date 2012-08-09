@@ -22,10 +22,10 @@ object SolrUpdater extends SolrHelper {
         val end = range.last
         // FIXME: Get a list of models. This doesn't include related objects,
         // so (currently) we need to requery for the complete item.
-        dao.query.slice(start, end).get().flatMap { partials =>
+        dao.query.slice(start, end).getField("slug").flatMap { slugs =>
           // Get a list of Promise[T]
           channel.push("Fetching full data for %s: %d to %d\n".format(dao.indexName, start, end))
-          val plist = partials.flatMap(_.slug).map(dao.fetchBySlug(_)) 
+          val plist = slugs.filter(!_.isEmpty).map(dao.fetchBySlug(_)) 
           // Turn it into a promise of List[T]
           Promise.sequence(plist).flatMap { full =>
             SolrUpdater.updateSolrModels(full).map { r =>
