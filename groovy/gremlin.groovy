@@ -162,7 +162,7 @@ def delete_vertex_with_related(_id, outRels, inRels) {
 // construct a query - several of these paths can probably
 // be optimised, and I'm not sure if the index is being
 // used as much as it could be.
-def query(index_name, inrels, outrels, filters, high, low, order_by, docount, dodelete) {
+def query(index_name, inrels, outrels, filters, high, low, order_by, docount, dodelete, fields) {
   try {
     def opblocks = [
       "exact":   {it, a, v -> it."$a" == v},
@@ -210,12 +210,11 @@ def query(index_name, inrels, outrels, filters, high, low, order_by, docount, do
       else if (low > 0 && high != null)
         pipe = pipe.range(low, high)
     }
-  
     if (order_by != null && order_by) {
       for (order in order_by) {
-        def (attr, desc) = order
+        def (attr, dir) = order
         pipe = pipe.sort{it."$attr"}
-        if (desc)
+        if (dir == "DESC")
           pipe = pipe.reverse()
       }
     }
@@ -226,7 +225,18 @@ def query(index_name, inrels, outrels, filters, high, low, order_by, docount, do
     if (dodelete) {
       pipe.collect{g.removeVertex(it)}
       return true;
-    } 
+    }
+
+    if (fields.size() == 1) {
+      def fname = fields[0]
+      return pipe.collect{it."$fname"}
+    } else if (fields.size() > 1) {
+      return pipe.collect{
+        def item = it
+        fields.collect{item."$it"}
+      }
+    }
+
     return pipe
   } catch (e) {
     return e
