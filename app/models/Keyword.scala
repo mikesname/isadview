@@ -22,7 +22,7 @@ case class Keyword(
   val standard: Option[String] = None,
   val note: Option[String] = None,
   val parent: Option[Keyword] = None
-) extends neo4j.Neo4jModel {
+) extends neo4j.Model {
   def toMap = Map(
     Keyword.TypeKey -> Keyword.indexName,
     "text" -> text,

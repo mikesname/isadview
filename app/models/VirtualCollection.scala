@@ -51,7 +51,7 @@ object VirtualCollection extends neo4j.DataSource[VirtualCollection] {
 
 case class ItemPointer(
   val edge: Edge,
-  val item: neo4j.Neo4jSlugModel
+  val item: Description
 )
 
 
@@ -62,7 +62,7 @@ case class VirtualCollection(
   val updatedOn: Option[DateTime] = None,
   val items: List[ItemPointer] = Nil,
   val description: VirtualCollectionDescription
-) extends neo4j.Neo4jSlugModel with CrudUrls {
+) extends neo4j.SlugModel with Entity with CrudUrls with CreatedUpdated {
   def name = description.name
   def summary = description.description
   val detailUrl = controllers.routes.VirtualCollections.detail(id=id)

@@ -140,7 +140,7 @@ case class Repository(
   val createdOn: Option[DateTime] = None,
   val updatedOn: Option[DateTime] = None,
   val description: RepositoryDescription
-) extends neo4j.Neo4jSlugModel with CrudUrls with neo4j.SolrIndexable {
+) extends neo4j.SlugModel with Description with neo4j.SolrIndexable {
   def name = description.identity.name
   def summary = description.description.geoculturalContext
   val detailUrl = controllers.routes.Repositories.detail(slug=slug.getOrElse(""))

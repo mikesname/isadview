@@ -99,7 +99,7 @@ case class UserProfile(
   val updatedOn: Option[DateTime] = None,
   val virtualCollections: List[VirtualCollection] = Nil,
   val data: ProfileData
-) extends neo4j.Neo4jModel {
+) extends neo4j.Model {
   def name = data.name.getOrElse("")
   //val detailUrl = controllers.routes.Users.detail(slug=auth.username.getOrElse(""))
   //val editUrl =  controllers.routes.Users.edit(slug=auth.username.getOrElse(""))

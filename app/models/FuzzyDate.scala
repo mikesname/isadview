@@ -48,7 +48,7 @@ object FuzzyDate extends neo4j.DataSource[FuzzyDate] {
 case class FuzzyDate(
   val id: Long = -1,
   val description: FuzzyDateDescription
-) extends neo4j.Neo4jModel {
+) extends neo4j.Model {
   def toMap = Map(
     FuzzyDate.TypeKey -> FuzzyDate.indexName
   ) ++ description.toMap

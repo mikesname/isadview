@@ -16,28 +16,18 @@ case class NoResultsFound(err: String = "") extends PlayException("NoResultsFoun
 case class MultipleResultsFound(err: String = "") extends PlayException("MultipleResultsFound", err)
 
 
-trait Neo4jModel {
+trait Model extends GremlinHelper {
   val id: Long
   def toMap: Map[String,Any]
   def getSubordinateItems: Map[String,List[Map[String,Any]]] = Map()
   def getIncomingSubordinateRelations: List[String] = Nil
   def getOutgoingSubordinateRelations: List[String] = Nil
-
-  def formatDate(d: org.joda.time.DateTime) = ISODateTimeFormat.dateTime.print(d)
-  def formatSolrDate(d: org.joda.time.DateTime) = ISODateTimeFormat.dateTime.withZone(DateTimeZone.UTC).print(d)
 }
 
-trait Neo4jSlugModel extends Neo4jModel with GremlinHelper {
-  self: Neo4jModel with models.CrudUrls =>
+trait SlugModel extends Model {
   def slug: Option[String]
   def name: String
-  def createdOn: Option[DateTime]
-  def updatedOn: Option[DateTime]
-  def withSlug(slug: String): Neo4jModel
-  def summary: Option[String]
-  def details: Map[String, Any] = Map()
-
-  def publicationDate = if (updatedOn.isDefined) updatedOn else createdOn
+  def withSlug(slug: String): Model
 
   // FIXME: These are only here because we need to somehow combine
   // SlugModel and the CrudUrls model, and the self type isn't working
@@ -81,7 +71,7 @@ trait IndexedEdge extends IndexedEntity {
 trait Relationship extends IndexedEdge with GremlinHelper
 
 
-trait DataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
+trait DataSource[T <: Model] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
   /*
    * The name of the (mandatory) neo4j property that marks
    * denotes the type of a node.
@@ -122,7 +112,7 @@ trait DataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with
    */
   def nowDateTime = ISODateTimeFormat.dateTime.print(DateTime.now)
 
-  def create0(item: Neo4jModel): Promise[T] = {
+  def create0(item: Model): Promise[T] = {
     val params = Map(
       "index_name" -> indexName,
       "data" -> (item.toMap + ("created_on" -> nowDateTime)),
@@ -137,7 +127,7 @@ trait DataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with
     }
   }
 
-  def create(item: Neo4jSlugModel): Promise[T] = {
+  def create(item: SlugModel): Promise[T] = {
     val initial = app.util.Helpers.slugify(item.name)
     val slugparams = Map("index_name" -> indexName, "key" -> "slug", "initial" -> initial)
     // NB: Note the use of flatMap here, because create0 returns another
@@ -184,7 +174,7 @@ trait DataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with
     });
   }
 
-  def createRelationship(from: Neo4jModel, to: Neo4jModel, label: String): Promise[net.liftweb.json.JsonAST.JValue] = {
+  def createRelationship(from: Model, to: Model, label: String): Promise[net.liftweb.json.JsonAST.JValue] = {
     createRelationship(from.id, to.id, label)
   }
 
@@ -236,7 +226,7 @@ trait DataSource[T <: Neo4jModel] extends JsonBuilder[T] with IndexedVertex with
     fetchByField(field="slug", value=slug)
   }
 
-  def findRelatedTo(other: Neo4jModel, direction: Direction.Direction, label: String): Promise[List[T]] = {
+  def findRelatedTo(other: Model, direction: Direction.Direction, label: String): Promise[List[T]] = {
     gremlin(direction.toString, Map("_id" -> other.id, "label" -> label)).map { response =>
       list(getJson(response))
     }

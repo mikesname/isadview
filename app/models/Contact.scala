@@ -29,7 +29,7 @@ object Contact extends neo4j.DataSource[Contact] {
 case class Contact(
   val id: Long = -1,
   val description: ContactDescription
-) extends neo4j.Neo4jModel {
+) extends neo4j.Model {
   def toMap = Map(
     Contact.TypeKey -> Contact.indexName
   ) ++ description.toMap

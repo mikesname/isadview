@@ -22,7 +22,7 @@ case class Place(
   val standard: Option[String] = None,
   val note: Option[String] = None,
   val parent: Option[Place] = None
-) extends neo4j.Neo4jModel {
+) extends neo4j.Model {
   def toMap = Map(
     Place.TypeKey -> Place.indexName,
     "text" -> text,
