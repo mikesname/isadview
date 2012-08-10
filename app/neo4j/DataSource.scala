@@ -136,17 +136,17 @@ trait DataSource[T <: Model] extends JsonBuilder[T] with IndexedVertex with Grem
     });
   }
 
-  def createRelationship(from: Model, to: Model, label: String): Promise[net.liftweb.json.JsonAST.JValue] = {
-    createRelationship(from.id, to.id, label)
+  def createRelationship(from: Model, to: Model, rel: Relationship): Promise[net.liftweb.json.JsonAST.JValue] = {
+    createRelationship(from.id, to.id, rel)
   }
 
-  def createRelationship(from: Long, to: Long, label: String, data: Map[String,Any] = Map()) = {
+  def createRelationship(from: Long, to: Long, rel: Relationship, data: Map[String,Any] = Map()) = {
     val params = Map(
       "outV" -> from,
-      "label" -> label,
+      "label" -> rel.indexName,
       "inV" -> to,
       "data" -> (data + ("created_on" -> nowDateTime)),
-      "index_name" -> label,
+      "index_name" -> rel.indexName,
       "keys" -> null,
       "label_var" -> "label"
     )
@@ -188,8 +188,8 @@ trait DataSource[T <: Model] extends JsonBuilder[T] with IndexedVertex with Grem
     fetchByField(field="slug", value=slug)
   }
 
-  def findRelatedTo(other: Model, direction: Direction.Direction, label: String): Promise[List[T]] = {
-    gremlin(direction.toString, Map("_id" -> other.id, "label" -> label)).map { response =>
+  def findRelatedTo(other: Model, direction: Direction.Direction, rel: Relationship): Promise[List[T]] = {
+    gremlin(direction.toString, Map("_id" -> other.id, "label" -> rel.indexName)).map { response =>
       list(getJson(response))
     }
   }

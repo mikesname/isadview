@@ -9,6 +9,14 @@ import org.joda.time.format.ISODateTimeFormat
 object Authority extends neo4j.DataSource[Authority] {
   val indexName = "authority"
 
+  case object Created extends neo4j.Relationship {
+    val indexName = "created"
+  }
+
+  case object MentionedIn extends neo4j.Relationship {
+    val indexName = "mentionedIn"
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): Authority = {
     Authority(
       id = idFromUrl((data \ "self").extractOpt[String]),

@@ -14,6 +14,10 @@ import org.joda.time.format.ISODateTimeFormat
 object FuzzyDate extends neo4j.DataSource[FuzzyDate] {
   val indexName = "fuzzydate"
 
+  case object LocatesInTime extends neo4j.Relationship {
+    val indexName = "LocatesInTime"
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): FuzzyDate = {
     FuzzyDate(
       id = idFromUrl((data \ "self").extractOpt[String]),

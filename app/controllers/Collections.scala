@@ -13,7 +13,7 @@ import net.liftweb.json
 
 import com.codahale.jerkson.Json._
 
-import models.{Repository,Contact,Collection,FuzzyDate,Authority}
+import models.{Repository,Contact,Collection,FuzzyDate,Authority => AuthFile}
 import forms.CollectionForm
 
 
@@ -48,7 +48,7 @@ object Collections extends AuthController with ControllerHelpers {
         Async {
           Repository.fetchBySlug(repo).flatMap { repository =>
             Collection.create(new Collection(description=data)).flatMap { created =>
-              Repository.createRelationship(created, repository, "heldBy").map { edge =>
+              Repository.createRelationship(repository, created, Repository.Holds).map { edge =>
                 Redirect(routes.Collections.detail(slug=created.slug.get))
               }
             }

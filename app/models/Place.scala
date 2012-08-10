@@ -4,6 +4,10 @@ package models
 object Place extends neo4j.DataSource[Place] {
   val indexName = "place"
   
+  case object LocatesInSpace extends neo4j.Relationship {
+    val indexName = "LocatesInSpace"
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): Place = {
     Place(
       id = idFromUrl((data \ "self").extractOpt[String]),

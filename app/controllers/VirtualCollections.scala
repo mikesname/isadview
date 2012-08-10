@@ -101,7 +101,7 @@ object VirtualCollections extends AuthController with ControllerHelpers {
   def saveItemPost(item: Long, vc: Long) = authorizedUserProfileAction(models.sql.NormalUser) { user => implicit request =>
     // TODO: Check virtual collection `vc` belongs to user!
     Async {
-      VirtualCollection.createRelationship(vc, item, "contains").map { edge =>
+      VirtualCollection.createRelationship(vc, item, VirtualCollection.Contains).map { edge =>
         if (isAjaxRequest(request))
           Ok(generate(Map("ok" -> true)))
         else
@@ -142,9 +142,7 @@ object VirtualCollections extends AuthController with ControllerHelpers {
           case Some(profile) => {
             Async {
               UserProfile.createVirtualCollection(profile, newvc).flatMap { created =>
-                println("Created virtual collection with id: " + created.id)
-                println("Saving item to collection: %d -> %d".format(created.id, item))
-                VirtualCollection.createRelationship(created.id, item, "contains").map { edge =>
+                VirtualCollection.createRelationship(created.id, item, VirtualCollection.Contains).map { edge =>
                   if (isAjaxRequest(request))
                     Ok(generate(Map("ok" -> true, "name" -> created.name, "id" -> created.id)))
                   else

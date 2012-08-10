@@ -22,7 +22,7 @@ object Repositories extends AuthController with ControllerHelpers {
   def detail(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).flatMap { repo =>
-        Contact.findRelatedTo(repo, Contact.Direction.In, "addressOf").map { contacts => 
+        Contact.findRelatedTo(repo, Contact.Direction.Out, Repository.HasAddress).map { contacts => 
           Ok(views.html.repository.detail(repo=repo, repo.description.withContacts(contacts)))
         }
       }

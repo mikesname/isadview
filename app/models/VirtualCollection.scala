@@ -9,6 +9,10 @@ import org.joda.time.format.ISODateTimeFormat
 object VirtualCollection extends neo4j.DataSource[VirtualCollection] {
   val indexName = "virtualcollection"
 
+  case object Contains extends neo4j.Relationship {
+    val indexName = "contains"
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): VirtualCollection = {
     VirtualCollection(
       id = idFromUrl((data \ "self").extractOpt[String]),
@@ -21,31 +25,6 @@ object VirtualCollection extends neo4j.DataSource[VirtualCollection] {
       )
     )
   }
-
-  //override def fetchByFieldOption(field: String, value: String): Promise[Option[VirtualCollection]] = {
-  //  val params = Map(
-  //    "index_name" -> indexName,
-  //    "key" -> field,
-  //    "query_string" -> value,
-  //    "inRels" -> List(),
-  //    "outRels" -> List("contains")
-  //  )
-  //  gremlin("query_exact_index_with_related", params).map(response => {
-  //    val items = getJson(response).children
-  //    items.headOption.map(apply(_)).map { vc =>
-  //      items.tail.foldLeft(vc) { (c: VirtualCollection, json: net.liftweb.json.JsonAST.JValue) =>
-  //        (json \ "data" \ TypeKey).extractOpt[String].map { eletype =>
-  //          eletype match {
-  //            case Collection.indexName => c.withItem(Collection(json))
-  //            case Repository.indexName => c.withItem(Repository(json))
-  //            case Authority.indexName => c.withItem(Authority(json))
-  //            case _ => c
-  //          }
-  //        }.getOrElse(c)
-  //      }
-  //    }
-  //  })
-  //}
 }
 
 

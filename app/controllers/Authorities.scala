@@ -22,9 +22,9 @@ object Authorities extends AuthController with ControllerHelpers {
       AuthFile.fetchBySlug(slug).map { auth =>
         Async {
           // get collections
-          Collection.findRelatedTo(auth, Collection.Direction.In, "createdBy").map { createdCollections =>
+          Collection.findRelatedTo(auth, Collection.Direction.Out, AuthFile.Created).map { createdCollections =>
             Async {
-              Collection.findRelatedTo(auth, Collection.Direction.Out, "mentionedIn").map { mentionedCollections =>
+              Collection.findRelatedTo(auth, Collection.Direction.Out, AuthFile.MentionedIn).map { mentionedCollections =>
                 Ok(views.html.authority.detail(auth, auth.description, createdCollections, mentionedCollections))
               }
             }

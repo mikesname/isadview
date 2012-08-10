@@ -10,6 +10,10 @@ import net.liftweb.json.Serialization.write
 object UserProfile extends neo4j.DataSource[UserProfile] {
   val indexName = "userprofile"
 
+  case object HasVirtualCollection extends neo4j.Relationship {
+    val indexName = "hasVirtualCollection"
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): UserProfile = {
     new UserProfile(
       id = idFromUrl((data \ "self").extractOpt[String]),
@@ -31,7 +35,7 @@ object UserProfile extends neo4j.DataSource[UserProfile] {
 
   def createVirtualCollection(profile: UserProfile, vcdesc: VirtualCollectionDescription) = {
     VirtualCollection.create(new VirtualCollection(description=vcdesc)).flatMap { created =>
-      createRelationship(profile, created, "hasCollection").map { edge =>
+      createRelationship(profile, created, UserProfile.HasVirtualCollection).map { edge =>
         created
       }
     }

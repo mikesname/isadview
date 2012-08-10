@@ -20,8 +20,8 @@ trait Importer[T] {
   /*
    * Encapsulates a relationship.
    */
-  case class GeoffRelationship(label: String, from: String, to: String) {
-    override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, label, to, label, to)
+  case class GeoffRelationship(rel: neo4j.Relationship, from: String, to: String) {
+    override def toString = "(%s)-[%s%s%s:%s]->(%s)".format(from, from, rel.indexName, to, rel.indexName, to)
   }
 
   /*

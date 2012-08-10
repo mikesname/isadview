@@ -56,7 +56,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       // We want individual dates per record, so scope them according to the ident.
       val desc = slugify("%s%s".format(d, ident)).replace("-", "")
       val entity = GeoffEntity(indexName=Some(FuzzyDate.indexName), descriptor=desc, data=d.toMap)
-      entity.toStringList ::: GeoffRelationship("locatesInTime", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(FuzzyDate.LocatesInTime, desc, ident).toString :: Nil
     }
   }
 
@@ -65,7 +65,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
     val item = Authority(atype, name, role, bio)
     val desc = slugify(name).replace("-","")
     val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
-    entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
+    entity.toStringList ::: GeoffRelationship(Authority.MentionedIn, desc, ident).toString :: Nil
   }
 
   def extractCreators(repoident: String, ident: String, elem: NodeSeq): List[String] = {
@@ -81,7 +81,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       val item = Authority(AuthorityType.Person, name, optString(role), optString(bios))
       val desc = slugify(name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("createdBy", ident, desc).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Authority.Created, desc, ident).toString :: Nil
     }
   }
     
@@ -101,7 +101,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       val item = Place(name)
       val desc = slugify(name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Place.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("locatesInSpace", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Place.LocatesInSpace, desc, ident).toString :: Nil
     }
   }
 
@@ -135,7 +135,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       val item = Keyword(keyword)
       val desc = slugify(keyword).replace("-","")
       val entity = GeoffEntity(indexName=Some(Keyword.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("describes", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Keyword.Describes, desc, ident).toString :: Nil
     }
   }
 
@@ -146,8 +146,8 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       val slug = slugify(name)
       val item = Collection(irn, slug, name)
       val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=irn, data=item.toMap)
-      val parentRel = GeoffRelationship("isChildOf", ident, irn).toString
-      val parentRepo = GeoffRelationship("heldBy", irn, repoident).toString
+      val parentRel = GeoffRelationship(Collection.IsChildOf, ident, irn).toString
+      val parentRepo = GeoffRelationship(Repository.Holds, repoident, irn).toString
       entity.toStringList ::: parentRepo :: parentRel :: Nil
     }
   }
@@ -179,7 +179,7 @@ object USHMM extends Importer[NodeSeq] with XmlHelper {
       "acquisition"  -> multiFields(List("acq_source", "acccession_number", "acq_credit"), "\n\n", elem)
     )           
     val entity = GeoffEntity(indexName=Some(Collection.indexName), descriptor=ident, data=data)
-    entity.toStringList ::: GeoffRelationship("heldBy", ident, repoident).toString :: Nil
+    entity.toStringList ::: GeoffRelationship(Repository.Holds, repoident, ident).toString :: Nil
   }
 }
 

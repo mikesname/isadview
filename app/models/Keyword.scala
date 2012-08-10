@@ -4,6 +4,10 @@ package models
 object Keyword extends neo4j.DataSource[Keyword] {
   val indexName = "keyword"
   
+  case object Describes extends neo4j.Relationship {
+    val indexName = "describes"
+  }
+
   def apply(data: net.liftweb.json.JsonAST.JValue): Keyword = {
     Keyword(
       id = idFromUrl((data \ "self").extractOpt[String]),

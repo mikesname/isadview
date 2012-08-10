@@ -102,7 +102,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     dates.flatMap { item =>
       val desc = slugify("%s%s".format(item, ident)).replace("-", "")
       val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("locatesInTime", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(FuzzyDate.LocatesInTime, desc, ident).toString :: Nil
     }
   }
 
@@ -114,7 +114,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     (persons ++ corps).flatMap { item =>
       val desc = slugify(item.name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("createdBy", ident, desc).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Authority.Created, desc, ident).toString :: Nil
     }
   }
 
@@ -123,7 +123,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     kwds.flatMap { item =>
       val desc = slugify(item.text).replace("-", "")
       val entity = GeoffEntity(indexName=Some(Keyword.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("describes", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Keyword.Describes, desc, ident).toString :: Nil
     }
   }
 
@@ -132,7 +132,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     auths.flatMap { item =>
       val desc = slugify(item.name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Authority.MentionedIn, desc, ident).toString :: Nil
     }
   }
 
@@ -141,7 +141,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     corps.flatMap { item =>
       val desc = slugify(item.name).replace("-","")
       val entity = GeoffEntity(indexName=Some(Authority.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("mentionedIn", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Authority.MentionedIn, desc, ident).toString :: Nil
     }
   }
 
@@ -150,7 +150,7 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
     kwds.flatMap { item =>
       val desc = slugify(item.text).replace("-", "")
       val entity = GeoffEntity(indexName=Some(Place.indexName), descriptor=desc, data=item.toMap)
-      entity.toStringList ::: GeoffRelationship("locatesInSpace", desc, ident).toString :: Nil
+      entity.toStringList ::: GeoffRelationship(Place.LocatesInSpace, desc, ident).toString :: Nil
     }
   }
 
@@ -195,10 +195,10 @@ object EAD extends Importer[NodeSeq] with XmlHelper {
         descriptor=ident, data=data)
     val childLevels = elem.head.child.filter(n => n.head.label.matches(cPattern.toString)).flatMap { node =>
       extractScopedIdentifier(node).map { cid =>
-        extractDetails(repoident, cid, node) ::: GeoffRelationship("isChildOf", cid, ident).toString :: Nil
+        extractDetails(repoident, cid, node) ::: GeoffRelationship(Collection.IsChildOf, cid, ident).toString :: Nil
       }.getOrElse(Nil)
     }
-    val here = entity.toStringList ::: GeoffRelationship("heldBy", ident, repoident).toString :: Nil
+    val here = entity.toStringList ::: GeoffRelationship(Repository.Holds, repoident, ident).toString :: Nil
     here ++ childLevels
   }
 

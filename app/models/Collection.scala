@@ -8,7 +8,11 @@ import org.joda.time.format.ISODateTimeFormat
 
 object Collection extends neo4j.DataSource[Collection] {
 
-  val indexName = "collection" 
+  val indexName = "collection"
+
+  case object IsChildOf extends neo4j.Relationship {
+    val indexName = "isChildOf"
+  }
 
   // JSON Constructor...
   def apply(data: net.liftweb.json.JsonAST.JValue): Collection = {
@@ -66,25 +70,29 @@ object Collection extends neo4j.DataSource[Collection] {
       "index_name" -> indexName,
       "key" -> field,
       "query_string" -> value,
-      "inRels" -> List("describes", "locatesInTime", "locatesInSpace"),
-      "outRels" -> List("heldBy", "createdBy")
+      "inRels" -> List(
+          Authority.Created.indexName, Repository.Holds.indexName,
+          Keyword.Describes.indexName, FuzzyDate.LocatesInTime.indexName,
+          Place.LocatesInSpace.indexName
+       ),
+      "outRels" -> List()
     )
     gremlin("query_exact_index_with_related1", params).map(response => {
       val items = getJson(response)
       var collection = apply(items \ "item")
-      collection = (items \ "describes").children.foldLeft(collection) { (c, json) =>
+      collection = (items \ Keyword.Describes.indexName).children.foldLeft(collection) { (c, json) =>
         c.withKeyword(Keyword(json))
       }
-      collection = (items \\ "createdBy").children.foldLeft(collection) { (c, json) =>
+      collection = (items \\ Authority.Created.indexName).children.foldLeft(collection) { (c, json) =>
         c.withCreator(Authority(json))
       }
-      collection = (items \\ "locatesInTime").children.foldLeft(collection) { (c, json) =>
+      collection = (items \\ FuzzyDate.LocatesInTime.indexName).children.foldLeft(collection) { (c, json) =>
         c.withDate(FuzzyDate(json))
       }
-      collection = (items \\ "locatesInSpace").children.foldLeft(collection) { (c, json) =>
+      collection = (items \\ Place.LocatesInSpace.indexName).children.foldLeft(collection) { (c, json) =>
         c.withPlace(Place(json))
       }
-      collection = (items \\ "heldBy").children.foldLeft(collection) { (c, json) =>
+      collection = (items \\ Repository.Holds.indexName).children.foldLeft(collection) { (c, json) =>
         c.copy(repository=Some(Repository(json)))
       }
       collection = (items \\ "parents").children.foldLeft(collection) { (c, json) =>
@@ -143,14 +151,14 @@ case class Collection(
   // for the subordinate items, which is can only get from the companion
   // object class
   override def getSubordinateItems = Map(
-    "locatesInTime" -> description.identity.dates.filterNot(_.startDate.isEmpty).map { d =>
+    FuzzyDate.LocatesInTime.indexName -> description.identity.dates.filterNot(_.startDate.isEmpty).map { d =>
       Map(
         "index_name" -> FuzzyDate.indexName,
         "data" -> d.toMap)
     }
   )
 
-  override def getIncomingSubordinateRelations = List("locatesInTime")
+  override def getIncomingSubordinateRelations = List(FuzzyDate.LocatesInTime.indexName)
 
   def toMap = {
     Map(

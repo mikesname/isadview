@@ -18,15 +18,15 @@ object Global extends GlobalSettings {
     Keyword.initialize()
     Place.initialize()
 
-    relationships.Describes.initialize()
-    relationships.LocatesInTime.initialize()
-    relationships.LocatesInSpace.initialize()
-    relationships.HeldBy.initialize()
-    relationships.HasCollection.initialize()
-    relationships.Contains.initialize()
-    relationships.AddressOf.initialize()
-    relationships.MentionedIn.initialize()
-    relationships.CreatedBy.initialize()
+    Keyword.Describes.initialize()
+    FuzzyDate.LocatesInTime.initialize()
+    Place.LocatesInSpace.initialize()
+    Repository.Holds.initialize()
+    Repository.HasAddress.initialize()
+    UserProfile.HasVirtualCollection.initialize()
+    VirtualCollection.Contains.initialize()
+    Authority.MentionedIn.initialize()
+    Authority.Created.initialize()
 
     // Wire up callback to update Solr models
     Collection.addListeners(Collection.Callbacks.create, Collection.Callbacks.update) { item =>

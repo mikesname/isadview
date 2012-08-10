@@ -115,8 +115,8 @@ object Repository extends neo4j.DataSource[Repository] {
       "index_name" -> indexName,
       "key" -> field,
       "query_string" -> value,
-      "inRels" -> List("addressOf"),
-      "outRels" -> List()
+      "inRels" -> List(),
+      "outRels" -> List(Repository.HasAddress.indexName)
     )
     gremlin("query_exact_index_with_related", params).map(response => {
       val items = getJson(response).children
@@ -152,13 +152,13 @@ case class Repository(
   override def getSubordinateItems = Map(
     // FIXME: Find a better way of determining if
     // a contact is 'empty' and should be deleted
-    "addressOf" -> description.contacts.filterNot(c => c.streetAddress.isEmpty && c.city.isEmpty).map { c =>
+    Repository.HasAddress.indexName -> description.contacts.filterNot(c => c.streetAddress.isEmpty && c.city.isEmpty).map { c =>
       Map(
         "index_name" -> Contact.indexName,
         "data" -> c.toMap)
     }
   )          
-  override def getIncomingSubordinateRelations = List("addressOf")
+  override def getOutgoingSubordinateRelations = List(Repository.HasAddress.indexName)
 
   def toMap = {
     Map(
