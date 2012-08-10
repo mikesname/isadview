@@ -24,59 +24,21 @@ trait Model extends GremlinHelper {
   def getOutgoingSubordinateRelations: List[String] = Nil
 }
 
+/*
+ * Trait able to auto-generate it's slug from
+ * a name field
+ */
 trait SlugModel extends Model {
   def slug: Option[String]
   def name: String
-  def withSlug(slug: String): Model
-
-  // FIXME: These are only here because we need to somehow combine
-  // SlugModel and the CrudUrls model, and the self type isn't working
-  def detailUrl: play.api.mvc.Call
-  def editUrl: play.api.mvc.Call
-  def deleteUrl: play.api.mvc.Call
+  def withSlug(slug: String): SlugModel
 }
 
-
-trait IndexedEntity {
-  /*
-   * Implementing objects must specify this as the TypeKey
-   * and the name of vertex indexes.
-   */
-  val indexName: String
-  def initialize(): Promise[Boolean]
-}
-
-trait IndexedVertex extends IndexedEntity {
-  self: GremlinHelper =>
-  // Create an index on the server at startup
-  def initialize(): Promise[Boolean] = {
-    val params = Map("index_name" -> indexName, "index_params" -> None)
-    gremlin("get_or_create_vertex_index", params).map { resp =>
-      true
-    }
-  }
-}
-
-trait IndexedEdge extends IndexedEntity {
-  self: GremlinHelper =>
-  // Create an index on the server at startup
-  def initialize(): Promise[Boolean] = {
-    val params = Map("index_name" -> indexName, "index_params" -> None)
-    gremlin("get_or_create_edge_index", params).map { resp =>
-      true
-    }
-  }
-}
 
 trait Relationship extends IndexedEdge with GremlinHelper
 
 
 trait DataSource[T <: Model] extends JsonBuilder[T] with IndexedVertex with GremlinHelper {
-  /*
-   * The name of the (mandatory) neo4j property that marks
-   * denotes the type of a node.
-   */
-  val TypeKey = "element_type"
 
   object Callbacks extends Enumeration("create", "update", "delete") {
     type Callback = Value
