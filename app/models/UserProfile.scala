@@ -47,7 +47,7 @@ object UserProfile extends neo4j.DataSource[UserProfile] {
       "key" -> field,
       "query_string" -> value,
       "inRels" -> List(),
-      "outRels" -> List("hasCollection")
+      "outRels" -> List(UserProfile.HasVirtualCollection.indexName)
     )
     gremlin("query_exact_index_with_related", params).map(response => {
       val items = getJson(response).children
