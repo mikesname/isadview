@@ -41,7 +41,7 @@ def get_user_profile_data(user_id) {
   try {
     item = g.idx("userprofile").get("user_id", Neo4jTokens.QUERY_HEADER + user_id).iterator().next()
     g.v(item.id)._()
-      .out('hasCollection').as('vc')
+      .out('hasVirtualCollection').as('vc')
       .table(t,['vc']){[
         "item": it._(),
         //"collections": it._().out('contains')._()
