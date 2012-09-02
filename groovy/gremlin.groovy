@@ -126,7 +126,7 @@ def create_indexed_vertex(data,index_name,keys) {
       if (entry.value == null) continue;
       vertex.setProperty(entry.key,entry.value)
       if (keys == null || keys.contains(entry.key))
-	index.add(vertex,entry.key,String.valueOf(entry.value))
+        index.add(vertex,entry.key,String.valueOf(entry.value))
     }
     g.stopTransaction(TransactionalGraph.Conclusion.SUCCESS)
     return vertex
