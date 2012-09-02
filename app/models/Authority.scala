@@ -94,6 +94,8 @@ case class Authority(
   val editUrl = controllers.routes.Authorities.update(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Authorities.delete(slug=slug.getOrElse(""))
 
+  override def toString = "<Authority: %s>".format(slug)
+
   def toMap = {
     Map(
       Authority.TypeKey -> Authority.indexName,
