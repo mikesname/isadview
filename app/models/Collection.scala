@@ -145,6 +145,8 @@ case class Collection(
   val editUrl = controllers.routes.Collections.update(slug=slug.getOrElse(""))
   val deleteUrl = controllers.routes.Collections.delete(slug=slug.getOrElse(""))
 
+  override def toString = "<Collection: %s>".format(slug)
+
   // FIXME: This is really ugly and reqires knowing way too much about the
   // details of persistance. Ideally we'd just pass a Map of relationship
   // to list of items, but the persister also needs to know the index name

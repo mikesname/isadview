@@ -17,7 +17,7 @@ object Repository extends neo4j.DataSource[Repository] {
   case object HasAddress extends neo4j.Relationship {
     val indexName = "hasAddress"
   }
-
+  
   def apply(data: net.liftweb.json.JsonAST.JValue): Repository = {
     Repository(
       id = idFromUrl((data \ "self").extractOpt[String]),
