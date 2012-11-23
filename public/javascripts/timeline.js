@@ -46,13 +46,14 @@ var Timeliner = Backbone.View.extend({
     // remove existing data explorer view
     var reload = false;
     if (this.timeline) {
+      console.log("Got existing timeline, removing...");
       this.timeline.remove();
       reload = true;
     }
     this.timeline = null;
     var $el = $('.data-views .timeline');
     // explicitly set width as otherwise Timeline does extends a bit too far (seems to use window width rather than width of actual div)
-    // $el.width((this.el.width() - 45)/2.0);
+    //$el.width((this.el.width() - 45)/2.0);
     this.timeline = new recline.View.Timeline({
       model: dataset,
       el: $el
@@ -87,11 +88,11 @@ var Timeliner = Backbone.View.extend({
       return out;
     }
 
-    this.map = new recline.View.Map({
-      model: dataset
-    });
-    this.explorerDiv.append(this.map.el);
-    this.map.render();
+    //this.map = new recline.View.Map({
+     // model: dataset
+    //});
+    //this.explorerDiv.append(this.map.el);
+    //this.map.render();
 
     // show the view
     this.viewExplorer();
@@ -104,6 +105,7 @@ var Timeliner = Backbone.View.extend({
     var self = this;
     $.ajax({
         url: window.location.path,
+        data: $("#search-form").serialize(),
         success: function(data) {
             console.log("Got data: " + data)
             dataset = new recline.Model.Dataset({

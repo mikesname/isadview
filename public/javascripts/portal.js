@@ -11,11 +11,14 @@ jQuery(function($) {
         format: "yyyy-mm-dd"
     })
 
-    $(".more-facets").each(function(i, elem) {
-        $(elem).modal({backdrop:true, 
-            shown: function(e) { alert("show"); },
-        });
-    });
+    // $(".more-facets").click(function(e) {
+    //     e.preventDefault();
+    //     var self = this;
+    //     $("<div></div>").modal({
+    //         remote: $(self).attr("href"),
+    //         sh
+    //     });
+    // });
 
     $("a.remove-stash-item").click(function(event) {
         event.preventDefault();

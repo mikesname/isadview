@@ -23,7 +23,7 @@
         @if(fc.sorted.length > 10) {
             <a data-fclass="@fc.param"
                 href="@Utils.joinPath(routes.Search.facets(facet=fc.param, rtype=rtype).toString, req.queryString.filterKeys(_!="page"))"
-                class="more-facets">More...</a>
+                class="more-facets" data-target="#modal" data-toggle="modal">More...</a>
         }
         </dl>
     }
