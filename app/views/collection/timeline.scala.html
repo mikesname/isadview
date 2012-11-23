@@ -1,0 +1,54 @@
+@(query: String)(implicit maybeUser: Option[models.sql.User], request: RequestHeader)
+
+@main(Messages("Collection timeline"), body_class="collection") {
+
+<div class="recline-app">
+    <div class="page-home">
+        <form id="search-form form-horizontal" method="get">
+            <div class="control-group">                            
+                <div class="input-append">
+                        <input type="text" name="q" id="id_q" value="@query" class="span5" />
+                        <input class="btn" type="submit" value="@Messages("Search")" />
+                    </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="page-explorer backbone-page">
+    <div class="data-views">
+      <div class="row">
+        <div class="span8">
+          <div class="timeline"></div>
+        </div>
+        <div class="span4">
+          <div class="map"></div>
+        </div>
+      </div>
+    </div>
+    </div>
+</div>
+
+<!-- 3rd party JS libraries -->
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/jquery/1.7.1/jquery.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/underscore/1.1.6/underscore.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/backbone/0.5.1/backbone.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/moment/1.6.2/moment.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/mustache/0.5.0-dev/mustache.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/bootstrap/2.0.2/bootstrap.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/leaflet/0.3.1/leaflet.js")"></script>
+  <script type="text/javascript"
+      src="@routes.Assets.at("javascripts/timeline/vendor/recline/vendor/timeline/20120520/js/timeline.js")"></script>
+
+  <script type="text/javascript" src="@routes.Assets.at("javascripts/timeline/vendor/recline/dist/recline.js")"></script>
+
+  <!-- non-library javascript specific to this demo -->
+  <script type="text/javascript" src="@routes.Assets.at("javascripts/timeline.js")"></script>
+
+}

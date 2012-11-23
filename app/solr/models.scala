@@ -20,7 +20,7 @@ import com.github.seratch.scalikesolr.request.query.facet.{FacetParams,FacetPara
 
 object SearchField extends Enumeration("all", "name", "creator") {
   type Field = Value
-  val all, title, creator = Value
+  val all, title, creator, start_date = Value
 }
 
 object SearchOrder extends Enumeration("Relevance", "Publication Date", "Title") {

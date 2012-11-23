@@ -61,6 +61,7 @@ GET     /authority/create           controllers.Authorities.create
 POST    /authority/create           controllers.Authorities.createPost
 GET     /authority/:slug            controllers.Authorities.detail(slug:String)
 
+GET     /collection/timeline        controllers.Collections.timeline(q ?= "PLACEHOLDER_TEST")
 GET     /collection/edit/:slug      controllers.Collections.update(slug: String)
 POST    /collection/edit/:slug      controllers.Collections.updatePost(slug: String)
 GET     /collection/delete/:slug    controllers.Collections.delete(slug: String)
@@ -68,9 +69,6 @@ POST    /collection/delete/:slug    controllers.Collections.deletePost(slug: Str
 GET     /collection/:slug/create    controllers.Collections.create(slug: String)
 POST    /collection/:slug/create    controllers.Collections.createPost(slug: String)
 GET     /collection/:slug           controllers.Collections.detail(slug:String)
-
-# Generic helpers
-GET     /gremlin/:method            controllers.Application.gremlinProxy(method: String)
 
 # Javascript routing
 GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()

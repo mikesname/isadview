@@ -27,6 +27,34 @@ object Collections extends AuthController with ControllerHelpers {
     }
   }
 
+def timeline(filter:String) = optionalUserProfileAction { implicit
+      maybeUser => implicit request =>
+
+    import solr.models.{SearchField,SearchOrder,SearchType}
+
+    if (!isAjaxRequest(request)) {
+        Ok(views.html.collection.timeline(filter))
+    } else {
+      val listpromise = solr.models.Description.list(index=Search.searchType("collection"), page=1, pageSize=20,
+            orderBy=SearchOrder.relevance,
+            field=SearchField.all, query=filter, facets=Map())
+      Async {
+        listpromise.map { page =>
+          val data = page.items.map(_.asInstanceOf[solr.models.Collection]).filterNot(_.start_date.isEmpty).map { item =>
+              println("ITEM: " + item.name)
+              Map(
+                "title" -> item.name,
+                "start" -> item.start_date,
+                "end" -> item.end_date,
+                "description" -> item.asInstanceOf[solr.models.Collection].description
+              )
+          }
+          Ok(generate(data)).as("application/json")
+        }
+      }
+    }
+  }
+
   def create(repo: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     val action = routes.Collections.createPost(repo)
     Ok(views.html.collection.form(f=CollectionForm.form, action=action))
