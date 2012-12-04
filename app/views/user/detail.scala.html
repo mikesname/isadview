@@ -19,7 +19,15 @@
             <hr />
             <p>@about</p>
         }
-        <hr>
+        @profile.data.location.map { loc =>
+            <p>Location: @loc</p>
+        }
+        @profile.data.website.map { web =>
+            <p>Website: <a href="@web">@web</a></p>
+        }
+        @if(!profile.data.languages.isEmpty) {
+            <p>Languages: @profile.data.languages.map(l => new java.util.Locale(l).getDisplayLanguage).mkString(", ")</p>
+        }
 
         <h3>@Messages("Virtual Collections")</h3>
         <p>

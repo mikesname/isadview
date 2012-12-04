@@ -31,7 +31,7 @@ object RepositoryForm {
       )(ContactDescription.apply)(ContactDescription.unapply)),
       "description" -> mapping(
         "history" -> optional(text),
-        "geographicalContext" -> optional(text),
+        "geoculturalContext" -> optional(text),
         "mandates" -> optional(text),
         "administrativeStructure" -> optional(text),
         "policies" -> optional(text),

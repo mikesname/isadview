@@ -37,7 +37,13 @@ object Repository extends neo4j.DataSource[Repository] {
         contacts = Nil,
         description = RepositoryDetail(
           history = (data \ "data" \ "history").extractOpt[String],
-          geoculturalContext = (data \ "data" \ "geocultural_context").extractOpt[String]
+          geoculturalContext = (data \ "data" \ "geocultural_context").extractOpt[String],
+          mandates = (data \ "data" \ "mandates").extractOpt[String],
+          administrativeStructure = (data \ "data" \ "administrative_structure").extractOpt[String],
+          policies = (data \ "data" \ "policies").extractOpt[String],
+          buildings = (data \ "data" \ "buildings").extractOpt[String],
+          holdings = (data \ "data" \ "holdings").extractOpt[String],
+          findingAids = (data \ "data" \ "finding_aids").extractOpt[String]
         ),
         access = RepositoryAccess(
           openingTimes = (data \ "data" \ "opening_times").extractOpt[String],
@@ -119,6 +125,7 @@ object Repository extends neo4j.DataSource[Repository] {
       "outRels" -> List(Repository.HasAddress.indexName)
     )
     gremlin("query_exact_index_with_related", params).map(response => {
+      println("RESPONSE: " + response.body)
       val items = getJson(response).children
       items.headOption.map(apply(_)).map { repo =>
         items.tail.foldLeft(repo) { (r: Repository, json: net.liftweb.json.JsonAST.JValue) =>
@@ -153,6 +160,7 @@ case class Repository(
     // FIXME: Find a better way of determining if
     // a contact is 'empty' and should be deleted
     Repository.HasAddress.indexName -> description.contacts.filterNot(c => c.streetAddress.isEmpty && c.city.isEmpty).map { c =>
+      println("DUMPING : " + c.toMap)
       Map(
         "index_name" -> Contact.indexName,
         "data" -> c.toMap)
@@ -260,7 +268,7 @@ case class RepositoryAccess(
   val accessibility: Option[String] = None
 ) {
   def toMap = Map(
-    "openingTimes" -> openingTimes,
+    "opening_times" -> openingTimes,
     "conditions" -> conditions,
     "accessibility" -> accessibility
   )

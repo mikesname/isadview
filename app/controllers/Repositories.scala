@@ -22,7 +22,7 @@ object Repositories extends AuthController with ControllerHelpers {
   def detail(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
       Repository.fetchBySlug(slug).flatMap { repo =>
-        Contact.findRelatedTo(repo, Contact.Direction.Out, Repository.HasAddress).map { contacts => 
+        Contact.findRelatedTo(repo, Contact.Direction.In, Repository.HasAddress).map { contacts => 
           Ok(views.html.repository.detail(repo=repo, repo.description.withContacts(contacts)))
         }
       }
@@ -57,10 +57,12 @@ object Repositories extends AuthController with ControllerHelpers {
 
   def update(slug: String) = optionalUserProfileAction { implicit maybeUser => implicit request =>
     Async {
-      Repository.fetchBySlug(slug).map { repository =>
-        val form = RepositoryForm.form.fill(repository.description)
-        val action = routes.Repositories.updatePost(slug)
-        Ok(views.html.repository.form(f=form, action=action, r=Some(repository)))
+      Repository.fetchBySlug(slug).flatMap { repository =>
+        Contact.findRelatedTo(repository, Contact.Direction.In, Repository.HasAddress).map { contacts =>
+          val form = RepositoryForm.form.fill(repository.description.withContacts(contacts))
+          val action = routes.Repositories.updatePost(slug)
+          Ok(views.html.repository.form(f=form, action=action, r=Some(repository)))
+        }
       }
     }
   }

@@ -5,3 +5,10 @@ target
 tmp
 .history
 dist
+isadview.sublime-workspace
+*.tar.gz
+*.geoff
+*.json
+.settings
+.classpath
+.project
