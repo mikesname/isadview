@@ -1,0 +1,21 @@
+{
+	"folders":
+	[
+		{
+			"path": "/home/michaelb/dev/play/isadview",
+            "file_exclude_patterns": [
+                ".*",
+                "*.tar.gz",
+                "*.geoff"
+            ],
+            "folder_exclude_patterns": [
+                "target*",
+                "lib",
+                "logs",
+                "isadview-solr-3.6.1",
+                "neo4j-community-1.8-SNAPSHOT-isadview",
+                ".settings"
+            ]
+		}
+	]
+}
