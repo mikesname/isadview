@@ -23,9 +23,9 @@ object SearchField extends Enumeration("all", "name", "creator") {
   val all, title, creator, start_date = Value
 }
 
-object SearchOrder extends Enumeration("Relevance", "Publication Date", "Title") {
+object SearchOrder extends Enumeration("Relevance", "Title", "Publication Date (Newest first)", "Publication Date (Oldest first)") {
   type Order = Value
-  val relevance, date, title = Value
+  val relevance, title , dateNewest, dateOldest = Value
 }
 
 object SearchType extends Enumeration("search", "collection", "authority", "repository") {
@@ -123,7 +123,8 @@ object SolrHelper {
       case SearchOrder.relevance => // This is the default!
       // TODO: Define these options more succinctly
       case SearchOrder.title => req.setSort(Sort("title asc"))
-      case SearchOrder.date => req.setSort(Sort("publication_date desc"))
+      case SearchOrder.dateNewest => req.setSort(Sort("publication_date desc"))
+      case SearchOrder.dateOldest => req.setSort(Sort("publication_date asc"))
       case _ => req.setSort(Sort("%s asc".format(orderBy)))
     }
 
